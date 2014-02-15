@@ -215,14 +215,8 @@
     <ClInclude Include="DxUtFPCamera.h">
       <Filter>Header Files\Camera</Filter>
     </ClInclude>
-    <ClInclude Include="DxUtHashTable.h">
-      <Filter>Header Files\Util</Filter>
-    </ClInclude>
     <ClInclude Include="DxUtInclude.h">
       <Filter>Header Files\Globals</Filter>
-    </ClInclude>
-    <ClInclude Include="DxUtInfiniteGrid.h">
-      <Filter>Header Files\Util</Filter>
     </ClInclude>
     <ClInclude Include="DxUtInterpolater.h">
       <Filter>Header Files\Math</Filter>
@@ -235,9 +229,6 @@
     </ClInclude>
     <ClInclude Include="DxUtLight.h">
       <Filter>Header Files\Shader</Filter>
-    </ClInclude>
-    <ClInclude Include="DxUtList.h">
-      <Filter>Header Files\Util</Filter>
     </ClInclude>
     <ClInclude Include="DxUtMaterial.h">
       <Filter>Header Files\Shader</Filter>

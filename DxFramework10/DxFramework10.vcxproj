@@ -58,13 +58,10 @@
     <ClInclude Include="DxUtFFT.h" />
     <ClInclude Include="DxUtFinitePointGrid.h" />
     <ClInclude Include="DxUtFPCamera.h" />
-    <ClInclude Include="DxUtHashTable.h" />
     <ClInclude Include="DxUtInclude.h" />
-    <ClInclude Include="DxUtInfiniteGrid.h" />
     <ClInclude Include="DxUtInterpolater.h" />
     <ClInclude Include="DxUtLevelSet.h" />
     <ClInclude Include="DxUtLight.h" />
-    <ClInclude Include="DxUtList.h" />
     <ClInclude Include="DxUtMaterial.h" />
     <ClInclude Include="DxUtMatrix.h" />
     <ClInclude Include="DxUtMesh.h" />
