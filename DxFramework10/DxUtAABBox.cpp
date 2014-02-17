@@ -16,33 +16,33 @@ CAABBox::CAABBox(Vector3F & minP, Vector3F & maxP): m_MinPL(minP), m_MaxPL(maxP)
 {
 }
 
-void ExtractVerticesFromMesh(ID3DX10Mesh * pMesh, Vector3F * rgVert, DWORD dwStride);
+void ExtractVerticesFromMesh(ID3DX10Mesh * pMesh, Vector3F * verts, DWORD dwStride);
 
 
 void CAABBox::ComputeAABBox(ID3DX10Mesh * pMesh, DWORD dwStride)
 {
 	UINT nVert = pMesh->GetVertexCount();
-	Vector3F * rgVert = new Vector3F[nVert];
-	ExtractVerticesFromMesh(pMesh, rgVert, dwStride);
+	Vector3F * verts = new Vector3F[nVert];
+	ExtractVerticesFromMesh(pMesh, verts, dwStride);
 
-	ComputeAABBox(rgVert, nVert);
-	delete[] rgVert;
+	ComputeAABBox(verts, nVert);
+	delete[] verts;
 }
 
-void CAABBox::ComputeAABBox(Vector3F * rgVert, DWORD nVert)
+void CAABBox::ComputeAABBox(Vector3F * verts, DWORD nVert)
 {
 	DWORD minX=0, maxX=0, minY=0, maxY=0, minZ=0, maxZ=0;
 	for (DWORD i=1; i<nVert; i++) {
-		if (rgVert[i].x < rgVert[minX].x) minX = i;
-		if (rgVert[i].x > rgVert[maxX].x) maxX = i;
-		if (rgVert[i].y < rgVert[minY].y) minY = i;
-		if (rgVert[i].y > rgVert[maxY].y) maxY = i;
-		if (rgVert[i].z < rgVert[minZ].z) minZ = i;
-		if (rgVert[i].z > rgVert[maxZ].z) maxZ = i;
+		if (verts[i].x < verts[minX].x) minX = i;
+		if (verts[i].x > verts[maxX].x) maxX = i;
+		if (verts[i].y < verts[minY].y) minY = i;
+		if (verts[i].y > verts[maxY].y) maxY = i;
+		if (verts[i].z < verts[minZ].z) minZ = i;
+		if (verts[i].z > verts[maxZ].z) maxZ = i;
 	}
 
-	m_MinPL = Vector3F(rgVert[minX].x, rgVert[minY].y, rgVert[minZ].z);
-	m_MaxPL = Vector3F(rgVert[maxX].x, rgVert[maxY].y, rgVert[maxZ].z);
+	m_MinPL = Vector3F(verts[minX].x, verts[minY].y, verts[minZ].z);
+	m_MaxPL = Vector3F(verts[maxX].x, verts[maxY].y, verts[maxZ].z);
 
 	m_MinPW = m_MinPL;
 	m_MaxPW = m_MaxPL;
@@ -118,9 +118,9 @@ void CAABBox::TransformAABBoxW(Matrix4x4F & T)
 	m_MaxPW = T*m_MaxPL;
 }
 
-void CAABBox::TransformAABBoxW(Vector3F & trans, Matrix4x4F & rot, float fScale)
+void CAABBox::TransformAABBoxW(Vector3F & trans, Matrix4x4F & rot, float scale)
 {
-	Vector3F points[2] = {Vector3F(fScale*(rot*m_MinPL) + trans), Vector3F(fScale*(rot*m_MaxPL) + trans) };
+	Vector3F points[2] = {Vector3F(scale*(rot*m_MinPL) + trans), Vector3F(scale*(rot*m_MaxPL) + trans) };
 	
 	DWORD minX=0, maxX=0, minY=0, maxY=0, minZ=0, maxZ=0;
 	for (DWORD i=1; i<2; i++) {

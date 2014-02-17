@@ -3,9 +3,12 @@
 #define DXUTD3DAPP_H
 
 #include "DxUtInclude.h"
-#include "DxUtEffectPool.h"
 
 namespace DxUt {
+
+class CEffectPool;
+class CMeshPool;
+class CCollisionGraphics;
 
 class CD3DApp {
 private:
@@ -27,6 +30,9 @@ private:
 
 	/* Pools initialization */
 	CEffectPool * m_pEffectPool;
+	CMeshPool * m_pMeshPool;
+
+	CCollisionGraphics * m_pCollisionGraphics;
 
 	/* Consle initialization */
 	HANDLE m_hConsleOutput;
@@ -51,22 +57,38 @@ public:
 	BOOL IsFullscreen() {return m_bFullscreen; }
 	void ToggleFullscreen(BOOL f) {m_bFullscreen = f; }
 
-	void Print(float flt) {
+	void Print(float val, char * str="\n") {
 		char buf[256]; 
-		sprintf(buf, "%f\n", flt); Print(buf); 
+		sprintf(buf, "%f%s", val, str); Print(buf); 
 	}
-	void Print(int iNum) {
+	void Print(double val, char * str="\n") {
 		char buf[256]; 
-		sprintf(buf, "%i\n", iNum); Print(buf); 
+		sprintf(buf, "%d%s", val, str); Print(buf); 
 	}
-	void Print(DWORD dwNum) {
+	void Print(int val, char * str="\n") {
 		char buf[256]; 
-		sprintf(buf, "%u\n", (int)dwNum); Print(buf); 
+		sprintf(buf, "%i%s", val, str); Print(buf); 
 	}
-	void Print(char * szStr) {
+	void Print(UINT val, char * str="\n") {
+		char buf[256]; 
+		sprintf(buf, "%u%s", val, str); Print(buf); 
+	}
+	void Print(DWORD val, char * str="\n") {
+		char buf[256]; 
+		sprintf(buf, "%u%s", val, str); Print(buf); 
+	}
+	void Print(char * str) {
 		DWORD written; 
-		WriteConsoleA(m_hConsleOutput, szStr, strlen(szStr), &written, 0); 
+		WriteConsoleA(m_hConsleOutput, str, strlen(str), &written, 0); 
 	}
+	
+	/* Misc utility functions */
+
+	//Reset the window render target and depth stencil to the global ones
+	void ResetRenderTargetAndView();
+
+	void ExtractPixelsFromImageFile(CHAR * szImageFile, void ** ppData,
+		DWORD dwStride, DWORD * pdwImageWidth=0, DWORD * pdwImageHeight=0);
 
 	void DestroyD3DApp();
 };

@@ -9,10 +9,6 @@
 
 namespace DxUt {
 
-struct __Plane {
-	Vector3F n, p;
-};
-
 class COBBox {
 public:
 	//The OBB may be computed by finding the covariance matrix of the vertices (CVVertices)
@@ -37,7 +33,7 @@ protected:
 		Vector2F & bT0, Vector2F & bT1, Vector2F & bT2, Vector2F & bT3,
 		Vector3F & b0, Vector3F & b1, Vector3F & b2, Vector3F & b3,  
 		//Vector3F & offset, Vector3F * invRot, Vector3F & invTrans,
-		Vector3F & contactNormal, std::vector<SContactPoint> & rgCP);*/
+		Vector3F & contactNormal, std::vector<SContactPoint> & CPs);*/
 public:
 	COBBox();
 	//~COBBox() {}
@@ -45,22 +41,22 @@ public:
 	//pMesh must have adjancey
 	void ComputeOBB(ID3DX10Mesh * pMesh, DWORD dwStride, OBBComputeMethod method);
 
-	//rgVert must be a triangle list 
-	void ComputeOBB(Vector3F * rgVert, DWORD nVert, OBBComputeMethod method);
+	//verts must be a triangle list 
+	void ComputeOBB(Vector3F * verts, DWORD nVert, OBBComputeMethod method);
 
 	BOOL PointInOBBW(Vector3F & pt);
 	BOOL OBBoxIntersectW(COBBox & oBB);
-	BOOL OBBoxIntersectW(COBBox & oBB, std::vector<SContactPoint> & rgCPs);  
+	//BOOL OBBoxIntersectW(COBBox & oBB, std::vector<SContactPoint> & rgCPs);  
 	//Rotation, Translation, Scaling of oBB must be expressed relative to the function caller's OBB frame
-	BOOL OBBoxIntersectW(COBBox & oBB, Matrix4x4F & rot, Vector3F & trans, FLOAT fScl);
+	BOOL OBBoxIntersectW(COBBox & oBB, Matrix4x4F & rot, Vector3F & trans, float scl);
 	BOOL OBBoxIntersectRelativeW(SRay & rayRelative, bool bSegment=0, SRayIntersectData * pInter0=0, SRayIntersectData * pInter1=0);
 
 	//TransformOBB is done as follows:
 	//m_CenterW = center,
 	//m_RotVecW[i] = rot*m_RotVecW[i],
-	//m_HalfWidthsW -= fScl*m_HalfWidthsW
+	//m_HalfWidthsW -= scl*m_HalfWidthsW
 	//The transformation is clearly from world space to world space
-	void TransformOBBW(Vector3F & center, Matrix4x4F & rot, FLOAT fScl);
+	void TransformOBBW(Vector3F & center, Matrix4x4F & rot, float scl);
 	void TransformOBBW(Matrix4x4F & rT);
 
 	float VolumeW();
@@ -103,14 +99,14 @@ inline float COBBox::SurfaceAreaW()
 		m_HalfWidthsW.x*m_HalfWidthsW.z);
 }
 
-inline void COBBox::TransformOBBW(Vector3F & center, Matrix4x4F & rot, FLOAT fScl)
+inline void COBBox::TransformOBBW(Vector3F & center, Matrix4x4F & rot, float scl)
 {
 	m_CenterW = m_CenterL.MulNormal(rot, m_CenterL) + center;
 	m_RotVecW[0] = m_RotVecL[0].MulNormal(rot, m_RotVecL[0]);
 	m_RotVecW[1] = m_RotVecL[1].MulNormal(rot, m_RotVecL[1]);
 	m_RotVecW[2] = m_RotVecL[2].MulNormal(rot, m_RotVecL[2]);
 
-	m_HalfWidthsW = fScl*m_HalfWidthsL;
+	m_HalfWidthsW = scl*m_HalfWidthsL;
 }
 
 inline void COBBox::TransformOBBW(Matrix4x4F & rT)

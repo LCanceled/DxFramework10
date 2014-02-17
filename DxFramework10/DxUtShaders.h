@@ -4,8 +4,6 @@
 
 #include "DxUtInclude.h"
 #include "DxUtEffect.h"
-#include "DxUtMaterial.h"
-#include "DxUtLight.h"
 
 namespace DxUt {
 

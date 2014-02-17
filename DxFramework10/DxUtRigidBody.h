@@ -37,19 +37,19 @@ protected:
 	Matrix4x4F m_IBody,	m_InvIBody;
 	Matrix4x4F m_I,		m_InvI;
 
-	FLOAT m_InvMass,		m_Density;
-	FLOAT m_fElasticity,	m_fMu;
+	float m_InvMass,		m_Density;
+	float m_Elasticity,	m_Mu;
 
 	Vector3F m_Force;
 	Vector3F m_Torque;
 
 	CLevelSet * m_pLevelSet;
-	FLOAT m_fScale;
+	float m_Scale;
 
 	GeometryType m_RBType;
 
 	/* Drawable mesh */
-	CMesh * m_Mesh;
+	CMesh * m_pMesh;
 	SMaterial * m_pOverrideMaterial;
 
 	bool m_bNotStatic;
@@ -59,9 +59,6 @@ protected:
 
 	Vector3F ComputeLinVel(Vector3F & impulse);
 	Vector3F ComputeAngVel(Vector3F & impulse, Vector3F & iPos);
-	Matrix4x4F GetPart1(Vector3F & iPos, Matrix4x4F & r);
-	Matrix4x4F GetPart2(Vector3F & iPos);
-	Vector3F GetPart3(Vector3F & gAcel, Vector3F & iPos, float dt);
 	float GetbVector(float * J, Vector3F & gAcel, Vector3F iPos, float dt);
 
 	Vector3F GetImpulseCoefficient(Vector3F & jthCt, Vector3F & ithCt, Vector3F & iNor);
@@ -74,19 +71,18 @@ public:
 	//~CRigidBody() {}
 
 	/* Mass < 0 represents an infinitely heavy object */
-	void CreateRigidBody(CMesh * pMesh, DWORD dwStride, FLOAT fScale, FLOAT fMass, Vector3F & gravity, float fTimeStepSize, float fMaxVel,
-		char * szLevelSet, DWORD dwTriPerOct, bool bUseHierarchicalLevelSet, GeometryType type=GT_TRIANGLE_MESH, SMaterial * pOverrideMaterial=NULL);
-	void CreateRigidBody(STriangleF * rgTri, DWORD nTri, DWORD * rgAdj, FLOAT fScale, FLOAT fMass, Vector3F & gravity, float fTimeStepSize, float fMaxVel,
+	void CreateRigidBody(CMesh * pMesh, DWORD dwStride, float scale, float mass, Vector3F & gravity, float timeStepSize, float maxVel,
 		char * szLevelSet, DWORD dwTriPerOct, bool bUseHierarchicalLevelSet, GeometryType type=GT_TRIANGLE_MESH, SMaterial * pOverrideMaterial=NULL);
 
-	void IntegratePos(FLOAT dt);
-	void IntegrateVel(FLOAT dt, Vector3F & gAcel);
+	void IntegratePos(float dt);
+	void IntegrateVel(float dt, Vector3F & gAcel);
 
 	/* Returns -1 on no collision; otherwise, return is the number of contact points */
-	DWORD DetermineCollision(CRigidBody * pRB, CArray<SContactPoint> * rgCP);
+	DWORD DetermineCollision(CRigidBody * pRB, CArray<SContactPoint> * CPs);
+	/* Must be called before determing a collision */
 	void TransformLevelSet() {m_pLevelSet->SetTransform(m_Rot, m_Pos); }
-	DWORD DetermineCollisionLevelSet(CRigidBody * pRB, CArray<SContactPoint> * rgCP);
-	DWORD DetermineCollisionConvexPolyhedron(CRigidBody * pRB, CArray<SContactPoint> * rgCP);
+	DWORD DetermineCollisionLevelSet(CRigidBody * pRB, CArray<SContactPoint> * CPs);
+	//DWORD DetermineCollisionConvexPolyhedron(CRigidBody * pRB, CArray<SContactPoint> * CPs);
 	/* Returns the number of contact points held in the array of them rgCPs */
 	//DWORD GetContactPoints(SRBContact * rgCPs) {rgCPs = m_rgCPs.data(); return m_rgCPs.size(); }
 	/* Sets this body's array of contact points to contain none */
@@ -113,7 +109,7 @@ public:
 	Matrix4x4F GetWorldMatrix() {
 		Matrix4x4F m(m_Rot);
 		m.m[0][3] = m_Pos.x, m.m[1][3] = m_Pos.y, m.m[2][3] = m_Pos.z;
-		m.m[0][0] *= m_fScale, m.m[1][1] *= m_fScale, m.m[2][2] *= m_fScale;
+		m.m[0][0] *= m_Scale, m.m[1][1] *= m_Scale, m.m[2][2] *= m_Scale;
 		return m;
 	}
 	const Matrix4x4F & GetIBody() const {return m_IBody; }
@@ -123,27 +119,27 @@ public:
 	Vector3F & GetForce() {return m_Force;}
 	Vector3F & GetTorque() {return m_Torque;}
 
-	FLOAT & GetMass() {return m_InvMass;}
-	FLOAT & GetElasticity() {return m_fElasticity;}
-	FLOAT & GetFriction() {return m_fMu;}
-	FLOAT & GetScale() {return m_fScale;}
+	float & GetMass() {return m_InvMass;}
+	float & GetElasticity() {return m_Elasticity;}
+	float & GetFriction() {return m_Mu;}
+	float & GetScale() {return m_Scale;}
 
 	CLevelSet * GetLevelSet() {return m_pLevelSet; }
 
 	bool IsStatic() {return m_InvMass == 0; }
 
-	CMesh * GetMesh() {return m_Mesh; }
+	CMesh * GetMesh() {return m_pMesh; }
 	SMaterial * GetOverrideMaterial() {return m_pOverrideMaterial; }
 
 	void DestroyRigidBody();
 };
 	
-void ComputeVolume(STriangleF * rgTri, DWORD nTri, double & dVol);
+void ComputeVolume(STriangleF * tris, DWORD nTri, double & vol);
 //The vertices must be in a triangle list order
-void ComputeVolume(Vector3F * rgVert, DWORD nVert, double & dVol);
+void ComputeVolume(Vector3F * verts, DWORD nVert, double & vol);
 
-void ComputeInertiaTensor(STriangleF * rgTri, DWORD nTri, double fMass, Matrix4x4F & I, Vector3F & cm, double & dDensity);
-void ComputeInertiaTensor(Vector3F * rgVert, DWORD nVert, double fMass, Matrix4x4F & I, Vector3F & cm, double & dDensity);
+void ComputeInertiaTensor(STriangleF * tris, DWORD nTri, double mass, Matrix4x4F & I, Vector3F & cm, double & density);
+void ComputeInertiaTensor(Vector3F * verts, DWORD nVert, double mass, Matrix4x4F & I, Vector3F & cm, double & density);
 
 
 };

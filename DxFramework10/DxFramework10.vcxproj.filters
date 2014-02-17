@@ -43,9 +43,6 @@
     <Filter Include="Header Files\Mesh">
       <UniqueIdentifier>{8d68b76d-5ea8-4fc4-b74b-2bcfb35b351f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\PRR">
-      <UniqueIdentifier>{80aa814a-ea8a-4211-b77c-384c75ae34b4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Collisions">
       <UniqueIdentifier>{a2586c23-b5ad-425e-825b-6340081bdd81}</UniqueIdentifier>
     </Filter>
@@ -67,9 +64,6 @@
     <Filter Include="Source Files\Mesh">
       <UniqueIdentifier>{749434b1-00a9-477f-b68e-51055c950604}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\PRR">
-      <UniqueIdentifier>{fa7df5c3-196a-4ccf-b4de-e6411f81c0d5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Physics">
       <UniqueIdentifier>{370e6ef4-8806-4661-ba69-33df0aecbe53}</UniqueIdentifier>
     </Filter>
@@ -79,14 +73,14 @@
     <Filter Include="Source Files\Util">
       <UniqueIdentifier>{860fe88c-a4e5-4bff-bdf1-aebf218216aa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\RayTracing">
+      <UniqueIdentifier>{80aa814a-ea8a-4211-b77c-384c75ae34b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\RayTracing">
+      <UniqueIdentifier>{fa7df5c3-196a-4ccf-b4de-e6411f81c0d5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AlternateFFT.cpp">
-      <Filter>Source Files\Math</Filter>
-    </ClCompile>
-    <ClCompile Include="DxUClouds.cpp">
-      <Filter>Source Files\Misc</Filter>
-    </ClCompile>
     <ClCompile Include="DxUtAABBox.cpp">
       <Filter>Source Files\Collisions</Filter>
     </ClCompile>
@@ -147,9 +141,6 @@
     <ClCompile Include="DxUtRandomNumber.cpp">
       <Filter>Source Files\Math</Filter>
     </ClCompile>
-    <ClCompile Include="DxUtRayTracer.cpp">
-      <Filter>Source Files\PRR</Filter>
-    </ClCompile>
     <ClCompile Include="DxUtRigidBody.cpp">
       <Filter>Source Files\Physics</Filter>
     </ClCompile>
@@ -168,17 +159,14 @@
     <ClCompile Include="TriTriTest.cpp">
       <Filter>Source Files\Math</Filter>
     </ClCompile>
-    <ClCompile Include="DxUtHierarchicalLevelset.cpp">
-      <Filter>Source Files\Collisions</Filter>
+    <ClCompile Include="DxUtResourcePool.cpp">
+      <Filter>Source Files\Misc</Filter>
+    </ClCompile>
+    <ClCompile Include="DxUtMeshPool.cpp">
+      <Filter>Source Files\Mesh</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AlternateFFT.h">
-      <Filter>Header Files\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="DxUClouds.h">
-      <Filter>Header Files\Misc</Filter>
-    </ClInclude>
     <ClInclude Include="DxUtAABBox.h">
       <Filter>Header Files\Collisions</Filter>
     </ClInclude>
@@ -242,13 +230,7 @@
     <ClInclude Include="DxUtMeshPNT.h">
       <Filter>Header Files\Mesh</Filter>
     </ClInclude>
-    <ClInclude Include="DxUtMeshTypes.h">
-      <Filter>Header Files\Mesh</Filter>
-    </ClInclude>
     <ClInclude Include="DxUtOBBox.h">
-      <Filter>Header Files\Collisions</Filter>
-    </ClInclude>
-    <ClInclude Include="DxUtPlane.h">
       <Filter>Header Files\Collisions</Filter>
     </ClInclude>
     <ClInclude Include="DxUtPolygon.h">
@@ -259,9 +241,6 @@
     </ClInclude>
     <ClInclude Include="DxUtRay.h">
       <Filter>Header Files\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="DxUtRayTracer.h">
-      <Filter>Header Files\PRR</Filter>
     </ClInclude>
     <ClInclude Include="DxUtRigidBody.h">
       <Filter>Header Files\Physics</Filter>
@@ -281,14 +260,17 @@
     <ClInclude Include="TriTriTest.h">
       <Filter>Header Files\Math</Filter>
     </ClInclude>
-    <ClInclude Include="DxUtUniformGrid.h">
-      <Filter>Header Files\Collisions</Filter>
-    </ClInclude>
     <ClInclude Include="DxUtVertex.h">
       <Filter>Header Files\Mesh</Filter>
     </ClInclude>
-    <ClInclude Include="DxUtHierarchicalLevelset.h">
-      <Filter>Header Files\Collisions</Filter>
+    <ClInclude Include="DxUtResourcePool.h">
+      <Filter>Header Files\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="DxUtPlane.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="DxUtMeshPool.h">
+      <Filter>Header Files\Mesh</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

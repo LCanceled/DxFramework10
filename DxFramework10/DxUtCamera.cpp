@@ -6,7 +6,7 @@
 namespace DxUt {
 
 CCamera::CCamera():m_RightVec(0, 0, 1.f), m_UpVec(0, 1.f, 0), 
-	m_ForwardVec(1.f, 0, 0), m_fAlpha(0), m_fPhi(0), m_fTheta(0)
+	m_ForwardVec(1.f, 0, 0), m_Alpha(0), m_Phi(0), m_Theta(0)
 {
 	m_View.MIdenity();
 	m_Proj.MIdenity();
@@ -15,25 +15,25 @@ CCamera::CCamera():m_RightVec(0, 0, 1.f), m_UpVec(0, 1.f, 0),
 	SetDefaultMouse();
 }
 
-void CCamera::CreateCameraLH(float fFov, UINT uiWidth, UINT uiHeight, float fNearField, float fFarField)
+void CCamera::CreateCameraLH(float fov, UINT uiWidth, UINT uiHeight, float nearField, float farField)
 {
-	m_fFov = fFov;
-	m_fWidth = (float)uiWidth;
-	m_fHeight = (float)uiHeight;
-	m_fAspect = m_fWidth/m_fHeight;
-	m_fNearField = fNearField;
-	m_fFarField = fFarField;
-	m_fAngleXZ = atan(tan(fFov/2.f)*m_fAspect);
-	m_fAngleYZ = fFov/2.f;
-	m_fTanXZ = tanf(m_fAngleXZ);
-	m_fTanYZ = tanf(m_fAngleYZ);
-	m_fCosXZ = cosf(m_fAngleXZ);
-	m_fCosYZ = cosf(m_fAngleYZ);
+	m_Fov = fov;
+	m_Width = (float)uiWidth;
+	m_Height = (float)uiHeight;
+	m_Aspect = m_Width/m_Height;
+	m_NearField = nearField;
+	m_FarField = farField;
+	m_AngleXZ = atan(tan(fov/2.f)*m_Aspect);
+	m_AngleYZ = fov/2.f;
+	m_TanXZ = tanf(m_AngleXZ);
+	m_TanYZ = tanf(m_AngleYZ);
+	m_CosXZ = cosf(m_AngleXZ);
+	m_CosYZ = cosf(m_AngleYZ);
 
-	float yScl = cosf(fFov/2.f)/sinf(fFov/2.f);
-	float xScl = yScl/m_fAspect;
-	float zn = fNearField;
-	float zf = fFarField;
+	float yScl = cosf(fov/2.f)/sinf(fov/2.f);
+	float xScl = yScl/m_Aspect;
+	float zn = nearField;
+	float zf = farField;
 	m_Proj.m[0][0] = xScl,	m_Proj.m[1][0] = 0,		m_Proj.m[2][0] = 0,			 m_Proj.m[3][0] = 0;
 	m_Proj.m[0][1] = 0,		m_Proj.m[1][1] = yScl,	m_Proj.m[2][1] = 0,			 m_Proj.m[3][1] = 0;
 	m_Proj.m[0][2] = 0,		m_Proj.m[1][2] = 0,		m_Proj.m[2][2] = zf/(zf-zn), m_Proj.m[3][2] = -zn*zf/(zf-zn);
@@ -78,14 +78,14 @@ bool CCamera::InFrustum(Vector3F & point)
 	Vector3F vec = point - m_Pos;
 
 	float forward = DotXYZ(vec, m_ForwardVec);
-	if (forward <= m_fNearField || forward >= m_fFarField) return 0;
+	if (forward <= m_NearField || forward >= m_FarField) return 0;
 
 	float right = DotXYZ(vec, m_RightVec);
-	float rightLimit = forward*m_fTanXZ;
+	float rightLimit = forward*m_TanXZ;
 	if (right < (-rightLimit) || right > rightLimit) return 0;
 
 	float up = DotXYZ(vec, m_UpVec);
-	float upLimit = forward*m_fTanYZ;
+	float upLimit = forward*m_TanYZ;
 	if (up <= (-upLimit) || up >= upLimit) return 0;
 
 	return 1;
@@ -96,16 +96,16 @@ bool CCamera::InFrustum(CBSphere & bSph)
 	Vector3F vec = bSph.m_PosW - m_Pos;
 
 	float forward = DotXYZ(vec, m_ForwardVec);
-	if (forward <= (m_fNearField-bSph.m_RadiusW) || forward >= (m_fFarField+bSph.m_RadiusW)) return 0;
+	if (forward <= (m_NearField-bSph.m_RadiusW) || forward >= (m_FarField+bSph.m_RadiusW)) return 0;
 
 	float right = DotXYZ(vec, m_RightVec);
-	float rightLimit = forward*m_fTanXZ;
-	float incRadius = bSph.m_RadiusW/m_fCosXZ;
+	float rightLimit = forward*m_TanXZ;
+	float incRadius = bSph.m_RadiusW/m_CosXZ;
 	if (right < (-rightLimit-incRadius) || right > (rightLimit+incRadius)) return 0;
 
 	float up = DotXYZ(vec, m_UpVec);
-	float upLimit = forward*m_fTanYZ;
-	incRadius = bSph.m_RadiusW/m_fCosYZ;
+	float upLimit = forward*m_TanYZ;
+	incRadius = bSph.m_RadiusW/m_CosYZ;
 	if (up <= (-upLimit-incRadius) || up >= (upLimit+incRadius)) return 0;
 
 	return 1;
@@ -131,18 +131,18 @@ bool CCamera::InFrustum(CAABBox & aABBox)
 		point.z = corners[(i>>1)&1].z;
 
 		float forward = DotXYZ(point, m_ForwardVec);
-		outSide0 = (forward < m_fNearField), numOutOfNear += outSide0;		
-		outSide1 = (forward > m_fFarField), numOutOfFar += outSide1;
+		outSide0 = (forward < m_NearField), numOutOfNear += outSide0;		
+		outSide1 = (forward > m_FarField), numOutOfFar += outSide1;
 		isInFrontTest = (outSide0+outSide1) == 0;
 
 		float right = DotXYZ(point, m_RightVec);
-		outSide0 = (right < (-forward*m_fTanXZ)), numOutOfLeft += outSide0;
-		outSide1 = (right > (forward*m_fTanXZ)), numOutOfRight += outSide1;
+		outSide0 = (right < (-forward*m_TanXZ)), numOutOfLeft += outSide0;
+		outSide1 = (right > (forward*m_TanXZ)), numOutOfRight += outSide1;
 		isInRightTest = (outSide0+outSide1) == 0;
 		
 		float up = DotXYZ(point, m_UpVec);
-		outSide0 = (up < (-forward*m_fTanYZ)), numOutOfTop += outSide0;
-		outSide1 = (up > (forward*m_fTanYZ)), numOutOfBottom += outSide1;
+		outSide0 = (up < (-forward*m_TanYZ)), numOutOfTop += outSide0;
+		outSide1 = (up > (forward*m_TanYZ)), numOutOfBottom += outSide1;
 		isInUpTest = (outSide0+outSide1) == 0;
 
 		if (isInRightTest && isInFrontTest && isInUpTest) return 1;
@@ -168,8 +168,8 @@ void CCamera::GetFrustumRay(Vector2F & windowCoord, Vector3F & rayPos, Vector3F 
 {
 	rayPos = m_Pos;
 
-	rayVector.x = (2.f*windowCoord.x/m_fWidth - 1.f)/m_Proj.m[0][0];
-	rayVector.y = (-2.f*windowCoord.y/m_fHeight + 1.f)/m_Proj.m[1][1];
+	rayVector.x = (2.f*windowCoord.x/m_Width - 1.f)/m_Proj.m[0][0];
+	rayVector.y = (-2.f*windowCoord.y/m_Height + 1.f)/m_Proj.m[1][1];
 	rayVector.z = 1.f;
 
 	rayVector = rayVector*m_View;

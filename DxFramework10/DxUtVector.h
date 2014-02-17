@@ -37,17 +37,17 @@ public:
 
 	Vector2F operator+(Vector2F & v) {return Vector2F(x+v.x, y+v.y);}
 	Vector2F operator-(Vector2F & v) {return Vector2F(x-v.x, y-v.y);}
-	friend Vector2F operator*(FLOAT flt, Vector2F & v) {return Vector2F(v.x*flt, v.y*flt);}
-	//Vector2F operator*(FLOAT flt) {return Vector2F(x*flt, y*flt);}
+	friend Vector2F operator*(float flt, Vector2F & v) {return Vector2F(v.x*flt, v.y*flt);}
+	//Vector2F operator*(float flt) {return Vector2F(x*flt, y*flt);}
 	Vector2F operator*(Vector2F & v) {return Vector2F(x*v.x, y*v.y);}
 	Vector2F operator/(Vector2F & v) {return Vector2F(x/v.x, y/v.y);}
-	Vector2F operator/(FLOAT flt) {float d = 1.f/flt; return Vector2F(x*d, y*d);}
+	Vector2F operator/(float flt) {float d = 1.f/flt; return Vector2F(x*d, y*d);}
 
 	Vector2F & operator=(Vector2F & v) {x = v.x, y = v.y; return *this;}
 	Vector2F & operator+=(Vector2F & v) {x += v.x, y += v.y; return *this;}
 	Vector2F & operator-=(Vector2F & v) {x -= v.x, y -= v.y; return *this;}
-	Vector2F & operator*=(FLOAT flt) {x *= flt, y *= flt; return *this;}
-	Vector2F & operator/=(FLOAT flt) {float d = 1.f/flt; x *= d, y *= d; return *this;}
+	Vector2F & operator*=(float flt) {x *= flt, y *= flt; return *this;}
+	Vector2F & operator/=(float flt) {float d = 1.f/flt; x *= d, y *= d; return *this;}
 
 	//void operator()(float _x, float _y, float _z) {x = _x, y = _y;}
 	//void operator()(float * _c) {memcpy(c, _c, sizeof(float)*2);}
@@ -64,8 +64,8 @@ public:
 		return out;
 	}
 
-	FLOAT Length() {return sqrtf(x*x + y*y);}
-	FLOAT LengthSq() {return x*x + y*y;}
+	float Length() {return sqrtf(x*x + y*y);}
+	float LengthSq() {return x*x + y*y;}
 	Vector2F Normalize();
 };
 
@@ -98,21 +98,21 @@ public:
 	//Vector3F operator*(float flt) {return Vector3F(x*flt, y*flt, z*flt);}
 	Vector3F operator*(Vector3F & v) {return Vector3F(x*v.x, y*v.y, z*v.z);}
 	Vector3F operator/(Vector3F & v) {return Vector3F(x/v.x, y/v.y, z/v.z);}
-	Vector3F operator/(FLOAT flt) {float d = 1.f/flt; return Vector3F(x*d, y*d, z*d);}
+	Vector3F operator/(float flt) {float d = 1.f/flt; return Vector3F(x*d, y*d, z*d);}
 
 	Vector3F & operator=(Vector3F & v) {x = v.x, y = v.y, z = v.z; return *this;}
 	Vector3F & operator+=(Vector3F & v) {x += v.x, y += v.y, z += v.z; return *this;}
 	Vector3F & operator-=(Vector3F & v) {x -= v.x, y -= v.y, z -= v.z; return *this;}
-	Vector3F & operator*=(FLOAT flt) {x *= flt, y *= flt, z *= flt; return *this;}
-	Vector3F & operator/=(FLOAT flt) {float d = 1.f/flt; x *= d, y *= d, z *= d; return *this;}
+	Vector3F & operator*=(float flt) {x *= flt, y *= flt, z *= flt; return *this;}
+	Vector3F & operator/=(float flt) {float d = 1.f/flt; x *= d, y *= d, z *= d; return *this;}
 
 	//void operator()(float _x, float _y, float _z) {x = _x, y = _y, z = _z;}
 	//void operator()(float * _c) {memcpy(c, _c, sizeof(float)*3);}
 
 	//v1^v2 should always be enclosed in parentheses (v1^v2)
 	//Vector3F operator^(Vector3F & v) {return Vector3F(y*v.z - z*v.y, z*v.x - x*v.z, x*v.y - y*v.x);}
-	FLOAT Length() {return sqrtf(x*x + y*y + z*z);}
-	FLOAT LengthSq() {return x*x + y*y + z*z;}
+	float Length() {return sqrtf(x*x + y*y + z*z);}
+	float LengthSq() {return x*x + y*y + z*z;}
 
 	Vector3F Normalize();
 	//Vector3F NormalizeSq();
@@ -216,8 +216,8 @@ public:
 
 	//v1^v2 should always be enclosed in parentheses (v1^v2)
 	//Vector3D operator^(Vector3D & v) {return Vector3D(y*v.z - z*v.y, z*v.x - x*v.z, x*v.y - y*v.x);}
-	FLOAT Length() {return sqrtf(x*x + y*y + z*z);}
-	FLOAT LengthSq() {return x*x + y*y + z*z;}
+	float Length() {return sqrtf(x*x + y*y + z*z);}
+	float LengthSq() {return x*x + y*y + z*z;}
 
 	float operator[](int idx) {return c[idx];}
 };
@@ -246,17 +246,17 @@ public:
 
 	Vector4F operator+(Vector4F & v) {return Vector4F(x+v.x, y+v.y, z+v.z, w+v.w);}
 	Vector4F operator-(Vector4F & v) {return Vector4F(x-v.x, y-v.y, z-v.z, w-v.w);}
-	friend Vector4F operator*(FLOAT flt, Vector4F & v) {return Vector4F(v.x*flt, v.y*flt, v.z*flt, v.w*flt);}
-	//Vector4F operator*(FLOAT flt) {return Vector4F(x*flt, y*flt, z*flt, w*flt);}
+	friend Vector4F operator*(float flt, Vector4F & v) {return Vector4F(v.x*flt, v.y*flt, v.z*flt, v.w*flt);}
+	//Vector4F operator*(float flt) {return Vector4F(x*flt, y*flt, z*flt, w*flt);}
 	Vector4F operator*(Vector4F & v) {return Vector4F(x*v.x, y*v.y, z*v.z, w*v.w);}
 	Vector4F operator/(Vector4F & v) {return Vector4F(x/v.x, y/v.y, z/v.z, w/v.w);}
-	Vector4F operator/(FLOAT flt) {float d = 1.f/flt; return Vector4F(x*d, y*d, z*d, w*d);}
+	Vector4F operator/(float flt) {float d = 1.f/flt; return Vector4F(x*d, y*d, z*d, w*d);}
 
 	Vector4F & operator=(Vector4F & v) {x = v.x, y = v.y, z = v.z, w = v.w; return *this;}
 	Vector4F & operator+=(Vector4F & v) {x += v.x, y += v.y, z += v.z, w += v.w; return *this;}
 	Vector4F & operator-=(Vector4F & v) {x -= v.x, y -= v.y, z -= v.z, w -= v.w; return *this;}
-	Vector4F & operator*=(FLOAT flt) {x *= flt, y *= flt, z *= flt, w *= flt; return *this;}
-	Vector4F & operator/=(FLOAT flt) {float d = 1.f/flt; x *= d, y *= d, z *= d, w *= d; return *this;}
+	Vector4F & operator*=(float flt) {x *= flt, y *= flt, z *= flt, w *= flt; return *this;}
+	Vector4F & operator/=(float flt) {float d = 1.f/flt; x *= d, y *= d, z *= d, w *= d; return *this;}
 
 	//void operator()(float _x, float _y, float _z, float _w) {x = _x, y = _y, z = _z, w = _w;}
 	//void operator()(float * _c) {memcpy(c, _c, sizeof(float)*4);}
@@ -269,8 +269,8 @@ public:
 		return ((Vector4F)v1).LengthSq() < ((Vector4F)v2).LengthSq();
 	}
 
-	FLOAT Length() {return sqrtf(x*x + y*y + z*z + w*w);}
-	FLOAT LengthSq() {return x*x + y*y + z*z + w*w;}
+	float Length() {return sqrtf(x*x + y*y + z*z + w*w);}
+	float LengthSq() {return x*x + y*y + z*z + w*w;}
 
 	Vector4F Normalize();
 	friend Vector4F operator*(Matrix4x4F & A, Vector4F & v);
@@ -297,7 +297,7 @@ inline Vector4F operator*(Vector4F & v, Matrix4x4F & A)
 
 class VectorNF  {
 public:
-	FLOAT * c;
+	float * c;
 private:
 	DWORD m_nElements;
 public:
@@ -310,12 +310,12 @@ public:
 	VectorNF & operator=(VectorNF & v);
 	VectorNF & operator+=(VectorNF & v);
 	VectorNF & operator-=(VectorNF & v);
-	friend VectorNF & operator*=(VectorNF & v, FLOAT flt);
-	VectorNF & operator/=(FLOAT flt);
+	friend VectorNF & operator*=(VectorNF & v, float flt);
+	VectorNF & operator/=(float flt);
 
 	void Set(float flt);
-	FLOAT Length();
-	FLOAT LengthSq();
+	float Length();
+	float LengthSq();
 
 	void DestroyVector();
 };
@@ -324,7 +324,7 @@ inline VectorNF & VectorNF::operator=(VectorNF & v)
 {
 	Assert(m_nElements == v.m_nElements, "VectorNF::operator= can not have vectors of different sizes.");
 
-	memcpy(this->c, v.c, sizeof(FLOAT)*m_nElements);
+	memcpy(this->c, v.c, sizeof(float)*m_nElements);
 	return *this;
 }
 
@@ -346,17 +346,17 @@ inline VectorNF & VectorNF::operator-=(VectorNF & v)
 	return *this;
 }
 
-inline VectorNF & operator*=(VectorNF & v, FLOAT flt)
+inline VectorNF & operator*=(VectorNF & v, float flt)
 {
-	FLOAT * c = v.c;
+	float * c = v.c;
 	for (DWORD i=0, vSize = v.m_nElements; i<vSize; i++)
 		c[i] *= flt;
 	return v;
 }
 
-inline VectorNF & VectorNF::operator/=(FLOAT flt) 
+inline VectorNF & VectorNF::operator/=(float flt) 
 {
-	FLOAT mul = 1.f/flt;
+	float mul = 1.f/flt;
 	for (DWORD i=0; i<m_nElements; i++)
 		c[i] *= mul;
 	return *this;

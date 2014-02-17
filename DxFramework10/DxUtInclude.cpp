@@ -54,6 +54,7 @@ void DeInitializeDxFramework()
 {
 }*/
 
+/*
 //szDir and szFile in this order will be concatenated into szFileOut
 //szFileOut must be of length MAX_PATH
 void InsertDirectory(CHAR * szDir, CHAR * szFile, CHAR * szFileOut)
@@ -71,32 +72,14 @@ void InsertDirectoryEx(CHAR * szDir, CHAR * szFile, CHAR * szFileOut)
 	CHAR szFileCopy[MAX_PATH];
 	strcpy(szFileCopy, szFile);
 	if (szFile[0] == '/') {
-		if (sprintf_s(szFileOut, MAX_PATH, "%s%s", szDir, szFileCopy) == -1) {
-			DxUtSendError("InsertDirectoryEx could not insert the directory.");
-		}
+		strcpy(szFileOut, szFile+1);
 	}
 	else {
 		if (sprintf_s(szFileOut, MAX_PATH, "%s", szFileCopy) == -1) {
 			DxUtSendError("InsertDirectoryEx could not insert the directory.");
 		}
 	}
-}
-
-//Resets the render target and views to the global ones
-void ResetRenderTargetAndView()
-{
-	g_pD3DDevice->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
-
-	D3D10_VIEWPORT vp;
-	vp.TopLeftX = 0;
-	vp.TopLeftY = 0;
-	vp.Width    = g_uiWndWidth;
-	vp.Height   = g_uiWndHeight;
-	vp.MinDepth = 0.0f;
-	vp.MaxDepth = 1.0f;
-
-	g_pD3DDevice->RSSetViewports(1, &vp);
-}
+}*/
 
 void ChangeExtension(char * szStr, char * szExt, char * szNewStr)
 {

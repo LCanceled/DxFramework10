@@ -22,7 +22,7 @@ struct STriangleF {
 	STriangleF & Transform(Matrix4x4F & m);
 	STriangleF & operator=(STriangleF & tri); 
 
-	FLOAT Area() {
+	float Area() {
 		Vector3F v1(vPosW[1] - vPosW[0]);
 		Vector3F v2(vPosW[2] - vPosW[0]);
 		return .5f*Vector3F(CrossXYZ(v1, v2)).Length();

@@ -1,8 +1,8 @@
 
 #include "DxUtEffectPool.h"
 
-namespace DxUt {
+namespace DxUt{
 
-CArray<CEffectPool::SEffectElement, 8> CEffectPool::m_rgElement;
+std::unordered_map<std::string, CResourcePool<CEffect>::SResourceElement> CResourcePool<CEffect>::m_Elements;
 
 };

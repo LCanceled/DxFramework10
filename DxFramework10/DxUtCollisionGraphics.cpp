@@ -3,17 +3,25 @@
 
 namespace DxUt {
 
-static SLightDir g__Light = {
-	D3DXCOLOR(.5f, .5f, .5f, 1.f), 
-	D3DXCOLOR(.8f, .8f, .8f, 1.f), 
-	D3DXCOLOR(.6f, .6f, .6f, 1.f), 
-	DxUt::Vector3F(-.707f, -.707f, 0)
-};
+CMeshPNT CCollisionGraphics::m_Box;
+CMeshPNT CCollisionGraphics::m_Sphere;
+ID3D10Buffer * CCollisionGraphics::m_pTriVertex;
+
+CCamera * CCollisionGraphics::m_pCam;
+SLightDir CCollisionGraphics::m_Light;
+
+CCollisionGraphics::CCollisionGraphics()
+{
+	m_Light.amb = D3DXCOLOR(.5f, .5f, .5f, 1.f); 
+	m_Light.dif = D3DXCOLOR(.8f, .8f, .8f, 1.f); 
+	m_Light.spe = D3DXCOLOR(.6f, .6f, .6f, 1.f);
+	m_Light.vec = DxUt::Vector3F(-.707f, -.707f, 0);
+}
 
 void CCollisionGraphics::CreateGraphics()
 {
-	m_Box.LoadMeshFromFile("/Box.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	m_Sphere.LoadMeshFromFile("/Sphere.txt", D3DX10_MESH_32_BIT, Vector3F(.5f));
+	m_Box.LoadMeshFromFile("Box.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	m_Sphere.LoadMeshFromFile("Sphere.txt", D3DX10_MESH_32_BIT, Vector3F(.5f));
 
 	/* Create the triangle */
     D3D10_BUFFER_DESC bufferDesc;
@@ -23,14 +31,14 @@ void CCollisionGraphics::CreateGraphics()
     bufferDesc.CPUAccessFlags   = D3D10_CPU_ACCESS_WRITE;
     bufferDesc.MiscFlags        = 0;
 
-	SVertexPNT rgVert[] = {
+	SVertexPNT verts[] = {
 		SVertexPNT(0, 0, 0, 0, 0, -1.f, 0, 1),
 		SVertexPNT(20.f, 0, 0, 0, 0, -1.f, 1, 1),
 		SVertexPNT(0, 20.f, 0, 0, 0, -1.f, 0, 0),
 	};
 	
     D3D10_SUBRESOURCE_DATA InitData;
-    InitData.pSysMem = rgVert;
+    InitData.pSysMem = verts;
 	InitData.SysMemPitch = 0;
 	InitData.SysMemSlicePitch = 0;
     if (FAILED(g_pD3DDevice->CreateBuffer(&bufferDesc, &InitData, &m_pTriVertex))) {
@@ -40,25 +48,25 @@ void CCollisionGraphics::CreateGraphics()
 
 void CCollisionGraphics::SetupDraw()
 {
-	m_Box.SetupDraw(m_pCam, g__Light);
+	m_Box.SetupDraw(m_pCam, m_Light);
 }
 
-void CCollisionGraphics::DrawPoint(Vector3F & pos, float fSize, Vector3F & color)
+void CCollisionGraphics::DrawPoint(Vector3F & pos, float scale, Vector3F & color)
 {
-	DxUt::Matrix4x4F world, scale, trans;
-	scale.MScaling(Vector3F(fSize));	
+	DxUt::Matrix4x4F world, scaling, trans;
+	scaling.MScaling(Vector3F(scale));	
 	trans.MTranslation(pos);
-	world = (trans*scale);
+	world = (trans*scaling);
 	m_Box.DrawAllSubsets(m_pCam, world, 0);
 }
 
-void CCollisionGraphics::DrawPointArray(CArray<Vector3F> & rgPos, float fSize, Vector3F & color)
+void CCollisionGraphics::DrawPointArray(CArray<Vector3F> & positions, float scale, Vector3F & color)
 {
-	DxUt::Matrix4x4F world, scale, trans;
-	scale.MScaling(Vector3F(fSize));
+	DxUt::Matrix4x4F world, scaling, trans;
+	scaling.MScaling(Vector3F(scale));
 		
-	Vector3F * pPos = rgPos.GetData();
-	for (DWORD i=0, end=rgPos.GetSize(); i<end; i++) {
+	Vector3F * pPos = positions.GetData();
+	for (DWORD i=0, end=positions.GetSize(); i<end; i++) {
 		trans.MTranslation(pPos[i]);
 
 		world = (trans*scale);
@@ -66,22 +74,22 @@ void CCollisionGraphics::DrawPointArray(CArray<Vector3F> & rgPos, float fSize, V
 	}
 }
 
-void CCollisionGraphics::DrawNormal(Vector3F & pos, Vector3F & dir, float fCrossSection, float fLen, Vector3F & color)
+void CCollisionGraphics::DrawNormal(Vector3F & pos, Vector3F & dir, float crossSection, float len, Vector3F & color)
 {
 	DxUt::Matrix4x4F world, scale, trans, rot;
-	scale.MScaling(fCrossSection, fLen, fCrossSection);
+	scale.MScaling(crossSection, len, crossSection);
 		
 	Vector3F up(0, 1.f, 0);
 	Vector3F rotVec = -CrossXYZ(up, dir);
 	float angle = DotXYZ(up, dir);
 	rot.MRotationAxisLH(rotVec, acos(angle));
-	trans.MTranslation(pos + fLen * dir);
+	trans.MTranslation(pos + len * dir);
 	world = (trans*rot*scale);
 
 	m_Box.DrawAllSubsets(m_pCam, world, 0);
 }
 
-void CCollisionGraphics::DrawContactPoints(CArray<SContactPoint> * rgCP)
+void CCollisionGraphics::DrawContactPoints(CArray<SContactPoint> * CPs)
 {
 	float fHalfNormalLen = .5f * .4f;
 	DxUt::Matrix4x4F world, scale, trans, rot;
@@ -92,8 +100,8 @@ void CCollisionGraphics::DrawContactPoints(CArray<SContactPoint> * rgCP)
 	mat.spe = D3DXCOLOR(.2f, .2f, .2f, 1.f);
 	mat.pow = 20.f;
 	
-	SContactPoint * pCP = rgCP->GetData();
-	for (DWORD i=0, end=rgCP->GetSize(); i<end; i++) {
+	SContactPoint * pCP = CPs->GetData();
+	for (DWORD i=0, end=CPs->GetSize(); i<end; i++) {
 		
 		Vector3F up(0, 1.f, 0);
 		Vector3F dir = pCP[i].iNor;
@@ -145,7 +153,7 @@ void CCollisionGraphics::SetupTriangleDraw(Vector3F & color)
 
 	effect.eCamPos->SetRawValue(&m_pCam->GetPosition(), 0, sizeof(DxUt::Vector3F));
 	
-	effect.eLight->SetRawValue(&g__Light, 0, sizeof(DxUt::SLightDir));
+	effect.eLight->SetRawValue(&m_Light, 0, sizeof(DxUt::SLightDir));
 
 	effect.eTexture->SetResource(m_Box.GetSHView(0));
 
@@ -157,16 +165,16 @@ void CCollisionGraphics::SetupTriangleDraw(Vector3F & color)
 	effect.eMaterial->SetRawValue(&mat, 0, sizeof(SMaterial));
 }
 
-void CCollisionGraphics::DrawTriangle(Vector3F v1, Vector3F v2, Vector3F v3, Vector3F * color, float fScale)
+void CCollisionGraphics::DrawTriangle(Vector3F v1, Vector3F v2, Vector3F v3, Vector3F * color, float scale)
 {
 	Vector3F dir1(v2 - v1);
 	Vector3F dir2(v3 - v1);
 	Vector3F n(CrossXYZ(dir1, dir2).Normalize());
 	Vector3F ctd((v1+v2+v3)/3.f);
-	v1 = ctd + fScale*(v1 - ctd);
-	v2 = ctd + fScale*(v2 - ctd);
-	v3 = ctd + fScale*(v3 - ctd);
-	SVertexPNT rgVert[] = {
+	v1 = ctd + scale*(v1 - ctd);
+	v2 = ctd + scale*(v2 - ctd);
+	v3 = ctd + scale*(v3 - ctd);
+	SVertexPNT verts[] = {
 		SVertexPNT(v1.x, v1.y, v1.z, n.x, n.y, n.z, 0, 1),
 		SVertexPNT(v2.x, v2.y, v2.z, n.x, n.y, n.z, 1, 1),
 		SVertexPNT(v3.x, v3.y, v3.z, n.x, n.y, n.z, 0, 0),
@@ -174,7 +182,7 @@ void CCollisionGraphics::DrawTriangle(Vector3F v1, Vector3F v2, Vector3F v3, Vec
 	void * pData;
 	if (FAILED(m_pTriVertex->Map(D3D10_MAP_WRITE_DISCARD, 0, (void**)&pData)))
 		DebugBreak();
-	memcpy(pData, rgVert, sizeof(rgVert));
+	memcpy(pData, verts, sizeof(verts));
 	m_pTriVertex->Unmap();
 
 	CPNTPhongFx & effect = m_Box.GetEffect();

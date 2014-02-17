@@ -11,8 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AlternateFFT.cpp" />
-    <ClCompile Include="DxUClouds.cpp" />
     <ClCompile Include="DxUtAABBox.cpp" />
     <ClCompile Include="DxUtBSphere.cpp" />
     <ClCompile Include="DxUtBVTree.cpp" />
@@ -29,12 +27,12 @@
     <ClCompile Include="DxUtMatrix.cpp" />
     <ClCompile Include="DxUtMesh.cpp" />
     <ClCompile Include="DxUtMeshPNT.cpp" />
+    <ClCompile Include="DxUtMeshPool.cpp" />
     <ClCompile Include="DxUtMeshTypes.cpp" />
     <ClCompile Include="DxUtOBBox.cpp" />
-    <ClCompile Include="DxUtHierarchicalLevelset.cpp" />
     <ClCompile Include="DxUtPolygon.cpp" />
     <ClCompile Include="DxUtRandomNumber.cpp" />
-    <ClCompile Include="DxUtRayTracer.cpp" />
+    <ClCompile Include="DxUtResourcePool.cpp" />
     <ClCompile Include="DxUtRigidBody.cpp" />
     <ClCompile Include="DxUtRigidBodyWorld.cpp" />
     <ClCompile Include="DxUtTimer.cpp" />
@@ -43,8 +41,6 @@
     <ClCompile Include="TriTriTest.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AlternateFFT.h" />
-    <ClInclude Include="DxUClouds.h" />
     <ClInclude Include="DxUtAABBox.h" />
     <ClInclude Include="DxUtArray.h" />
     <ClInclude Include="DxUtBSphere.h" />
@@ -52,6 +48,7 @@
     <ClInclude Include="DxUtCamera.h" />
     <ClInclude Include="DxUtCollisionGraphics.h" />
     <ClInclude Include="DxUtD3DApp.h" />
+    <ClInclude Include="DxUtMeshPool.h" />
     <ClInclude Include="DxUtEffect.h" />
     <ClInclude Include="DxUtEffectPool.h" />
     <ClInclude Include="DxUtError.h" />
@@ -66,21 +63,18 @@
     <ClInclude Include="DxUtMatrix.h" />
     <ClInclude Include="DxUtMesh.h" />
     <ClInclude Include="DxUtMeshPNT.h" />
-    <ClInclude Include="DxUtMeshTypes.h" />
     <ClInclude Include="DxUtOBBox.h" />
-    <ClInclude Include="DxUtHierarchicalLevelset.h" />
     <ClInclude Include="DxUtPlane.h" />
     <ClInclude Include="DxUtPolygon.h" />
     <ClInclude Include="DxUtRandomNumber.h" />
     <ClInclude Include="DxUtRay.h" />
-    <ClInclude Include="DxUtRayTracer.h" />
     <ClInclude Include="DxUtRigidBody.h" />
     <ClInclude Include="DxUtRigidBodyWorld.h" />
     <ClInclude Include="DxUtTimer.h" />
     <ClInclude Include="DxUtTriangle.h" />
-    <ClInclude Include="DxUtUniformGrid.h" />
     <ClInclude Include="DxUtVector.h" />
     <ClInclude Include="DxUtVertex.h" />
+    <ClInclude Include="DxUtResourcePool.h" />
     <ClInclude Include="TriTriTest.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

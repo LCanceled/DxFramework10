@@ -12,35 +12,40 @@ namespace DxUt {
 
 class CCollisionGraphics {
 private:
-	CMeshPNT m_Box;
-	CMeshPNT m_Sphere;
-	ID3D10Buffer * m_pTriVertex;
+	friend class CD3DApp;
 
-	CCamera * m_pCam;
-public:
-	CCollisionGraphics() {}
+	static CMeshPNT m_Box;
+	static CMeshPNT m_Sphere;
+	static ID3D10Buffer * m_pTriVertex;
+
+	static CCamera * m_pCam;
+	
+	static SLightDir m_Light;
+
+	CCollisionGraphics();
 	//~CCollisionGraphics() {}
 
 	void CreateGraphics();
+public:
+	static void SetCamera(CCamera * pCam) {m_pCam = pCam; }
+	static void SetLight(SLightDir & light) {m_Light = light; }
 
-	void SetCamera(CCamera * pCam) {m_pCam = pCam; }
+	static void SetupDraw();
 
-	void SetupDraw();
+	static void DrawPoint(Vector3F & pos, float scale, Vector3F & color);
+	static void DrawPointArray(CArray<Vector3F> & positions, float scale, Vector3F & color);
 
-	void DrawPoint(Vector3F & pos, float fSize, Vector3F & color);
-	void DrawPointArray(CArray<Vector3F> & rgPos, float fSize, Vector3F & color);
+	static void DrawNormal(Vector3F & pos, Vector3F & dir, float crossSection, float len, Vector3F & color);
 
-	void DrawNormal(Vector3F & pos, Vector3F & dir, float fCrossSection, float fLen, Vector3F & color);
+	static void DrawContactPoints(CArray<SContactPoint> * CPs);
 
-	void DrawContactPoints(CArray<SContactPoint> * rgCP);
+	static void DrawBox(Vector3F & pos, Vector3F & halfWidths, Matrix4x4F & rot);
+	static void DrawBox(Matrix4x4F & rotTrans, Vector3F & halfWidths);
 
-	void DrawBox(Vector3F & pos, Vector3F & halfWidths, Matrix4x4F & rot);
-	void DrawBox(Matrix4x4F & rotTrans, Vector3F & halfWidths);
+	static void SetupTriangleDraw(Vector3F & color);
+	static void DrawTriangle(Vector3F v1, Vector3F v2, Vector3F v3, Vector3F * color=NULL, float scale = .9f);
 
-	void SetupTriangleDraw(Vector3F & color);
-	void DrawTriangle(Vector3F v1, Vector3F v2, Vector3F v3, Vector3F * color=NULL, float fScale = .9f);
-
-	void DestroyGraphics();
+	static void DestroyGraphics();
 };
 
 

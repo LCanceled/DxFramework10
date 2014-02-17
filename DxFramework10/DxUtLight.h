@@ -27,7 +27,7 @@ struct SLightSpot {
 	D3DXCOLOR spe;
 	Vector3F pos;
 	Vector3F vec;
-	FLOAT spotPow;
+	float spotPow;
 	Vector3F atten;
 };
 

@@ -5,85 +5,85 @@
 
 namespace DxUt {
 
-CBSphere::CBSphere():m_PosL(0, 0, 0), m_fRadiusL(1.f), m_PosW(0, 0, 0), m_fRadiusW(1.f)
+CBSphere::CBSphere():m_PosL(0, 0, 0), m_RadiusL(1.f), m_PosW(0, 0, 0), m_RadiusW(1.f)
 {
 }
 
-CBSphere::CBSphere(Vector3F & posL, float fRadiusL):
-	m_PosL(posL), m_fRadiusL(fRadiusL), m_PosW(posL), m_fRadiusW(fRadiusL)
+CBSphere::CBSphere(Vector3F & posL, float RadiusL):
+	m_PosL(posL), m_RadiusL(RadiusL), m_PosW(posL), m_RadiusW(RadiusL)
 {
 }
 
 void CBSphere::ComputeBSphere(ID3DX10Mesh * pMesh, DWORD dwStride)
 {
 	UINT nVert = pMesh->GetVertexCount();
-	Vector3F * rgVert = new Vector3F[nVert];
-	ExtractVerticesFromMesh(pMesh, rgVert, dwStride);
+	Vector3F * verts = new Vector3F[nVert];
+	ExtractVerticesFromMesh(pMesh, verts, dwStride);
 
-	ComputeBSphere(rgVert, nVert);
-	delete[] rgVert;
+	ComputeBSphere(verts, nVert);
+	delete[] verts;
 }
 
-void CBSphere::ComputeBSphere(Vector3F * rgVert, DWORD nVert)
+void CBSphere::ComputeBSphere(Vector3F * verts, DWORD nVert)
 {
 	//See Christer, Ericson, Real Time Collision Detection, page 89
 	DWORD minX=0, maxX=0, minY=0, maxY=0, minZ=0, maxZ=0;
 	for (DWORD i=1; i<nVert; i++) {
-		if (rgVert[i].x < rgVert[minX].x) minX = i;
-		if (rgVert[i].x > rgVert[maxX].x) maxX = i;
-		if (rgVert[i].y < rgVert[minY].y) minY = i;
-		if (rgVert[i].y > rgVert[maxY].y) maxY = i;
-		if (rgVert[i].z < rgVert[minZ].z) minZ = i;
-		if (rgVert[i].z > rgVert[maxZ].z) maxZ = i;
+		if (verts[i].x < verts[minX].x) minX = i;
+		if (verts[i].x > verts[maxX].x) maxX = i;
+		if (verts[i].y < verts[minY].y) minY = i;
+		if (verts[i].y > verts[maxY].y) maxY = i;
+		if (verts[i].z < verts[minZ].z) minZ = i;
+		if (verts[i].z > verts[maxZ].z) maxZ = i;
 	}
 
-	float dX = (rgVert[maxX] - rgVert[minX]).LengthSq();
-	float dY = (rgVert[maxY] - rgVert[minY]).LengthSq();
-	float dZ = (rgVert[maxZ] - rgVert[minZ]).LengthSq();
+	float dX = (verts[maxX] - verts[minX]).LengthSq();
+	float dY = (verts[maxY] - verts[minY]).LengthSq();
+	float dZ = (verts[maxZ] - verts[minZ]).LengthSq();
 
 	Vector3F minD, maxD;
 	if (dX > dY) {
 		if (dX > dZ) {
-			minD = rgVert[minX];
-			maxD = rgVert[maxX]; }
+			minD = verts[minX];
+			maxD = verts[maxX]; }
 		else {
-			minD = rgVert[minZ];
-			maxD = rgVert[maxZ]; }
+			minD = verts[minZ];
+			maxD = verts[maxZ]; }
 	} else if (dY > dZ){
-		minD = rgVert[minY];
-		maxD = rgVert[maxY]; }
+		minD = verts[minY];
+		maxD = verts[maxY]; }
 	else {
-		minD = rgVert[minZ];
-		maxD = rgVert[maxZ]; 
+		minD = verts[minZ];
+		maxD = verts[maxZ]; 
 	}
 
 	m_PosW = .5f*(minD + maxD);
-	m_fRadiusW = (m_PosW - maxD).Length();
+	m_RadiusW = (m_PosW - maxD).Length();
 	
 	float len = 0;
 	for (DWORD i=0; i<nVert; i++) {
-		Vector3F vec(rgVert[i] - m_PosW);
-		if ((len = vec.LengthSq()) > m_fRadiusW*m_fRadiusW) {
+		Vector3F vec(verts[i] - m_PosW);
+		if ((len = vec.LengthSq()) > m_RadiusW*m_RadiusW) {
 			float dist = (float)sqrt((double)len);
-			float newR = .5f*(m_fRadiusW + dist);
-			m_PosW += (newR - m_fRadiusW)*vec/dist;
-			m_fRadiusW = newR;
+			float newR = .5f*(m_RadiusW + dist);
+			m_PosW += (newR - m_RadiusW)*vec/dist;
+			m_RadiusW = newR;
 		}
 	}
 
 	m_PosL = m_PosW;
-	m_fRadiusL = m_fRadiusL;
+	m_RadiusL = m_RadiusL;
 }
 
 bool CBSphere::PointInBSphereW(Vector3F & pt)
 {
-	return ((pt-m_PosW).LengthSq() <= (m_fRadiusW*m_fRadiusW));
+	return ((pt-m_PosW).LengthSq() <= (m_RadiusW*m_RadiusW));
 }
 
 bool CBSphere::BSphereIntersectW(CBSphere & bSph)
 {
 	float d = (m_PosW - bSph.m_PosW).LengthSq();
-	float r = m_fRadiusW + bSph.m_fRadiusW;
+	float r = m_RadiusW + bSph.m_RadiusW;
 
 	return d <= r*r;
 }
@@ -107,7 +107,7 @@ bool CBSphere::AABBoxIntersectW(CAABBox & box)
 	else if (m_PosW.z < box.m_MinPW.z) {
 		m = box.m_MinPW.z - m_PosW.z; d += m*m; }
 
-	return (d <= m_fRadiusW*m_fRadiusW);
+	return (d <= m_RadiusW*m_RadiusW);
 }
 
 

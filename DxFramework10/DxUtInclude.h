@@ -56,13 +56,6 @@ inline void Swap(T & x, T & y)
 }
 #endif
 
-template <typename T>
-T * IncPointer(T * ptr, DWORD amount)
-{
-	return (T*)(((CHAR*)ptr)+amount);
-}
-
-
 namespace DxUt {
 
 //It is a requirement that g_D3DApp be declared and initialized
@@ -78,8 +71,8 @@ extern	UINT			g_uiWndWidth;
 extern	UINT			g_uiWndHeight;
 
 //The time in s since the start of the program and the fps
-extern	DOUBLE			g_TimeElapsed;
-extern	FLOAT			g_SPFrame;
+extern	double			g_TimeElapsed;
+extern	float			g_SPFrame;
 
 //The state of the keyboard and the mouse
 extern CHAR				g_KeysState[256];
@@ -92,14 +85,11 @@ extern ID3D10RenderTargetView *		g_pRenderTargetView;
 extern ID3D10DepthStencilView *		g_pDepthStencilView;
 
 //szDir and szFile in this order will be concatenated into szPath of size MAX_PATH
-void InsertDirectory(CHAR * szDir, CHAR * szFile, CHAR * szPath);
+//void InsertDirectory(CHAR * szDir, CHAR * szFile, CHAR * szPath);
 
 //szDir and szFile in this order will be concatenated into szPath of size MAX_PATH if
 //the first character of szFile is a '/' otherwise szPath will be szFile
-void InsertDirectoryEx(CHAR * szDir, CHAR * szFile, CHAR * szPath);
-
-//Resets the window's render target and depth stencil to the window's ones (global ones)
-void ResetRenderTargetAndView();
+//void InsertDirectoryEx(CHAR * szDir, CHAR * szFile, CHAR * szPath);
 
 void ChangeExtension(char * szStr, char * szExt, char * szNewStr);
 
@@ -144,6 +134,7 @@ inline float RoundToNearest(const float a)
 {
 	return (float)ceilf_ASM(a - .5f);
 }
+
 
 
 };

@@ -130,7 +130,7 @@ protected:
 	};
 	SLevelSetVertex * m_rgLSVertex;
 
-	float m_fCellSize;
+	float m_CellSize;
 	int m_nCellsX, m_nLSVertsX;
 	int m_nCellsY, m_nLSVertsY;
 	int m_nCellsZ, m_nLSVertsZ;
@@ -154,7 +154,7 @@ protected:
 
 	/* Maximum penetration depth */
 	Vector3F m_Gravity;
-	float m_fTimeStepSize;
+	float m_TimeStepSize;
 	float m_fMinEdgeLen;
 	float m_fMaxFacePenetrationDepth;
 	bool m_bUseDumbScheme;
@@ -170,23 +170,23 @@ protected:
 	}
 
 	//void AverageNormals(Vector3F & nextNor, Vector3F & preNor, Vector3F & avgNor, DWORD & nNor);
-	void ComputeFaceVertices(DWORD dwInitialTri, SVisitedTriangle * rgTri, DWORD * rgAdj,
-		CFinitePointGrid3F<DWORD> & vertToIdx, CFinitePointGrid3F<DWORD> & bVisitedEdges, CArray<SLine3F> & rgEdge);
+	void ComputeFaceVertices(DWORD dwInitialTri, SVisitedTriangle * tris, DWORD * pAdj,
+		CFinitePointGrid3F<DWORD> & vertToIdx, CFinitePointGrid3F<DWORD> & bVisitedEdges, CArray<SSegment3F> & edges);
 	int ComputeAdmissibleZone(DWORD dwInitialTri, DWORD dwInitialEdge, 
-		Vector3F * rgVert, DWORD * rgAdj, Vector3F & angleWeightedNor, Vector3F & edgeNor, float & fConeAngle);
+		Vector3F * verts, DWORD * pAdj, Vector3F & angleWeightedNor, Vector3F & edgeNor, float & fConeAngle);
 
-	void ComputeInsetVertices(Vector3F & nor, CFinitePointGrid3F<DWORD> & vertToIdx, CArray<SLine3F> & rgEdge);
+	void ComputeInsetVertices(Vector3F & nor, CFinitePointGrid3F<DWORD> & vertToIdx, CArray<SSegment3F> & edges);
 
-	void ComputeNondegenerateVertices(DWORD nVert, DWORD nTri, Vector3F * rgVert, DWORD * rgAdj, CFinitePointGrid3F<DWORD> & vertToIdx);
-	float ComputeClosestDistance(Vector3F & pt, Vector3F * rgVert, DWORD nVert, STriangleFEx * rgTri);
+	void ComputeNondegenerateVertices(DWORD nVert, DWORD nTri, Vector3F * verts, DWORD * pAdj, CFinitePointGrid3F<DWORD> & vertToIdx);
+	float ComputeClosestDistance(Vector3F & pt, Vector3F * verts, DWORD nVert, STriangleFEx * tris);
 	void AddEdgeVertices(Vector3F & v1, Vector3F & v2, float t, DWORD nVertPerEdge,
 		CFinitePointGrid3F<DWORD> & vertToIdx, Vector3F & normal, Vector3F * rgAdjTriVert, DWORD & dwVal);
-	virtual void ComputeMeshParticles(DWORD nVert, DWORD nTri, Vector3F * rgVert, DWORD * rgAdj, char * szLevelSetFile);
-	virtual void DoAdditionalProcessing(char * szLevelSetFile, Vector3F * rgVert, DWORD nVert, DWORD * rgAdj, 
+	virtual void ComputeMeshParticles(DWORD nVert, DWORD nTri, Vector3F * verts, DWORD * pAdj, char * szLevelSetFile);
+	virtual void DoAdditionalProcessing(char * szLevelSetFile, Vector3F * verts, DWORD nVert, DWORD * pAdj, 
 		CFinitePointGrid3F<DWORD> & vertToIdx, CFinitePointGrid3F<DWORD> & edgeToIdx) {}
 
 	bool _LoadLevelSet(char * szFile);
-	void ComputeSDF(Vector3F * rgVert, DWORD nVert, DWORD * rgAdj);
+	void ComputeSDF(Vector3F * verts, DWORD nVert, DWORD * pAdj);
 	float ComputeSignedDistance(Vector3F & dxyz, int cellX, int cellY, int cellZ);
 
 	bool IsNormalAdmissible(Vector3F & coneDir, float coneAngle, Vector3F & normal, float eps=1e-1) {
@@ -198,9 +198,9 @@ protected:
 	float ParticleInLevelSet_Cheap(Vector3F & particle, float & fDist);
 	float ParticleInLevelSet_Cheap_Fast(Vector3F & particle, float & fDist);
 
-	virtual bool HandleEdgeEdgeCollision(SEdge & edge, Matrix4x4F & T, CArray<SContactPoint> * rgCP,
+	virtual bool HandleEdgeEdgeCollision(SEdge & edge, Matrix4x4F & T, CArray<SContactPoint> * CPs,
 		DWORD dwType, float norFlip, CLevelSet & collideLevelSet);
-	bool HandleEdgeEdgeCollision_Helper(SEdge & edge, CArray<SContactPoint> * rgCP,
+	bool HandleEdgeEdgeCollision_Helper(SEdge & edge, CArray<SContactPoint> * CPs,
 		float norFlip, CLevelSet & collideLevelSet);
 
 	virtual bool MarchExteriorEdgeVertex(CLevelSet & collideLevelSet, DWORD nVertPerEdge,
@@ -211,9 +211,9 @@ protected:
 	bool MarchToAdmissibleVertex(CLevelSet & collideLevelSet, DWORD nVertPerEdge,
 		float fEdgeLength, Vector3F & v1, Vector3F & edgeDir, Vector3F & coneDir, float coneAngle);
 	bool ComputeEdgeEdgeIntersection(CLevelSet & collideLevelSet, DWORD nVertPerEdge, bool bAdmissible1, bool bAdmisslbe2, Vector3F & v1,
-		Vector3F & v2, Vector3F & edgeDir, Vector3F & coneDir, float coneAngle, float norFlip, CArray<SContactPoint> * rgCP);
+		Vector3F & v2, Vector3F & edgeDir, Vector3F & coneDir, float coneAngle, float norFlip, CArray<SContactPoint> * CPs);
 
-	virtual void HandleFace(CLevelSet & collideLevelSet, STriangleF & face, float norFlip, CArray<SContactPoint> * rgCP);
+	virtual void HandleFace(CLevelSet & collideLevelSet, STriangleF & face, float norFlip, CArray<SContactPoint> * CPs);
 public:
 	CLevelSet();
 	~CLevelSet() {}
@@ -222,20 +222,20 @@ public:
 	virtual void WriteLevelSet(char * szFile);
 
 	/* The magnitude of gravity is assumed to be constant throughout the simulation as well as the step size */
-	void Initialize(Vector3F & gravity, float fTimeStepSize, float fMaxVelocity);
+	void Initialize(Vector3F & gravity, float timeStepSize, float fMaxVelocity);
 
 	/* Compute the level set and write it to a file */
 	virtual void ComputeSDF(ID3DX10Mesh * pMesh, DWORD dwStride, char * szLevelSetFile, float fCellSize);
-	virtual void ComputeSDF(STriangleF * rgTri, DWORD nTri, DWORD * rgAdj, char * szLevelSetFile, float fCellSize);
-	virtual void ComputeSDF(Vector3F * rgVert, DWORD nVert, DWORD * rgAdj, char * szLevelSetFile, float fCellSize);
+	virtual void ComputeSDF(STriangleF * tris, DWORD nTri, DWORD * pAdj, char * szLevelSetFile, float fCellSize);
+	virtual void ComputeSDF(Vector3F * verts, DWORD nVert, DWORD * pAdj, char * szLevelSetFile, float fCellSize);
 
 	virtual void RecomputeSDFFast();
 
 	/* Create the particle representation that represents the mesh for collision querrys */
 	virtual void CreateParticleRepresentation(ID3DX10Mesh * pMesh, DWORD dwStride, char * szLevelSetFile);
 	/* For the creation of face vertices a higher tessellated mesh needs to be passed in */ 
-	virtual void CreateParticleRepresentation(STriangleF * rgTri, DWORD nTri, DWORD * rgAdj, char * szLevelSetFile);
-	virtual void CreateParticleRepresentation(Vector3F * rgVert, DWORD nVert, DWORD * rgAdj, char * szLevelSetFile);
+	virtual void CreateParticleRepresentation(STriangleF * tris, DWORD nTri, DWORD * pAdj, char * szLevelSetFile);
+	virtual void CreateParticleRepresentation(Vector3F * verts, DWORD nVert, DWORD * pAdj, char * szLevelSetFile);
 
 	/*void SetTransform(Matrix4x4F & rT) {
 		m_TransformObjToWorld = rT;
@@ -264,7 +264,7 @@ public:
 	virtual bool ParticleInLevelSet(Vector3F & particle, float & fDist);
 	virtual bool ParticleInLevelSet_Fast(Vector3F & particle, float & fDist);
 
-	virtual DWORD LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactPoint> * rgCP);
+	virtual DWORD LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactPoint> * CPs);
 
 	virtual Vector3F ComputeGradient(Vector3F & pt);
 	virtual Vector3F ComputeGradient_Fast(Vector3F & pt);

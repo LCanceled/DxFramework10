@@ -8,22 +8,22 @@ void CFPCamera::CreateFPCameraLH(float fFov, UINT uiWidth, UINT uiHeight,
 {
 	CCamera::CreateCameraLH(fFov, uiWidth, uiHeight, fNearField, fFarField);
 	m_Velocity = vel;
-	m_fRotSpeed = fRotSpeed;
+	m_RotSpeed = fRotSpeed;
 }
 
 void CFPCamera::SetFPCamera(Vector3F & pos, float fPhi, float fTheta)
 {
 	m_Pos = pos;
-	m_fPhi = fPhi;
-	m_fTheta = fTheta;
+	m_Phi = fPhi;
+	m_Theta = fTheta;
 
-	m_RightVec.x = cosf(m_fPhi-D3DX_PI/2.);
+	m_RightVec.x = cosf(m_Phi-D3DX_PI/2.);
 	m_RightVec.y = 0;
-	m_RightVec.z = sinf(m_fPhi-D3DX_PI/2.);
+	m_RightVec.z = sinf(m_Phi-D3DX_PI/2.);
 
-	m_ForwardVec.x = cos(m_fPhi)*cos(m_fTheta);
-	m_ForwardVec.y = sin(m_fTheta);
-	m_ForwardVec.z = sin(m_fPhi)*cos(m_fTheta);
+	m_ForwardVec.x = cos(m_Phi)*cos(m_Theta);
+	m_ForwardVec.y = sin(m_Theta);
+	m_ForwardVec.z = sin(m_Phi)*cos(m_Theta);
 	m_ForwardVec = m_ForwardVec.Normalize();
 
 	m_UpVec =  CrossXYZ(m_ForwardVec, m_RightVec);
@@ -38,10 +38,10 @@ void CFPCamera::SetFPCamera(Vector3F & pos, float fPhi, float fTheta)
 	m_View.m[0][3] = 0,					m_View.m[1][3] = 0,					m_View.m[2][3] = 0,					m_View.m[3][3] = 1;
 }
 
-void CFPCamera::SetFPCamera(Vector3F & vel, float fRotSpeed)
+void CFPCamera::SetFPCamera(Vector3F & vel, float rotSpeed)
 {
 	m_Velocity = vel;
-	m_fRotSpeed = fRotSpeed;
+	m_RotSpeed = rotSpeed;
 }
 	
 void CFPCamera::UpdateFPCamera(float dt)
@@ -65,13 +65,13 @@ void CFPCamera::UpdateFPCamera(float dt)
 	if (m_bRotEnable) {
 		if (g_MouseState.rgbButtons[m_bClickActivate] || g_KeysState[m_bKeyActivate]) {
 			if (g_MouseState.lX > 0) 
-				m_fPhi -= g_MouseState.lX/150.f;
+				m_Phi -= g_MouseState.lX*m_RotSpeed;
 			if (g_MouseState.lX < 0) 
-				m_fPhi -= g_MouseState.lX/150.f;
+				m_Phi -= g_MouseState.lX*m_RotSpeed;
 			if (g_MouseState.lY > 0) 
-				m_fTheta -= g_MouseState.lY/150.f;
+				m_Theta -= g_MouseState.lY*m_RotSpeed;
 			if (g_MouseState.lY < 0) 
-				m_fTheta -= g_MouseState.lY/150.f;} 
+				m_Theta -= g_MouseState.lY*m_RotSpeed;} 
 	}
 	if (dir.Length() > 0) dir.Normalize();
 
@@ -79,13 +79,13 @@ void CFPCamera::UpdateFPCamera(float dt)
 	m_Pos.y += dir.y*m_Velocity.y*dt;
 	m_Pos.z += dir.z*m_Velocity.z*dt;
 
-	m_RightVec.x = cosf(m_fPhi-D3DX_PI/2.);
+	m_RightVec.x = cosf(m_Phi-D3DX_PI/2.);
 	m_RightVec.y = 0;
-	m_RightVec.z = sinf(m_fPhi-D3DX_PI/2.);
+	m_RightVec.z = sinf(m_Phi-D3DX_PI/2.);
 
-	m_ForwardVec.x = cos(m_fPhi)*cos(m_fTheta);
-	m_ForwardVec.y = sin(m_fTheta);
-	m_ForwardVec.z = sin(m_fPhi)*cos(m_fTheta);
+	m_ForwardVec.x = cos(m_Phi)*cos(m_Theta);
+	m_ForwardVec.y = sin(m_Theta);
+	m_ForwardVec.z = sin(m_Phi)*cos(m_Theta);
 	m_ForwardVec = m_ForwardVec.Normalize();
 
 	m_UpVec = CrossXYZ(m_ForwardVec, m_RightVec);
@@ -105,7 +105,7 @@ CFPCamera CFPCamera::operator=(CFPCamera & ref)
 	CCamera::operator =(ref);
 
 	m_Velocity = ref.m_Velocity;
-	m_fRotSpeed = ref.m_fRotSpeed;
+	m_RotSpeed = ref.m_RotSpeed;
 
 	return *this;
 }

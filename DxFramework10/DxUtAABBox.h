@@ -29,14 +29,14 @@ public:
 	//Furthermore, the CAABBox will be computed with the
 	//vertex buffer before it has been commited to a device.
 	void ComputeAABBox(ID3DX10Mesh * pMesh, DWORD dwStride);
-	void ComputeAABBox(Vector3F * rgVert, DWORD nVert);
+	void ComputeAABBox(Vector3F * verts, DWORD nVert);
 
 	bool PointInAABBoxW(Vector3F & pt);
 	bool AABBoxIntersectW(CAABBox & box);
 	/* Transform from local space to world space */
 	/* T must be just a translation matrix */
 	void TransformAABBoxW(Matrix4x4F & T);
-	void TransformAABBoxW(Vector3F & trans, Matrix4x4F & rot, float fScale);
+	void TransformAABBoxW(Vector3F & trans, Matrix4x4F & rot, float scale);
 
 	float ClosestPointSq(Vector3F & pt, Vector3F & closestPt);
 

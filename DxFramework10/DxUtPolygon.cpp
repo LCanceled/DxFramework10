@@ -3,7 +3,9 @@
 
 namespace DxUt {
 
-bool SLine2F::Intersect(SLine2F & l, Vector2F & intersection, double t)
+	/*
+
+bool SSegment2F::Intersect(SSegment2F & l, Vector2F & intersection, double t)
 {
 	Vector2F & a0 = e1;
 	Vector2F & a1 = e2;
@@ -19,21 +21,21 @@ bool SLine2F::Intersect(SLine2F & l, Vector2F & intersection, double t)
 	numerb = (a1.x-a0.x) * (a0.y-b0.y) - (a1.y-a0.y) * (a0.x-b0.x);
 
 	const double EPS = .0001;
-	/* Are the line coincident? */
+	/* Are the line coincident? 
 	if (Abs(numera) < EPS && Abs(numerb) < EPS && Abs(denom) < EPS) {
 		intersection.x = (a0.x + a1.x) / 2;
 		intersection.y = (a0.y + a1.y) / 2;
 		return true;
 	}
 
-	/* Are the line parallel */
+	/* Are the line parallel 
 	if (Abs(denom) < EPS) {
 		intersection.x = 0;
 		intersection.y = 0;
 		return false;
 	}
 
-	/* Is the intersection along the the segments */
+	/* Is the intersection along the the segments 
 	mua = numera / denom;
 	mub = numerb / denom;
 	if (mua < 0 || mua > 1 || mub < 0 || mub > 1) {
@@ -46,7 +48,7 @@ bool SLine2F::Intersect(SLine2F & l, Vector2F & intersection, double t)
 	return true;
 }
 
-bool SLine3F::Intersect(SLine3F & l, Vector3F & intersection, double t)
+bool SSegment3F::Intersect(SSegment3F & l, Vector3F & intersection, double t)
 {
 	struct SDoubleVec {
 		double x,y,z;
@@ -108,21 +110,21 @@ bool SLine3F::Intersect(SLine3F & l, Vector3F & intersection, double t)
 /*
 SPolygon3F::SPolygon3F(STriangleF & tri, DWORD triIndex, DWORD e0Index, DWORD e1Index, DWORD e2Index) 
 {
-	edges.push_back(SPolygonEdge<SLine3F>(SLine3F(tri.vPosW[0], tri.vPosW[1]), e0Index));
-	edges.push_back(SPolygonEdge<SLine3F>(SLine3F(tri.vPosW[1], tri.vPosW[2]), e1Index));
-	edges.push_back(SPolygonEdge<SLine3F>(SLine3F(tri.vPosW[2], tri.vPosW[0]), e2Index));
+	edges.push_back(SPolygonEdge<SSegment3F>(SSegment3F(tri.vPosW[0], tri.vPosW[1]), e0Index));
+	edges.push_back(SPolygonEdge<SSegment3F>(SSegment3F(tri.vPosW[1], tri.vPosW[2]), e1Index));
+	edges.push_back(SPolygonEdge<SSegment3F>(SSegment3F(tri.vPosW[2], tri.vPosW[0]), e2Index));
 
 	normal = tri.Normal();
 	polyIndex = triIndex;
 }*/
 /*
-bool SPolygon3F::ConvexClipAgainstLine(SLine3F & l, bool bCW)
+bool SPolygon3F::ConvexClipAgainstLine(SSegment3F & l, bool bCW)
 {
 	EdgeIterator iter = edges.begin();
 	EdgeIterator firstEdge, secondEdge;
 	DWORD nEdges = edges.size(), dwFirst=1;
 
-	SLine3F localL(Vector3F(0,0,0), l.e2 - l.e1);
+	SSegment3F localL(Vector3F(0,0,0), l.e2 - l.e1);
 	PlaneF localPlane; localPlane.ComputePlane(localL.e2, localL.e1, normal+localL.e1);
 	
 	for (DWORD i=0; i<nEdges; i++, iter++) {
@@ -149,7 +151,7 @@ bool SPolygon3F::ConvexClipAgainstLine(SLine3F & l, bool bCW)
 	}
 	if (dwFirst != 2) return 0;
 
-	SLine3F newL;
+	SSegment3F newL;
 	double t=0;
 	firstEdge->edge.Intersect(l, newL.e1, t);
 	firstEdge->edge.e2 = newL.e1; 
@@ -236,9 +238,9 @@ void SPolygon3F::Join(STriangleF & tri, DWORD e0Index, DWORD e1Index, DWORD e2In
 */
 /*SPolygon3F::SPolygon3F(STriangleF & tri) 
 {
-	edges.push_back(SLine3F(tri.vPosW[0], tri.vPosW[1]));
-	edges.push_back(SLine3F(tri.vPosW[1], tri.vPosW[2]));
-	edges.push_back(SLine3F(tri.vPosW[2], tri.vPosW[0]));
+	edges.push_back(SSegment3F(tri.vPosW[0], tri.vPosW[1]));
+	edges.push_back(SSegment3F(tri.vPosW[1], tri.vPosW[2]));
+	edges.push_back(SSegment3F(tri.vPosW[2], tri.vPosW[0]));
 
 	normal = tri.Normal();
 	tangent = (tri.vPosW[1] - tri.vPosW[0]).Normalize();
@@ -251,11 +253,11 @@ void SPolygon3F::Join(STriangleF & tri, DWORD e0Index, DWORD e1Index, DWORD e2In
 	poly2D.edges.push_back(ProjectLineTo2D(*++iter));
 }
 
-SLine2F SPolygon3F::ProjectLineTo2D(SLine3F & l)
+SSegment2F SPolygon3F::ProjectLineTo2D(SSegment3F & l)
 {
-	SLine3F relativeLine(l.e1 - relativePosition, l.e2 - relativePosition);
+	SSegment3F relativeLine(l.e1 - relativePosition, l.e2 - relativePosition);
 
-	return SLine2F(
+	return SSegment2F(
 		Vector2F(DotXYZ(tangent, relativeLine.e1), DotXYZ(bitangent, relativeLine.e1)),
 		Vector2F(DotXYZ(tangent, relativeLine.e2), DotXYZ(bitangent, relativeLine.e2)) );
 }

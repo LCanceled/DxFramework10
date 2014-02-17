@@ -9,11 +9,11 @@ namespace DxUt {
 class PlaneF  {
 public:
 	Vector3F n;
-	FLOAT d;
+	float d;
 public:
 	PlaneF() {}
 	PlaneF(PlaneF & copy) {memcpy(this, &copy, sizeof(PlaneF));}
-	PlaneF(Vector3F & nor, FLOAT dist):n(nor), d(dist) {}
+	PlaneF(Vector3F & nor, float dist):n(nor), d(dist) {}
 	PlaneF(Vector3F & p1, Vector3F & p2, Vector3F & p3) {
 		ComputePlane(p1, p2, p3);
 	}
@@ -52,10 +52,10 @@ public:
 	PlaneF operator+() {return *this;}
 	PlaneF operator-() {return PlaneF(-n, -d);}
 
-	friend PlaneF operator*(FLOAT flt, PlaneF & pl) {
+	friend PlaneF operator*(float flt, PlaneF & pl) {
 		return PlaneF((flt*pl.n), flt*pl.d);
 	}
-	PlaneF operator/(FLOAT flt) {
+	PlaneF operator/(float flt) {
 		float div = 1.f/flt;
 		return PlaneF((div*n), div*d); 
 	}
@@ -66,7 +66,7 @@ public:
 
 		return *this;
 	}
-	PlaneF & operator*=(FLOAT flt) {
+	PlaneF & operator*=(float flt) {
 		n.x *= flt; 
 		n.y *= flt; 
 		n.z *= flt;
@@ -74,7 +74,7 @@ public:
 
 		return *this;
 	}
-	PlaneF & operator/=(FLOAT flt) {
+	PlaneF & operator/=(float flt) {
 		float div = 1.f/flt;
 		n.x *= div; 
 		n.y *= div; 
@@ -84,8 +84,8 @@ public:
 		return *this;
 	}
 
-	void operator()(FLOAT a, FLOAT b, FLOAT c, FLOAT _d) {n.x = a, n.y = b, n.z = c, d = _d;}
-	void operator()(Vector3F & _n, FLOAT _d) {n = _n, d = _d;}
+	void operator()(float a, float b, float c, float _d) {n.x = a, n.y = b, n.z = c, d = _d;}
+	void operator()(Vector3F & _n, float _d) {n = _n, d = _d;}
 };
 
 inline bool PlaneF::PointUnderPlane(Vector3F & pt, float & dist)
