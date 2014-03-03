@@ -84,7 +84,7 @@ bool TriPlannarLineIntersect(STriangleF & tri, Vector3F & e1, Vector3F & e2);
 Vector3F ComputeClosestPoint(STriangleF & tri, Vector3F & pt, DWORD & dwType);
 
 /* Divide a triangle into 4 subtris based upon loop subdivision */
-void SubdivideTriangle(STriangleF & tri, STriangleF * rgSubdividedTri);
+void SubdivideTriangle(STriangleF & tri, STriangleF * subdividedTris);
 
 /* Triangle-Triangle Intersection */
 struct STriTriIntersectData {

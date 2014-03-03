@@ -242,7 +242,7 @@ int coplanar_tri_tri3d(double p1[3], double q1[3], double r1[3],
 	alpha = DOT(v1,N2) / DOT(v2,N2); \
 	SCALAR(v1,alpha,v2) \
 	a = M1(p1), b = M1(r1); \
-	eIdx[0] = M2(a, b); \
+	eIndex[0] = M2(a, b); \
 	SUB(source,p1,v1) \
 	SUB(v1,p2,p1) \
 	SUB(v2,p2,r2) \
@@ -250,12 +250,12 @@ int coplanar_tri_tri3d(double p1[3], double q1[3], double r1[3],
 	SCALAR(v1,alpha,v2) \
 	SUB(target,p2,v1) \
 	a = M1(p2), b = M1(r2); \
-	eIdx[1] = M2(a, b); \
+	eIndex[1] = M2(a, b); \
 	alpha = M3(a, b); \
 	SCALAR(v1, alpha, v2) \
 	CROSS(v2, v1, N2) \
 	dwType = 2; \
-	dwType |= (eIdx[0] << 8) | (eIdx[1] << 16); \
+	dwType |= (eIndex[0] << 8) | (eIndex[1] << 16); \
 	return 1; \
       } else { \
 	SUB(v1,p2,p1) \
@@ -264,19 +264,19 @@ int coplanar_tri_tri3d(double p1[3], double q1[3], double r1[3],
 	SCALAR(v1,alpha,v2) \
 	SUB(source,p2,v1) \
 	a = M1(p2), b = M1(q2); \
-	eIdx[0] = M2(a, b); \
+	eIndex[0] = M2(a, b); \
 	SUB(v1,p2,p1) \
 	SUB(v2,p2,r2) \
 	alpha = DOT(v1,N1) / DOT(v2,N1); \
 	SCALAR(v1,alpha,v2) \
 	SUB(target,p2,v1) \
 	a = M1(p2), b = M1(r2); \
-	eIdx[1] = M2(a, b); \
+	eIndex[1] = M2(a, b); \
 	alpha = M3(a, b); \
 	SCALAR(v1, alpha, v2) \
 	CROSS(v2, v1, N2) \
 	dwType = 0; \
-	dwType |= (eIdx[0] << 8) | (eIdx[1] << 16); \
+	dwType |= (eIndex[0] << 8) | (eIndex[1] << 16); \
 	return 1; \
       } \
     } else { \
@@ -297,19 +297,19 @@ int coplanar_tri_tri3d(double p1[3], double q1[3], double r1[3],
 	SCALAR(v1,alpha,v2) \
 	SUB(source,p1,v1) \
 	a = M1(p1), b = M1(r1); \
-	eIdx[0] = M2(a, b); \
+	eIndex[0] = M2(a, b); \
 	SUB(v1,p1,p2) \
 	SUB(v2,p1,q1) \
 	alpha = DOT(v1,N2) / DOT(v2,N2); \
 	SCALAR(v1,alpha,v2) \
 	SUB(target,p1,v1) \
 	a = M1(p1), b = M1(q1); \
-	eIdx[1] = M2(a, b); \
+	eIndex[1] = M2(a, b); \
 	alpha = M3(a, b); \
 	SCALAR(v1, alpha, v2) \
 	CROSS(v2, v1, N1) \
 	dwType = 1; \
-	dwType |= (eIdx[0] << 8) | (eIdx[1] << 16); \
+	dwType |= (eIndex[0] << 8) | (eIndex[1] << 16); \
 	return 1; \
       } else { \
 	SUB(v1,p1,p2) \
@@ -318,19 +318,19 @@ int coplanar_tri_tri3d(double p1[3], double q1[3], double r1[3],
 	SCALAR(v1,alpha,v2) \
 	SUB(source,p1,v1) \
 	a = M1(p1), b = M1(q1); \
-	eIdx[0] = M2(a, b); \
+	eIndex[0] = M2(a, b); \
 	SUB(v1,p2,p1) \
 	SUB(v2,p2,q2) \
 	alpha = DOT(v1,N1) / DOT(v2,N1); \
 	SCALAR(v1,alpha,v2) \
 	SUB(target,p2,v1) \
 	a = M1(p2), b = M1(q2); \
-	eIdx[1] = M2(a, b); \
+	eIndex[1] = M2(a, b); \
 	alpha = M3(a, b); \
 	SCALAR(v1, alpha, v2) \
 	CROSS(v2, v1, N2) \
 	dwType = 2; \
-	dwType |= (eIdx[0] << 8) | (eIdx[1] << 16); \
+	dwType |= (eIndex[0] << 8) | (eIndex[1] << 16); \
 	return 1; \
       }}}}
 
@@ -430,7 +430,7 @@ int tri_tri_intersection_test_3d(double p1[3], double q1[3], double r1[3], doubl
   // Permutation in a canonical form of T1's vertices
 
   CROSS(iLine, N1, N2);
-  DWORD eIdx[2] = {0};
+  DWORD eIndex[2] = {0};
   DWORD ix = 0;
   double coeps = 0;//1e-5;
   int a=0, b=0;

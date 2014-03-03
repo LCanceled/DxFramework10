@@ -40,11 +40,10 @@ void CRigidBody::CreateRigidBody(CMesh * pMesh, DWORD dwStride, float scale, flo
 	//	m_pLevelSet = new COctreeLevelSet;
 	//else 
 	m_pLevelSet = new CLevelSet;
-	m_pLevelSet->Initialize(gravity, timeStepSize, fMaxVelocity);
 	//if (bUseHierarchicalLevelSet)
 	//	((COctreeLevelSet*)m_pLevelSet)->CreateParticleRepresentation(verts, nVert, pAdj, 1, dwTriPerOct, szLevelSet);
 	//else 
-		m_pLevelSet->CreateParticleRepresentation(verts, nVert, pAdj, szLevelSet);
+	m_pLevelSet->CreateLevelSet(verts, nVert, pAdj, szLevelSet);
 
 	m_InvMass = 1.f/mass;
 	m_Density = (float)density;

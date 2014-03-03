@@ -110,7 +110,7 @@ private:
 	bool ParticleInOct(SNode * pNode, Vector3F & pt, float & fDist);
 	bool ParticleInOctreeLevel(SNode * pNode, Vector3F & pt, float & fDist);
 	void ComputeGradientLevel(SNode * pNode, Vector3F & pt, Vector3F & grad);
-	bool HandleEdgeEdgeCollision(SEdge & edge, Matrix4x4F & T,
+	bool HandleEdgeEdgeCollision(SEdgeParticle & edge, Matrix4x4F & T,
 		CArray<SContactPoint> * CPs, DWORD dwType, float norFlip, CLevelSet & collideLevelSet);
 	bool MarchExteriorEdgeVertex(CLevelSet & collideLevelSet, float fEdgeLength, 
 		Vector3F & v1, Vector3F & edgeDir, SRay & ray, float & fClosestDist, Vector3F & finalPt, float & fAdvance);

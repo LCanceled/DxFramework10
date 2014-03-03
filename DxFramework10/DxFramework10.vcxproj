@@ -47,6 +47,7 @@
     <ClInclude Include="DxUtBVTree.h" />
     <ClInclude Include="DxUtCamera.h" />
     <ClInclude Include="DxUtCollisionGraphics.h" />
+    <ClInclude Include="DxUtConvexHull.h" />
     <ClInclude Include="DxUtD3DApp.h" />
     <ClInclude Include="DxUtMeshPool.h" />
     <ClInclude Include="DxUtEffect.h" />
@@ -137,6 +138,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

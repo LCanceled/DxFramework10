@@ -17,6 +17,7 @@ void CRigidBodyWorld::CreateRigidBodyWorld(DWORD nHintRBs, DWORD nHintContacts, 
 
 	m_RBObjects.Reserve(nHintRBs);
 	m_RBContactPoints.Reserve(nHintContacts);
+	m_ContactPoints.Reserve(nHintContacts);
 	
 	m_Gravity = *gravity;
 	m_TimeStepSize = stepSize;
@@ -103,15 +104,15 @@ DWORD CRigidBodyWorld::FindContacts()
 			nTotalContacts += nContactsij;
 			if (nContactsij) {
 				m_RBContactPoints.Resize(m_RBContactPoints.GetSize() + nContactsij);
-				SRBContact * RBCPs = m_RBContactPoints.GetData() + m_RBContactPoints.GetSize() - nContactsij;
-				SContactPoint * CPs = m_ContactPoints.GetData() + m_ContactPoints.GetSize() - nContactsij;
+				SRBContact * RBCPs = m_RBContactPoints.GetData() + (m_RBContactPoints.GetSize() - nContactsij);
+				SContactPoint * CPs = m_ContactPoints.GetData() + (m_ContactPoints.GetSize() - nContactsij);
 				for (DWORD k=0; k<nContactsij; k++) {
 					RBCPs[k].iPos = CPs[k].iPos;
 					RBCPs[k].iNor = CPs[k].iNor;
 					RBCPs[k].dist = CPs[k].dist;
 					RBCPs[k].rBOk = &m_pRBObject[i];
 					RBCPs[k].rBOl = &m_pRBObject[j];
-					RBCPs[k].dwIdx = dwContact++;
+					RBCPs[k].dwIndex = dwContact++;
 				}
 			}
 		}
@@ -194,8 +195,8 @@ void CRigidBodyWorld::ComputeContactGraph()
 	}
 	/* Add the contact points */
 	for (DWORD i=0, end=m_RBContactPoints.GetSize(); i<end; i++) {
-		DWORD idx = pRBContactPoints[i].dwLayer;
-		pContactLayers[idx].RBCPs.PushBack(m_RBContactPoints[i]);
+		DWORD dwIndex = pRBContactPoints[i].dwLayer;
+		pContactLayers[dwIndex].RBCPs.PushBack(m_RBContactPoints[i]);
 	}
 	/* Add the rigid body objects */
 	bool cool=0;
@@ -240,7 +241,7 @@ void CRigidBodyWorld::PGSSetup(DWORD nContacts)
 		//SRBContact * CPs = m_RBContactPoints.GetData();
 		//for (DWORD j=0, end2=m_RBContactPoints.GetSize(); j<end2; j++) {
 			SRBContact & rbC = CPs[j];
-			DWORD idx = CPs[j].dwIdx;
+			DWORD dwIndex = CPs[j].dwIndex;
 			Vector3F & nor = rbC.iNor;
 			Vector3F t1(Vector3F(rbC.rBOl->rB.m_LinVel - rbC.rBOk->rB.m_LinVel + Vector3F(.1f)).Normalize());
 			Vector3F & t2 = CrossXYZ(t1, nor).Normalize();
@@ -277,10 +278,10 @@ void CRigidBodyWorld::SolveLayer(DWORD k, VectorNF & lambda, float dt)
 	//SRBContact * CPs = m_RBContactPoints.GetData();
 	//for (DWORD j=0, end2=m_RBContactPoints.GetSize(); j<end2; j++) {
 		SRBContact & rbC = CPs[j];
-		DWORD idx = CPs[j].dwIdx;
+		DWORD dwIndex = CPs[j].dwIndex;
 		CRigidBody & rbk = rbC.rBOk->rB;
 		CRigidBody & rbl = rbC.rBOl->rB;
-		float mu = 0.1;//1; // Friction is WRONG! box platform
+		float mu = 0.0;//1; // Friction is WRONG! box platform
 
 		float fB, fImpulseN, fImpulseT1=0, fImpulseT2=0;
 		float fPushOut = .5f*(rbC.pushOutVel*dt + rbC.dist)/dt;
@@ -290,9 +291,9 @@ void CRigidBodyWorld::SolveLayer(DWORD k, VectorNF & lambda, float dt)
 		COMPUTE_IMPULSE(1, fImpulseT1, 0);
 		COMPUTE_IMPULSE(2, fImpulseT2, 0);
 
-		float lambdaUpdateN = lambda.c[3*idx+0] + fImpulseN;
-		float lambdaUpdateT1= lambda.c[3*idx+1] + fImpulseT1;
-		float lambdaUpdateT2= lambda.c[3*idx+2] + fImpulseT2;
+		float lambdaUpdateN = lambda.c[3*dwIndex+0] + fImpulseN;
+		float lambdaUpdateT1= lambda.c[3*dwIndex+1] + fImpulseT1;
+		float lambdaUpdateT2= lambda.c[3*dwIndex+2] + fImpulseT2;
 		if (lambdaUpdateN < 0) lambdaUpdateN = 0;
 		float fLimit = mu*lambdaUpdateN;
 		if (lambdaUpdateT1 < -fLimit) 
@@ -303,17 +304,17 @@ void CRigidBodyWorld::SolveLayer(DWORD k, VectorNF & lambda, float dt)
 			lambdaUpdateT2 = -fLimit; 
 		else if (lambdaUpdateT2 > fLimit)
 			lambdaUpdateT2 = fLimit;
-		float difN = lambdaUpdateN -  lambda.c[3*idx+0];
-		float difT1= lambdaUpdateT1-  lambda.c[3*idx+1];
-		float difT2= lambdaUpdateT2-  lambda.c[3*idx+2];
+		float difN = lambdaUpdateN -  lambda.c[3*dwIndex+0];
+		float difT1= lambdaUpdateT1-  lambda.c[3*dwIndex+1];
+		float difT2= lambdaUpdateT2-  lambda.c[3*dwIndex+2];
 
 		Vector3F impulse = difN*rbC.iNor + difT1*rbC.t1 + difT2*rbC.t2;
 		rbC.rBOk->rB.ApplyImpulse(impulse, rbC.iPos);
 		rbC.rBOl->rB.ApplyImpulse(-impulse, rbC.iPos);
 
-		lambda.c[3*idx+0] = lambdaUpdateN;
-		lambda.c[3*idx+1] = lambdaUpdateT1;
-		lambda.c[3*idx+2] = lambdaUpdateT2;
+		lambda.c[3*dwIndex+0] = lambdaUpdateN;
+		lambda.c[3*dwIndex+1] = lambdaUpdateT1;
+		lambda.c[3*dwIndex+2] = lambdaUpdateT2;
 	}
 }
 
@@ -412,14 +413,15 @@ void CRigidBodyWorld::UpdateRigidBodies(float dt, Vector3F & gAcel)
 
 #ifdef PRINT
 		CTimer::Get().StartTimer(0);
+#endif
 		DWORD nContacts = FindContacts();
+#ifdef PRINT
 		CTimer::Get().EndTimer(0, "End FindContacts");
 #endif
-
 		if (nContacts) {
-			g_D3DApp->Print(nContacts, "");
+			//g_D3DApp->Print(nContacts, "");
 
-			m_bUsePushOut = 1;
+			m_bUsePushOut = 0;
 #ifdef PRINT
 			CTimer::Get().StartTimer(1);
 #endif
@@ -455,7 +457,7 @@ void CRigidBodyWorld::UpdateRigidBodies(float dt, Vector3F & gAcel)
 		}
 
 		
-		static int once = 1;
+		/*static int once = 1;
 		if (once) {
 			m_RBObjects[1].bDenter = 1;
 			m_RBObjects[2].bDenter = 1;
@@ -477,11 +479,11 @@ void CRigidBodyWorld::UpdateRigidBodies(float dt, Vector3F & gAcel)
 					m_RBObjects[0].RBCPs[i]->rBOl->bDenter = 0;
 				}
 			}
-		}
+		}*/
 		
 	//}
 }
-
+/*
 void CRigidBodyWorld::Dent(Vector3F & cpt)
 {
 	float sigma = 15.f;
@@ -528,7 +530,7 @@ void CRigidBodyWorld::Dent(Vector3F & cpt)
 				Vector3F pos(k*level->m_CellSize, j*level->m_CellSize, i*level->m_CellSize);
 				pos += level->m_TransformObjToGrid;
 				pos = level->m_TransformObjToWorld*pos;
-				float & lDist = level->m_rgLSVertex[i*level->m_nLSVertsY*level->m_nLSVertsX + j*level->m_nLSVertsX + k].dist;
+				float & lDist = level->m_LSVertices[i*level->m_nLSVertsY*level->m_nLSVertsX + j*level->m_nLSVertsX + k].dist;
 				//if (lDist > 0) continue;
 
 				float x = (pos-cpt).Length();
@@ -547,7 +549,7 @@ void CRigidBodyWorld::Dent(Vector3F & cpt)
 		}
 	}
 }
-
+*/
 
 void CRigidBodyWorld::ApplyCMConstraint(SRBObject & rBO, float dt)
 {
@@ -571,15 +573,15 @@ void CRigidBodyWorld::DrawCollisionGraphics(CCamera * pCam)
 
 	CCollisionGraphics::SetCamera(pCam);
 	CCollisionGraphics::DrawContactPoints((CArray<SContactPoint>*)&m_ContactPoints);
-	for (DWORD i=0, end=1; i<end; i++) {
+	/*for (DWORD i=1, end=2; i<end; i++) {
 		//((COctreeLevelSet*)m_RBObjects[i].rB.GetLevelSet())->AssignCG(&m_CollisionGraphics);
 		//m_RBObjects.GetSize(); i<end; i++) {
-		//m_RBObjects[i].rB.GetLevelSet()->DrawLevelset(&m_CollisionGraphics);
+		m_RBObjects[i].rB.GetLevelSet()->DrawLevelset();
 		//m_RBObjects[i].rB.GetLevelSet().DrawAdmissibleZones(&m_CollisionGraphics);
 		
 		//m_RBObjects[i].rB.GetLevelSet().DrawBVTree(&m_CollisionGraphics, 8);
 		//((COctreeLevelSet*)m_RBObjects[i].rB.GetLevelSet())->DrawOctLevelSet(&m_CollisionGraphics, 10);
-	}
+	}*/
 }
 
 void CRigidBodyWorld::DestroyRigidBodyWorld() 

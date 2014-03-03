@@ -4,6 +4,18 @@
 
 namespace DxUt {
 
+inline float fastSqrt(const float x)
+{
+	__m128 r0; 
+	r0 = _mm_load_ss(&x);
+	r0 = _mm_sqrt_ss(r0);
+
+	float flt;
+	_mm_store_ss(&flt, r0);
+
+	return flt;
+}
+
 double g_fVectorEqualityEps = 1e-4;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -79,7 +91,7 @@ float VectorNF::Length()
 	double d = 0;
 	for (DWORD i=0; i<m_nElements; i++)
 		d += c[i] * c[i];
-	return (float)sqrt(d);
+	return (float)fastSqrt(d);
 }
 
 float VectorNF::LengthSq() 

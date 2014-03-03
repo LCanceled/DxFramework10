@@ -40,7 +40,7 @@ protected:
 	friend class CD3DApp;
 public:
 	static bool GetResource(char * szName, T ** pResource) {
-		DWORD dwIdx = 0;
+		DWORD dwIndex = 0;
 		SResourceElement el;
 		UM::iterator got = m_Elements.find(szName);
 		if (got != m_Elements.end()) {

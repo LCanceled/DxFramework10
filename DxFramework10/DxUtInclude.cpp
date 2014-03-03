@@ -26,7 +26,7 @@ void InitializeDxFramework(char * nameOfRegKey, char * nameOfRegValue, char * dl
 {
 	HKEY key;
 	CHAR subKey[256];
-	DWORD index = 0;
+	DWORD dwIndex = 0;
 	CHAR name[256];
 	DWORD nameSize = 256;
 	BYTE data[MAX_PATH];

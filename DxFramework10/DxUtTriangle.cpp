@@ -238,7 +238,7 @@ Vector3F ComputeClosestPoint(STriangleF & tri, Vector3F & p, DWORD & dwType)
 }
 
 
-void SubdivideTriangle(STriangleF & tri, STriangleF * rgSubdividedTri)
+void SubdivideTriangle(STriangleF & tri, STriangleF * subdividedTris)
 {
 	Vector3F e0(tri.vPosW[1] - tri.vPosW[0]);
 	Vector3F e1(tri.vPosW[2] - tri.vPosW[1]);
@@ -248,21 +248,21 @@ void SubdivideTriangle(STriangleF & tri, STriangleF * rgSubdividedTri)
 	Vector3F midP1(tri.vPosW[1] + .5f*e1);
 	Vector3F midP2(tri.vPosW[2] + .5f*e2);
 
-	rgSubdividedTri[0].vPosW[0] = tri.vPosW[0];
-	rgSubdividedTri[0].vPosW[1] = midP0;
-	rgSubdividedTri[0].vPosW[2] = midP2;
+	subdividedTris[0].vPosW[0] = tri.vPosW[0];
+	subdividedTris[0].vPosW[1] = midP0;
+	subdividedTris[0].vPosW[2] = midP2;
 
-	rgSubdividedTri[1].vPosW[0] = midP0;
-	rgSubdividedTri[1].vPosW[1] = tri.vPosW[1];
-	rgSubdividedTri[1].vPosW[2] = midP1;
+	subdividedTris[1].vPosW[0] = midP0;
+	subdividedTris[1].vPosW[1] = tri.vPosW[1];
+	subdividedTris[1].vPosW[2] = midP1;
 
-	rgSubdividedTri[2].vPosW[0] = midP2;
-	rgSubdividedTri[2].vPosW[1] = midP1;
-	rgSubdividedTri[2].vPosW[2] = tri.vPosW[2];
+	subdividedTris[2].vPosW[0] = midP2;
+	subdividedTris[2].vPosW[1] = midP1;
+	subdividedTris[2].vPosW[2] = tri.vPosW[2];
 
-	rgSubdividedTri[3].vPosW[0] = midP0;
-	rgSubdividedTri[3].vPosW[1] = midP1;
-	rgSubdividedTri[3].vPosW[2] = midP2;
+	subdividedTris[3].vPosW[0] = midP0;
+	subdividedTris[3].vPosW[1] = midP1;
+	subdividedTris[3].vPosW[2] = midP2;
 }
 
 

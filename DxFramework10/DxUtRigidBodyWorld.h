@@ -25,7 +25,7 @@ private:
 		float dist;
 		float pushOutVel;
 		DWORD dwLayer;
-		DWORD dwIdx;
+		DWORD dwIndex;
 		
 		/* Cached solver info */
 		Vector3F t1, t2;

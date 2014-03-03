@@ -4,7 +4,8 @@
 
 #include "DxUtInclude.h"
 #include "DxUtBVTree.h"
-#include "DxUtHierarchicalLevelset.h"
+#include "DxUtLevelSet.h"
+//#include "DxUtHierarchicalLevelset.h"
 #include "DxUtMesh.h"
 #include "DxUtRay.h"
 

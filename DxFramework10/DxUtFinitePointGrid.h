@@ -46,11 +46,11 @@ public:
 	CFinitePointGrid3F():m_Cells(0) {}
 	//~CFinitePointGrid3F() {}
 
-	void CreateGrid(DWORD iCellsX, DWORD iCellsY, DWORD iCellsZ, float fCellSize, Vector3F & minGridPt) {
+	void CreateGrid(DWORD iCellsX, DWORD iCellsY, DWORD iCellsZ, float cellSize, Vector3F & minGridPt) {
 		m_iCellsX = (int)iCellsX;
 		m_iCellsY = (int)iCellsY;
 		m_iCellsZ = (int)iCellsZ;
-		m_CellSize = fCellSize;
+		m_CellSize = cellSize;
 		m_CellOrigin = minGridPt;
 		m_Cells = new SCell[iCellsX*iCellsY*iCellsZ];
 	}

@@ -6,26 +6,19 @@
 #include "DxUtError.h"
 #include <vector>
 
-#define STDVECTOR_MODE
-
 namespace DxUt {
 
 /* For the an array of size n, the new capacity of the array is computed by dwGrowLinear + n*dwGrowPower for PushBack */
 template <typename T, DWORD dwGrowLinear=1, DWORD dwGrowPower=0>
 class CArray {
 private:
-	DWORD m_dwCapacity : 31;
-	bool m_bSharedMemory : 1;
+	DWORD m_dwCapacity;
 	DWORD m_dwSize;
-#ifndef STDVECTOR_MODE
-	std::vector<T> m_rgEntry;
-#else
-	T * m_rgEntry;
-#endif
+	T * m_Entries;
 
 	void p_ResizeArray(DWORD64 capacity);
 public:
-	CArray():m_dwCapacity(0), m_bSharedMemory(0), m_dwSize(0), m_rgEntry(0)  {
+	CArray():m_dwCapacity(0), m_dwSize(0), m_Entries(0)  {
 		Assert(dwGrowLinear, "CArray::CArray a nonzero growCoefficient must be given."); }
 	CArray(CArray & cpy) {Assert(0, "CArray::CArray a copy constructor is not defined"); }
 	~CArray() {Clear(); }
@@ -44,124 +37,93 @@ public:
 
 	/* Clears the array and shares the memory of the array with pMem. The capacity */
 	/* of the array remains fixed at nBytes. Allocations beyond result in an error. */
-	void ReserveSharedMemory(void * pMem, DWORD nBytes=-1);
+	//void ReserveSharedMemory(void * pMem, DWORD nBytes=-1);
 
 	/* Reverse array */
 	void Reverse();
 
 	void PushForward(T & element) {
 		DebugBreak();
-		//m_rgEntry.insert(m_rgEntry.begin(), element); 
+		//m_Entries.insert(m_Entries.begin(), element); 
 	}
 
 	/* Standard linear search through the array */
-	bool FindIfEquals(T & element, DWORD & dwEntry) {
-#ifndef STDVECTOR_MODE
-		for (DWORD i=0, end=m_rgEntry.size(); i<end; i++) {
-#else
-		for (DWORD i=0; i<m_dwSize; i++) {
-#endif
-			if (m_rgEntry[i] == element) {
-				dwEntry = i;
-				return 1;
-			}
-		}
-		return 0;
-	}
+	bool FindIfEquals(T & element, DWORD & dwEntry);
 
-#ifndef STDVECTOR_MODE
-	DWORD GetSize() {return m_rgEntry.size(); }
-	DWORD GetCapacity() {return m_rgEntry.capacity(); }
-	T * GetData() {return m_rgEntry.data(); }
-	T & GetBack() {return m_rgEntry.back(); }
-#else
 	DWORD GetSize() {return m_dwSize;}
 	DWORD GetCapacity() {return m_dwCapacity;}
-	T * GetData() {return m_rgEntry;}
-	T & GetBack() {return m_rgEntry[m_dwSize-1];}
-#endif
+	T * GetData() {return m_Entries;}
+	T & GetBack() {return m_Entries[m_dwSize-1];}
+
 	void SetSize(DWORD dwSize);
 
-	//T & operator[](DWORD dwI) {return m_rgEntry[dwI]; }
+	//T & operator[](DWORD dwI) {return m_Entries[dwI]; }
 	T & operator[](DWORD dwI) {
-		Assert(dwI >= 0 && dwI < m_dwSize, "Array::operator[] index out of range.");
-		return m_rgEntry[dwI]; 
+		Assert(dwI >= 0 && dwI < m_dwSize, "CArray::operator[] index out of range.");
+		return m_Entries[dwI]; 
 	}
+	CArray & operator=(CArray & array) {
+		DxUtSendError("CArray::operator= not supported.");
+	}
+
+	void Copy(CArray & toCopy);
 
 	void Clear();
 };
-
+/*
 template <typename T, DWORD dwGrowLinear, DWORD dwGrowPower>
 inline void CArray<T, dwGrowLinear, dwGrowPower>::ReserveSharedMemory(void * pMem, DWORD nBytes)
 {
 	DebugBreak();
 	Clear();
 
-	m_bSharedMemory = 1;
-	m_rgEntry = pMem;
+	m_Entries = pMem;
 	m_dwCapacity = nBytes;
 	m_dwSize = 0;
-}
+}*/
 /*
 template <typename T, DWORD dwGrowLinear, DWORD dwGrowPower>
 inline void CArray<T, dwGrowLinear, dwGrowPower>::Reverse()
 {
 	for (DWORD i=0, end=m_dwSize/2; i<end; i++) {
-		m_rgEntry.reverse
+		m_Entries.reverse
 	}
 }*/
 
 template <typename T, DWORD dwGrowLinear, DWORD dwGrowPower>
 inline void CArray<T, dwGrowLinear, dwGrowPower>::Reserve(DWORD n)
 {
-#ifndef STDVECTOR_MODE
-	m_rgEntry.reserve(n);
-#else
 	if (m_dwCapacity < n)
 		p_ResizeArray(n);
-#endif
 }
 
 template <typename T, DWORD dwGrowLinear, DWORD dwGrowPower>
 inline void CArray<T, dwGrowLinear, dwGrowPower>::Resize(DWORD n)
 {
-#ifndef STDVECTOR_MODE
-	m_rgEntry.resize(n);
-	m_dwSize = m_rgEntry.size();
-#else
 	if ((int)n - (int)m_dwCapacity > 0)
 		p_ResizeArray(n);
 	m_dwSize = n;
-#endif
 }
 
 template <typename T, DWORD dwGrowLinear, DWORD dwGrowPower>
 inline void CArray<T, dwGrowLinear, dwGrowPower>::PushBack(const T & element) 
 {
-#ifndef STDVECTOR_MODE
-	m_rgEntry.push_back(element);
-#else
 	if (m_dwSize >= m_dwCapacity) {
 		p_ResizeArray(dwGrowLinear + m_dwSize*(dwGrowPower + 1));
 	}
 
-	memcpy(&m_rgEntry[m_dwSize], &element, sizeof(T)); 
+	memcpy(&m_Entries[m_dwSize], &element, sizeof(T)); 
 	m_dwSize++; 
-#endif
 }
 
 template <typename T, DWORD dwGrowLinear, DWORD dwGrowPower>
 inline void CArray<T, dwGrowLinear, dwGrowPower>::PushBack(void)
 {
-#ifndef STDVECTOR_MODE
-	m_rgEntry.push_back(T());
-#else
 	if (m_dwSize >= m_dwCapacity) { 
 		p_ResizeArray(dwGrowLinear + m_dwSize*(dwGrowPower + 1));
 	}
 
 	m_dwSize++; 
-#endif
 }
 
 //Does not erases the last element and decremets the size
@@ -176,9 +138,21 @@ inline void CArray<T, dwGrowLinear, dwGrowPower>::PopBackSize()
 /*template <typename T, DWORD dwGrowLinear, DWORD dwGrowPower>
 inline void CArray<T, dwGrowLinear, dwGrowPower>::PushBackShift()
 {
-	std::vector<T>::iterator iter = m_rgEntry.begin();
-	m_rgEntry.insert(iter, T());
+	std::vector<T>::iterator iter = m_Entries.begin();
+	m_Entries.insert(iter, T());
 }*/
+
+template <typename T, DWORD dwGrowLinear, DWORD dwGrowPower>
+inline bool CArray<T, dwGrowLinear, dwGrowPower>::FindIfEquals(T & element, DWORD & dwEntry) 
+{
+	for (DWORD i=0; i<m_dwSize; i++) {
+		if (m_Entries[i] == element) {
+			dwEntry = i;
+			return 1;
+		}
+	}
+	return 0;
+}
 
 template <typename T, DWORD dwGrowLinear, DWORD dwGrowPower>
 inline void CArray<T, dwGrowLinear, dwGrowPower>::SetSize(DWORD dwSize)
@@ -191,31 +165,35 @@ inline void CArray<T, dwGrowLinear, dwGrowPower>::SetSize(DWORD dwSize)
 template <typename T, DWORD dwGrowLinear, DWORD dwGrowPower>
 inline void CArray<T, dwGrowLinear, dwGrowPower>::p_ResizeArray(DWORD64 dwCapacity)
 {
-	Assert(!m_bSharedMemory, "CArray::p_ResizeArray cannot resize a shared memory array.");
+	T * ar = new T[(DWORD)dwCapacity];
+	Assert(ar, "CArray::p_ResizeArray out of memory.");
 
-	T * rg = new T[(DWORD)dwCapacity];
-	Assert(rg, "CArray::p_ResizeArray out of memory.");
+	memcpy(ar, m_Entries, min(m_dwSize, (DWORD)dwCapacity)*sizeof(T));
+	if (m_Entries) delete[] m_Entries;
 
-	memcpy(rg, m_rgEntry, min(m_dwSize, (DWORD)dwCapacity)*sizeof(T));
-	if (m_rgEntry) delete[] m_rgEntry;
-
-	m_rgEntry = rg;
+	m_Entries = ar;
 	m_dwCapacity = dwCapacity;
+}
+
+template <typename T, DWORD dwGrowLinear, DWORD dwGrowPower>
+inline void CArray<T, dwGrowLinear, dwGrowPower>::Copy(CArray & toCopy) 
+{
+	Assert(this->m_Entries != toCopy.m_Entries, "CArray::Copy cannot copy oneself.");
+
+	Clear();
+	Reserve(toCopy.m_dwCapacity);
+	Resize(toCopy.m_dwSize);
+	memcpy(m_Entries, toCopy.m_Entries, sizeof(T)*m_dwSize);
 }
 
 template <typename T, DWORD dwGrowLinear, DWORD dwGrowPower>
 inline void CArray<T, dwGrowLinear, dwGrowPower>::Clear() 
 {
-#ifndef STDVECTOR_MODE
-	m_rgEntry.clear();
-#else
-	if (m_rgEntry) {
-		if (!m_bSharedMemory) {delete[] m_rgEntry; m_rgEntry = 0; }
+	if (m_Entries) {
+		delete[] m_Entries; m_Entries = 0;
 		m_dwSize = 0;
 		m_dwCapacity = 0;
-		m_bSharedMemory = 0;
 	}
-#endif
 }
 
 

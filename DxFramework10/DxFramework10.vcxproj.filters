@@ -272,5 +272,8 @@
     <ClInclude Include="DxUtMeshPool.h">
       <Filter>Header Files\Mesh</Filter>
     </ClInclude>
+    <ClInclude Include="DxUtConvexHull.h">
+      <Filter>Header Files\Collisions</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

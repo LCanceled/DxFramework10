@@ -136,7 +136,7 @@ public:
 		return out;
 	}
 
-	float operator[](int idx) {return c[idx];}
+	float operator[](int iIndex) {return c[iIndex];}
 };
 
 __forceinline Vector3F operator*(Matrix4x4F & A, Vector3F & v)
@@ -219,7 +219,7 @@ public:
 	float Length() {return sqrtf(x*x + y*y + z*z);}
 	float LengthSq() {return x*x + y*y + z*z;}
 
-	float operator[](int idx) {return c[idx];}
+	float operator[](int iIndex) {return c[iIndex];}
 };
 
 class Vector4F  {

@@ -135,6 +135,19 @@ inline float RoundToNearest(const float a)
 	return (float)ceilf_ASM(a - .5f);
 }
 
+inline float fastSqrt(const float & x)
+{
+	__m128 r0; 
+	r0 = _mm_load_ss(&x);
+	r0 = _mm_sqrt_ss(r0);
+
+	float flt;
+	_mm_store_ss(&flt, r0);
+
+	return flt;
+}
+
+
 
 
 };

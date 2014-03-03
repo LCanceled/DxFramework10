@@ -59,23 +59,22 @@ public:
 
 	void Print(float val, char * str="\n") {
 		char buf[256]; 
-		sprintf(buf, "%f%s", val, str); Print(buf); 
+		sprintf(buf, "%f%s\0", val, str); Print(buf); 
 	}
 	void Print(double val, char * str="\n") {
-		char buf[256]; 
-		sprintf(buf, "%d%s", val, str); Print(buf); 
+		char buf[256]; sprintf(buf, "%f%s", val, str); Print(buf); 
 	}
 	void Print(int val, char * str="\n") {
 		char buf[256]; 
-		sprintf(buf, "%i%s", val, str); Print(buf); 
+		sprintf(buf, "%i%s\0", val, str); Print(buf); 
 	}
 	void Print(UINT val, char * str="\n") {
 		char buf[256]; 
-		sprintf(buf, "%u%s", val, str); Print(buf); 
+		sprintf(buf, "%u%s\0", val, str); Print(buf); 
 	}
 	void Print(DWORD val, char * str="\n") {
 		char buf[256]; 
-		sprintf(buf, "%u%s", val, str); Print(buf); 
+		sprintf(buf, "%u%s\0", val, str); Print(buf); 
 	}
 	void Print(char * str) {
 		DWORD written; 

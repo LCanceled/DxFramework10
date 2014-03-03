@@ -13,10 +13,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	switch(msg)
 	{
 	case WM_ACTIVATE:
-		if (wParam == WA_ACTIVE || wParam == WA_CLICKACTIVE) //wParam will become WA_ACTIVE
+		/*if (wParam == WA_ACTIVE || wParam == WA_CLICKACTIVE) //wParam will become WA_ACTIVE
 			g_D3DApp->SetPaused(FALSE);						 //when the window is minized and LOWORD(wParam) == WA_ACTIVE.
 		else if (LOWORD(wParam) == WA_INACTIVE)				 //The problem is fixed by wParam == WA_ACTIVE.
-			g_D3DApp->SetPaused(TRUE);
+			g_D3DApp->SetPaused(TRUE);*/
 
 		return 0;
 
@@ -166,7 +166,8 @@ CD3DApp::CD3DApp(CD3DApp & cpy)
 
 void CD3DApp::Loop(void (*loopFunction)())
 {
-	//m_liLastCountNum = 0;
+	QueryPerformanceCounter((LARGE_INTEGER*)&m_liLastCountNum);
+
 	MSG msg;
 	ZeroMemory(&msg, sizeof(msg));
 	while (msg.message != WM_QUIT) {
@@ -174,8 +175,9 @@ void CD3DApp::Loop(void (*loopFunction)())
 			TranslateMessage(&msg);
 			DispatchMessage(&msg); }
 		else {
-			if (m_bPaused)
+			if (m_bPaused) {
 				Sleep(80);
+			}
 			else {
 				static int frameCount = 0; frameCount++;
 				double time = g_TimeElapsed;
