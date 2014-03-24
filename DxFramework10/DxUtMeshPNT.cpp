@@ -12,7 +12,12 @@ void CMeshPNT::LoadMeshFromFile(char * szMeshFile, DWORD dwOptions, Vector3F & s
 
  void CMeshPNT::SetEffect(char * szFxFile)
  {
-	if (!CEffectPool::GetEffect(szFxFile ? szFxFile : "/PNT_Phong.fx", &m_Effect)) {
+	char * fileName = szFxFile ? szFxFile : "PNT_Phong.fx";
+	if (!CEffectPool::GetResource(fileName, (CEffect**)&m_Effect)) {
+		m_Effect = new CPNTPhongFx;
+		m_Effect->CreateEffect(fileName);
+		CEffectPool::PutResource(fileName, m_Effect);
+
 		CPNTPhongFx & fx = *m_Effect;
 		fx.eTech		= fx->GetTechniqueByIndex(0);
 		fx.eWVP			= fx->GetVariableByName("g_WVP")->AsMatrix();

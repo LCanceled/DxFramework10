@@ -2,9 +2,8 @@
 #ifndef DXUTTIMER_H
 #define DXUTTIMER_H
 
-#include "DxUtInclude.h"
-#include <iostream>
-#include <fstream>
+#include <Windows.h>
+#include <assert.h>
 
 #define MAX_TIMERS 64
 
@@ -13,39 +12,49 @@ namespace DxUt {
 class CTimer {
 private:
 	struct STimeInfo {
-		STimeInfo():elapsedTime(0), totalTime(0), dwCount(0) {str[0] = '\0'; }
+		STimeInfo():elapsedTime(0), totalTime(0), dwTotalCount(0), dwCountSinceLastPresentation(0), str(0) {}
 		
 		__int64 liCountNum;
-		DWORD dwCount;
+		DWORD dwTotalCount;
+		DWORD dwCountSinceLastPresentation;
 		double elapsedTime;
 		double totalTime;
-		char str[256];
+		char * str;
 	};
 
-	static STimeInfo m_rgTimer[MAX_TIMERS];
-	static DWORD m_dwTimerCount;
+	static STimeInfo m_Timers[MAX_TIMERS];
 	__int64 m_liCountsPerSecond;
-	static DWORD m_dwCount;
-public:
-	CTimer(DWORD dwCount) {
+	
+	CTimer() {
 		QueryPerformanceFrequency((LARGE_INTEGER*)&m_liCountsPerSecond);
 	}
 	//~CTimer() {}
 
+public:
+
+	/* Do not nest start and end calls */
 	void StartTimer(DWORD dwTimer) {
-		QueryPerformanceCounter((LARGE_INTEGER*)&m_rgTimer[dwTimer].liCountNum);
+		assert(dwTimer < MAX_TIMERS);
+
+		QueryPerformanceCounter((LARGE_INTEGER*)&m_Timers[dwTimer].liCountNum);
+		m_Timers[dwTimer].elapsedTime = 0;
 	}
-	void EndTimer(DWORD dwTimer) {
+	void EndTimer(DWORD dwTimer, char * str) {
+		assert(dwTimer < MAX_TIMERS);
+
 		__int64 liCountNum; 
 		QueryPerformanceCounter((LARGE_INTEGER*)&liCountNum);
-		__int64 deltaCount = liCountNum - m_rgTimer[dwTimer].liCountNum;
-		m_rgTimer[dwTimer].elapsedTime += (double)deltaCount;
-		m_rgTimer[dwTimer].totalTime += (double)deltaCount;
-		m_rgTimer[dwTimer].dwCount++;
+		__int64 deltaCount = liCountNum - m_Timers[dwTimer].liCountNum;
+		m_Timers[dwTimer].elapsedTime += (double)deltaCount;
+		m_Timers[dwTimer].totalTime += (double)deltaCount;
+		m_Timers[dwTimer].dwTotalCount++;
+		m_Timers[dwTimer].dwCountSinceLastPresentation++;
+		m_Timers[dwTimer].str = str;
 	}
-	void DisplayTimer(DWORD dwTimer, const char * str);
 
-	void PresentTimer(DWORD dwPresentationInterval);
+	void PresentTimers(DWORD dwPresentationInterval, bool bPresentAvg);
+
+	static CTimer Get() {static CTimer c; return c; }
 };
 
 

@@ -22,7 +22,7 @@ struct STriangleF {
 	STriangleF & Transform(Matrix4x4F & m);
 	STriangleF & operator=(STriangleF & tri); 
 
-	FLOAT Area() {
+	float Area() {
 		Vector3F v1(vPosW[1] - vPosW[0]);
 		Vector3F v2(vPosW[2] - vPosW[0]);
 		return .5f*Vector3F(CrossXYZ(v1, v2)).Length();
@@ -84,7 +84,7 @@ bool TriPlannarLineIntersect(STriangleF & tri, Vector3F & e1, Vector3F & e2);
 Vector3F ComputeClosestPoint(STriangleF & tri, Vector3F & pt, DWORD & dwType);
 
 /* Divide a triangle into 4 subtris based upon loop subdivision */
-void SubdivideTriangle(STriangleF & tri, STriangleF * rgSubdividedTri);
+void SubdivideTriangle(STriangleF & tri, STriangleF * subdividedTris);
 
 /* Triangle-Triangle Intersection */
 struct STriTriIntersectData {

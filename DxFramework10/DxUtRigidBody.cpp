@@ -13,53 +13,54 @@ CRigidBody::CRigidBody():m_bNotStatic(1),m_pOverrideMaterial(0)
 {
 }
 
-void CRigidBody::CreateRigidBody(CMesh * pMesh, DWORD dwStride, FLOAT fScale, FLOAT fMass, Vector3F & gravity, float fTimeStepSize,
+void CRigidBody::CreateRigidBody(CMesh * pMesh, DWORD dwStride, float scale, float mass, Vector3F & gravity, float timeStepSize,
 	float fMaxVelocity, char * szLevelSet, DWORD dwTriPerOct, bool bUseHierarchicalLevelSet, GeometryType type, SMaterial * pOverideMaterial)
 {
-	m_Mesh = pMesh;
+	m_pMesh = pMesh;
 	ID3DX10Mesh * pRawMesh = pMesh->GetMesh();
 	
 	DWORD nVert = 3*pRawMesh->GetFaceCount();
-	Vector3F * rgVert = new Vector3F[nVert];
-	ExtractVertexTriangleListFromMesh(pRawMesh, rgVert, dwStride);
+	Vector3F * verts = new Vector3F[nVert];
+	ExtractVertexTriangleListFromMesh(pRawMesh, verts, dwStride);
 
-	double dDensity = 0;
-	if (fMass < 0) {m_IBody.MZero(); m_CenterOfMass = Vector3F(0); }
-	else ComputeInertiaTensor(rgVert, nVert, fMass, m_IBody, m_CenterOfMass, dDensity);
+	double density = 0;
+	if (mass < 0) {m_IBody.MZero(); m_CenterOfMass = Vector3F(0); }
+	else ComputeInertiaTensor(verts, nVert, mass, m_IBody, m_CenterOfMass, density);
 
-	DWORD * rgAdj = new DWORD[3*nVert];
-	ExtractAdjanceyFromMesh(pRawMesh, rgAdj);
+	DWORD * pAdj = new DWORD[3*nVert];
+	ExtractAdjanceyFromMesh(pRawMesh, pAdj);
 
 	/* Center the mass at the center of mass */
 	/*for (DWORD i=0; i<nVert; i++) {
-		rgVert[i] -= m_CenterOfMass;
+		verts[i] -= m_CenterOfMass;
 	}*/
 
 	Assert(szLevelSet, "CRigidBody::CreateRigidBody szLevelSet file must be specified.");
-	if (bUseHierarchicalLevelSet)
-		m_pLevelSet = new COctreeLevelSet;
-	else m_pLevelSet = new CLevelSet;
-	m_pLevelSet->Initialize(gravity, fTimeStepSize, fMaxVelocity);
-	if (bUseHierarchicalLevelSet)
-		((COctreeLevelSet*)m_pLevelSet)->CreateParticleRepresentation(rgVert, nVert, rgAdj, 1, dwTriPerOct, szLevelSet);
-	else m_pLevelSet->CreateParticleRepresentation(rgVert, nVert, rgAdj, szLevelSet);
+	//if (bUseHierarchicalLevelSet)
+	//	m_pLevelSet = new COctreeLevelSet;
+	//else 
+	m_pLevelSet = new CLevelSet;
+	//if (bUseHierarchicalLevelSet)
+	//	((COctreeLevelSet*)m_pLevelSet)->CreateParticleRepresentation(verts, nVert, pAdj, 1, dwTriPerOct, szLevelSet);
+	//else 
+	m_pLevelSet->CreateLevelSet(verts, nVert, pAdj, szLevelSet);
 
-	m_InvMass = 1.f/fMass;
-	m_Density = (float)dDensity;
-	if (fMass < 0) {
+	m_InvMass = 1.f/mass;
+	m_Density = (float)density;
+	if (mass < 0) {
 		m_InvMass = 0;
 		m_InvIBody.MZero();
 		m_bNotStatic = 0;
 	} else {
-		m_InvMass = 1.f/fMass;
+		m_InvMass = 1.f/mass;
 		m_InvIBody = m_IBody.Inverse();
 	}
-	m_fScale = fScale;
+	m_Scale = scale;
 	
-	delete[] rgVert;
-	rgVert = NULL;
-	delete[] rgAdj;
-	rgAdj = NULL;
+	delete[] verts;
+	verts = NULL;
+	delete[] pAdj;
+	pAdj = NULL;
 
 	m_RBType = type;
 
@@ -69,54 +70,7 @@ void CRigidBody::CreateRigidBody(CMesh * pMesh, DWORD dwStride, FLOAT fScale, FL
 	}
 }
 
-void CRigidBody::CreateRigidBody(STriangleF * rgTri, DWORD nTri, DWORD * rgAdj, FLOAT fScale, FLOAT fMass, Vector3F & gravity, float fTimeStepSize,
-	float fMaxVelocity, char * szLevelSet, DWORD dwTriPerOct, bool bUseHierarchicalLevelSet, GeometryType type, SMaterial * pOverideMaterial)
-{
-	/*Assert(m_BVTree == NULL, "CRigidBody::CreateRigidBody cannont create a new"
-		" rigidbody when the old one was not destroyed.");
-
-	DWORD nVert = 3*nTri;
-	double dDensity = 0;
-	if (fMass < 0) m_IBody.MZero();
-	else ComputeInertiaTensor((Vector3F*)rgTri, nVert, fMass, m_IBody, m_CenterOfMass, dDensity);
-	if (szLevelSet) {
-		m_pLevelSet = new CLevelSet;
-		m_pLevelSet->CreateParticleRepresentation(rgTri, nTri, rgAdj, szLevelSet, fLevelSetCellSize);
-	}
-	
-	for (DWORD i=0; i<nVert; i++) {
-		rgVert[i] -= m_CenterOfMass;
-	}
-
-	m_BVTree = new BVTree;
-	//m_BVTree->CreateBVTree((Vector3F*)rgTri, nVert, rgAdj);
-
-	m_InvMass = 1.f/fMass;
-	m_Density = (float)dDensity;
-	if (fMass < 0) {
-		m_InvMass = 0;
-		m_InvIBody.MZero();
-		m_bNotStatic = 0;
-	} else {
-		m_InvMass = 1.f/fMass;
-		m_InvIBody = m_IBody.Inverse();
-	}
-	m_fScale = fScale;
-
-	if (type == GT_OBBOX) {
-		m_pOBBox = new COBBox;
-		//m_pOBBox = m_BVTree->GetTopLevelOBBox();
-	}
-	//m_pOBBox = m_BVTree->GetTopLevelOBBox();
-	m_RBType = type;
-
-	if (pOverideMaterial) {
-		m_pOverrideMaterial = new SMaterial;
-		memcpy(m_pOverrideMaterial, pOverideMaterial, sizeof(SMaterial));
-	}*/
-}
-
-void CRigidBody::IntegratePos(FLOAT dt)
+void CRigidBody::IntegratePos(float dt)
 {
 	/* p(t+dt) = p(t) + v*dt */
 	/* q(t+dt) = q(t) + w* * R */
@@ -146,7 +100,7 @@ void CRigidBody::IntegratePos(FLOAT dt)
 	m_InvI = m_Rot*m_InvIBody*m;
 }
 
-void CRigidBody::IntegrateVel(FLOAT dt, Vector3F & gAcel)
+void CRigidBody::IntegrateVel(float dt, Vector3F & gAcel)
 {
 	if (m_InvMass != 0) 
 		m_LinVel = m_LinVel + dt*(m_InvMass*m_Force + gAcel);
@@ -155,15 +109,15 @@ void CRigidBody::IntegrateVel(FLOAT dt, Vector3F & gAcel)
 		-dt*(m_AngVel.SkewMatrix3x3F()*m_I*m_AngVel)) + m_Torque;// + m_Torque);
 }
 /*
-DWORD CRigidBody::DetermineCollision(CRigidBody * pRB, CArray<SContactPoint> * rgCP)
+DWORD CRigidBody::DetermineCollision(CRigidBody * pRB, CArray<SContactPoint> * CPs)
 {
 	//Code may need to consider m_CenterOfMass
-	m_BVTree->SetTransform(m_Rot, m_Pos, m_fScale);
-	pRB->m_BVTree->SetTransform(pRB->m_Rot, pRB->m_Pos, m_fScale);
+	m_BVTree->SetTransform(m_Rot, m_Pos, m_Scale);
+	pRB->m_BVTree->SetTransform(pRB->m_Rot, pRB->m_Pos, m_Scale);
 
-	DWORD n = m_BVTree->BVCollision(*pRB->m_BVTree, rgCP);
+	DWORD n = m_BVTree->BVCollision(*pRB->m_BVTree, CPs);
 	/*if (n) {
-		SRBContact * ptr = rgCP->data() + (rgCP->size()-n);
+		SRBContact * ptr = CPs->data() + (CPs->size()-n);
 		for (DWORD i=0; i<n; i++, ptr++) { 
 			/* This body i 
 			ptr->rBi = this;
@@ -175,97 +129,19 @@ DWORD CRigidBody::DetermineCollision(CRigidBody * pRB, CArray<SContactPoint> * r
 			c.iNor = ptr->iNor;
 			c.rBi = pRB;
 			c.rBi = this;
-			pRB->rgCP->push_back(c);
+			pRB->CPs->push_back(c);
 		}
 	}
 
 	return n;
 }*/
 
-#include "DxUtOBBox.h"
-
-DWORD CRigidBody::DetermineCollisionLevelSet(CRigidBody * pRB, CArray<SContactPoint> * rgCP)
+DWORD CRigidBody::DetermineCollisionLevelSet(CRigidBody * pRB, CArray<SContactPoint> * CPs)
 {
-	//m_pLevelSet->SetTransform(m_Rot, m_Pos);
-	//pRB->m_pLevelSet->SetTransform(pRB->m_Rot, pRB->m_Pos);
-	DWORD n = m_pLevelSet->LevelSetCollision(*pRB->m_pLevelSet, rgCP);
+	DWORD n = m_pLevelSet->LevelSetCollision(*pRB->m_pLevelSet, CPs);
 
-	/*std::vector<SContactPoint> rgCPStd;
-	DWORD n = m_pLevelSet->m_OBBox.OBBoxIntersectW(pRB->m_pLevelSet->m_OBBox, rgCPStd);
-	if (n) {
-		rgCP->Resize(n);
-		for (int i=0; i<n; i++) {
-			(*rgCP)[i] = rgCPStd[i];
-			(*rgCP)[i].iNor = -(*rgCP)[i].iNor;
-			//if (DotXYZ((*rgCP)[i].iNor, Vector3F(0, 1.f, 0)) > 0)
-			//	(*rgCP)[i].iNor = Vector3F(0, -1.f, 0);
-			//else (*rgCP)[i].iNor = Vector3F(0, 1.f, 0);
-		}
-	}*/
-	
 	return n;
 }
-
-/*
-DWORD CRigidBody::DetermineCollisionConvexPolyhedron(CRigidBody * pRB, CArray<SContactPoint> * rgCP)
-{
-	m_BVTree->SetTransform(m_Rot, m_Pos, m_fScale);
-	pRB->m_BVTree->SetTransform(pRB->m_Rot, pRB->m_Pos, pRB->m_fScale);
-
-	DWORD n = 0;
-	static DWORD dwCounter=0;dwCounter++;
-	if (dwCounter == 2364)
-		int asdf=0;
-	//n = m_BVTree->BVCollisionConvex(*pRB->m_BVTree, rgCP);
-	//n = m_pOBBox->OBBoxIntersectW(*pRB->m_pOBBox, *rgCP);
-	//if (n) (*rgCP)[0].iNor = -(*rgCP)[0].iNor;
-//	if (n) {
-		std::vector<SContactPoint> tmpCP;
-		if ((n=m_pOBBox->OBBoxIntersectW(*pRB->m_pOBBox, tmpCP))) {
-			//if (DotXYZ(-tmpCP[0].iNor, (*rgCP)[0].iNor) < .98 && ((*rgCP)[0].iNor).y > -.999f) {
-				int a=0;
-			if (tmpCP.size()) {
-				//(*rgCP)[0].iNor = -tmpCP[0].iNor;
-				/*rgCP->clear();
-				Vector3F nor = -tmpCP[0].iNor;
-				for (DWORD i=0; i<tmpCP.size(); i++) {
-					tmpCP[i].iNor = nor;
-					rgCP->PushBack(tmpCP[i]);
-					rgCP->GetBack().iNor = nor;
-				}
-				// (*rgCP)[0].iNor = -(*rgCP)[0].iNor;
-			}
-		//} else {
-			//rgCP->clear();
-			//n = 0;
-		}
-	//} 
-	/*DWORD n=0;
-	switch (m_RBType) {q
-	case GT_OBBOX:
-		n = m_pOBBox->OBBoxIntersectW(*pRB->m_pOBBox, *rgCP);
-		break;
-	case GT_TRIANGLE_MESH:
-	default:
-		n = m_BVTree->BVCollisionConvex(*pRB->m_BVTree, rgCP);
-		break;
-	}
-	return n;
-}*/
-
-
-/*
-DWORD CRigidBody::DetermineCollisionConvexCts(CRigidBody * pRB,
-	Vector3F * cts, void * mem, WORD & nCts, Vector3F & cNor)
-{
-	m_BVTree.SetTransform(m_Rot, m_Pos, m_fScale);
-	pRB->m_BVTree.SetTransform(pRB->m_Rot, pRB->m_Pos, m_fScale);
-	m_dwCPsIndex = rgCP->size();
-
-	m_nCPs = m_BVTree->BVCollisionConvex(*pRB->m_BVTree, rgCP);
-	return m_nCPs;
-}
-*/
 
 Vector3F CRigidBody::ComputeLinVel(Vector3F & impulse)
 {
@@ -277,28 +153,6 @@ Vector3F CRigidBody::ComputeAngVel(Vector3F & impulse, Vector3F & r)
 	DebugBreak(); // r is wrong. need center of mass and posiiton
 	return  m_InvI*CrossXYZ(r, impulse);
 }
-/*
-Matrix4x4F CRigidBody::GetPart1(Vector3F & iPos, Matrix4x4F & r) 
-{
-	return Matrix4x4F(m_InvMass, 0, 0, 0, 0, m_InvMass, 0, 0, 0, 0, m_InvMass, 0, 0, 0, 0, 1.f)
-		- ((iPos - m_Pos).SkewMatrix3x3F()*m_InvI*r); 
-}
-
-Matrix4x4F CRigidBody::GetPart2(Vector3F & iPos) 
-{
-	return (iPos - m_Pos).SkewMatrix3x3F();
-}
-
-Vector3F CRigidBody::GetPart3(Vector3F & gAcel, Vector3F & iPos, float dt) 
-{
-	/*if (m_RigidBodyType == RBT_Static)
-		return Vector3F(0, 0, 0);
-
-	Vector3F r(iPos - m_Pos);
-	Vector3F v(m_LinVel + dt*(gAcel)); //m_InvMass*m_Force + 
-	Vector3F w(CrossXYZ(m_AngVel, r));// + dt*m_InvI*(m_Torque - (m_AngVel.SkewMatrix3x3F()*m_I*m_AngVel)));
-	return v + w;
-}*/
 
 float CRigidBody::GetbVector(float * J, Vector3F & gAcel, Vector3F iPos, float dt) 
 {
@@ -434,14 +288,14 @@ void CRigidBody::DestroyRigidBody()
 //////////////////////////////////    CRigidBody Functions    /////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ComputeVolume(STriangleF * rgTri, DWORD nTri, double & dVol)
+void ComputeVolume(STriangleF * tris, DWORD nTri, double & vol)
 {
 	double f1x;
 	double intg = 0;
 	for (DWORD i=0; i<nTri; i++) {
-		double x0 = rgTri[i].vPosW[0].x, y0 = rgTri[i].vPosW[0].y, z0 = rgTri[i].vPosW[0].z;
-		double x1 = rgTri[i].vPosW[1].x, y1 = rgTri[i].vPosW[1].y, z1 = rgTri[i].vPosW[1].z;
-		double x2 = rgTri[i].vPosW[2].x, y2 = rgTri[i].vPosW[2].y, z2 = rgTri[i].vPosW[2].z;
+		double x0 = tris[i].vPosW[0].x, y0 = tris[i].vPosW[0].y, z0 = tris[i].vPosW[0].z;
+		double x1 = tris[i].vPosW[1].x, y1 = tris[i].vPosW[1].y, z1 = tris[i].vPosW[1].z;
+		double x2 = tris[i].vPosW[2].x, y2 = tris[i].vPosW[2].y, z2 = tris[i].vPosW[2].z;
 
 		// get edges (1(a,b,c), 2(a,b,c)) and cross product of edges
 		double b1 = y1-y0, c1 = z1-z0, b2 = y2-y0, c2 = z2-z0;
@@ -455,16 +309,16 @@ void ComputeVolume(STriangleF * rgTri, DWORD nTri, double & dVol)
 	}
 
 	// volume of polyhedron
-	dVol = intg/6.0;
+	vol = intg/6.0;
 }
 
 //The vertices must be in a triangle list order
-void ComputeVolume(Vector3F * rgVert, DWORD nVert, double & dVol)
+void ComputeVolume(Vector3F * verts, DWORD nVert, double & vol)
 {
-	if (nVert % 3) {DxUtSendError("ComputeVolume the rgVert must be divisible by 3.");}
+	if (nVert % 3) {DxUtSendError("ComputeVolume the verts must be divisible by 3.");}
 	DWORD nTri = nVert/3;
 
-	ComputeVolume((STriangleF*)rgVert, nTri, dVol);
+	ComputeVolume((STriangleF*)verts, nTri, vol);
 }
 
 #define Subexpressions(w0,w1,w2,f1,f2,f3,g0,g1,g2,temp0,temp1,temp2)		\
@@ -474,7 +328,7 @@ void ComputeVolume(Vector3F * rgVert, DWORD nVert, double & dVol)
 	g0 = f2+w0*(f1+w0); g1 = f2+w1*(f1+w1); g2 = f2+w2*(f1+w2);				\
 }
 
-void ComputeInertiaTensor(STriangleF * rgTri, DWORD nTri, double fMass, Matrix4x4F & I, Vector3F & cm, double & dDensity)
+void ComputeInertiaTensor(STriangleF * tris, DWORD nTri, double mass, Matrix4x4F & I, Vector3F & cm, double & density)
 {
 	double temp0, temp1, temp2;
 	double f1x, f2x, f3x, g0x, g1x, g2x;
@@ -484,9 +338,9 @@ void ComputeInertiaTensor(STriangleF * rgTri, DWORD nTri, double fMass, Matrix4x
 	double intg[10] = {0,0,0,0,0,0,0,0,0,0}; // order: 1, x, y, z, x^2, y^2, z^2, xy, yz, zx
 
 	for (DWORD i=0; i<nTri; i++) {
-		double x0 = rgTri[i].vPosW[0].x, y0 = rgTri[i].vPosW[0].y, z0 = rgTri[i].vPosW[0].z;
-		double x1 = rgTri[i].vPosW[1].x, y1 = rgTri[i].vPosW[1].y, z1 = rgTri[i].vPosW[1].z;
-		double x2 = rgTri[i].vPosW[2].x, y2 = rgTri[i].vPosW[2].y, z2 = rgTri[i].vPosW[2].z;
+		double x0 = tris[i].vPosW[0].x, y0 = tris[i].vPosW[0].y, z0 = tris[i].vPosW[0].z;
+		double x1 = tris[i].vPosW[1].x, y1 = tris[i].vPosW[1].y, z1 = tris[i].vPosW[1].z;
+		double x2 = tris[i].vPosW[2].x, y2 = tris[i].vPosW[2].y, z2 = tris[i].vPosW[2].z;
 
 		// get edges (1(a,b,c), 2(a,b,c)) and cross product of edges
 		double a1 = x1-x0, b1 = y1-y0, c1 = z1-z0, a2 = x2-x0, b2 = y2-y0, c2 = z2-z0;
@@ -508,38 +362,38 @@ void ComputeInertiaTensor(STriangleF * rgTri, DWORD nTri, double fMass, Matrix4x
 	for (WORD i=0; i<10; i++)
 		intg[i] *= mult[i];
 
-	// dDensity of polyhedron
-	dDensity = fMass/intg[0];
+	// density of polyhedron
+	density = mass/intg[0];
 
-	// center of fMass
+	// center of mass
 	cm.x = (float)(intg[1]/intg[0]);
 	cm.y = (float)(intg[2]/intg[0]);
 	cm.z = (float)(intg[3]/intg[0]);
 
-	// inertia tensor relative to center of fMass
-	I.m[0][0] = (float)(dDensity*(intg[5]+intg[6]) - fMass*(cm.y*cm.y+cm.z*cm.z));
-	I.m[1][1] = (float)(dDensity*(intg[4]+intg[6]) - fMass*(cm.z*cm.z+cm.x*cm.x));
-	I.m[2][2] = (float)(dDensity*(intg[4]+intg[5]) - fMass*(cm.x*cm.x+cm.y*cm.y));
-	I.m[0][1] = I.m[1][0] = (float)(-dDensity*intg[7] + fMass*cm.x*cm.y);
-	I.m[1][2] = I.m[2][1] = (float)(-dDensity*intg[8] + fMass*cm.y*cm.z);
-	I.m[2][0] = I.m[0][2] = (float)(-dDensity*intg[9] + fMass*cm.z*cm.x);
+	// inertia tensor relative to center of mass
+	I.m[0][0] = (float)(density*(intg[5]+intg[6]) - mass*(cm.y*cm.y+cm.z*cm.z));
+	I.m[1][1] = (float)(density*(intg[4]+intg[6]) - mass*(cm.z*cm.z+cm.x*cm.x));
+	I.m[2][2] = (float)(density*(intg[4]+intg[5]) - mass*(cm.x*cm.x+cm.y*cm.y));
+	I.m[0][1] = I.m[1][0] = (float)(-density*intg[7] + mass*cm.x*cm.y);
+	I.m[1][2] = I.m[2][1] = (float)(-density*intg[8] + mass*cm.y*cm.z);
+	I.m[2][0] = I.m[0][2] = (float)(-density*intg[9] + mass*cm.z*cm.x);
 
 	I.m[3][3] = 1.f;
 	I.m[0][3] = I.m[1][3] = I.m[2][3] = I.m[3][0] = I.m[3][1] = I.m[3][2] = 0;
 }
 
 //The vertices must be in a triangle list order
-void ComputeInertiaTensor(Vector3F * rgVert, DWORD nVert, double fMass,
-	Matrix4x4F & I, Vector3F & cm, double & dDensity)
+void ComputeInertiaTensor(Vector3F * verts, DWORD nVert, double mass,
+	Matrix4x4F & I, Vector3F & cm, double & density)
 {
-	if (nVert % 3) {DxUtSendError("ComputeInertiaTensor the rgVert must be divisible by 3.");}
+	if (nVert % 3) {DxUtSendError("ComputeInertiaTensor the verts must be divisible by 3.");}
 	DWORD nTri = nVert/3;
 
 	STriangleF * rgTris = new STriangleF[nTri];
 	for (DWORD i=0; i<nTri; i++) {
-		rgTris[i] = STriangleF(rgVert[3*i+0],rgVert[3*i+1],rgVert[3*i+2]);
+		rgTris[i] = STriangleF(verts[3*i+0],verts[3*i+1],verts[3*i+2]);
 	}
-	ComputeInertiaTensor(rgTris, nTri, fMass,  I, cm, dDensity);
+	ComputeInertiaTensor(rgTris, nTri, mass,  I, cm, density);
 	delete[] rgTris;
 }
 

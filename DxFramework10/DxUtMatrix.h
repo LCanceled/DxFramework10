@@ -10,15 +10,12 @@
 
 namespace DxUt {
 
-//VERY IMPORTANT!
 //Matrix4x4F assumes that its columns are vectors
 //not its rows. All its member functions and all
 //other functions and class assume this except for 
 //the camera class which assumes row vectors. Note
-//also that D3D10 likes a left handed coordinate
-//system in which matrices are row vector form where
-//as OpenGL prefers a right handed coordinate system
-//where all of its matrices should be in column form.
+//also that D3D10 uses a left handed coordinate
+//system in which matrices are row vector form.
 
 class Vector3F;
 struct STriangleF;
@@ -45,14 +42,14 @@ public:
 	Matrix4x4F operator+(Matrix4x4F & A);
 	Matrix4x4F operator-(Matrix4x4F & A);
 	Matrix4x4F operator*(Matrix4x4F & A);
-	friend Matrix4x4F operator*(FLOAT flt, Matrix4x4F & A);
-	Matrix4x4F operator*(FLOAT flt);
+	friend Matrix4x4F operator*(float flt, Matrix4x4F & A);
+	Matrix4x4F operator*(float flt);
 
 	Matrix4x4F & operator=(Matrix4x4F & A);
 	Matrix4x4F & operator+=(Matrix4x4F & A);
 	Matrix4x4F & operator-=(Matrix4x4F & A);
 	Matrix4x4F & operator*=(Matrix4x4F & A);
-	Matrix4x4F & operator*=(FLOAT flt);
+	Matrix4x4F & operator*=(float flt);
 
 	Matrix4x4F Inverse();
 	Matrix4x4F Transpose();
@@ -161,7 +158,7 @@ void MaxEigenVectors3x3F(Matrix4x4F & eiM, Vector3F & eiVal, Vector3F & eiVec);
 
 class MatrixNxNF  {
 public:
-	FLOAT * c;
+	float * c;
 private:
 	DWORD m_nRows;
 public:
@@ -174,20 +171,12 @@ public:
 	MatrixNxNF & operator=(MatrixNxNF & A);
 	MatrixNxNF & operator+=(MatrixNxNF & A);
 	MatrixNxNF & operator-=(MatrixNxNF & A);
-	MatrixNxNF & operator*=(FLOAT flt);
+	MatrixNxNF & operator*=(float flt);
 
 	MatrixNxNF & MIdenity();
 
 	void DestroyMatrix();
 };
-
-/* xI is the initial "guess" solution to Ax + b = 0 */
-void JacobiMethod(MatrixNxNF & A, VectorNF & x,
-	VectorNF & b, VectorNF & xI, FLOAT eps = .0001f, DWORD numIter=15);
-
-/* x is the initial "guess" to Ax + b = 0 and will become the solution */
-/* The low and high limits are 0 and infinity respectively */
-void ProjectedGaussSeidelMethod(MatrixNxNF & A, VectorNF & x, VectorNF & b, FLOAT eps = .0001f, DWORD numIter=15);
 
 
 };

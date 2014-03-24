@@ -4,6 +4,18 @@
 
 namespace DxUt {
 
+inline float fastSqrt(const float x)
+{
+	__m128 r0; 
+	r0 = _mm_load_ss(&x);
+	r0 = _mm_sqrt_ss(r0);
+
+	float flt;
+	_mm_store_ss(&flt, r0);
+
+	return flt;
+}
+
 double g_fVectorEqualityEps = 1e-4;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -70,19 +82,19 @@ void VectorNF::CreateVector(DWORD nElements)
 {
 	Assert(!c, "VectorNF::CreateVector must destroy the vector before creating a new one.");
 	
-	c = new FLOAT[nElements];
+	c = new float[nElements];
 	m_nElements = nElements;
 }
 
-FLOAT VectorNF::Length() 
+float VectorNF::Length() 
 {
 	double d = 0;
 	for (DWORD i=0; i<m_nElements; i++)
 		d += c[i] * c[i];
-	return (float)sqrt(d);
+	return (float)fastSqrt(d);
 }
 
-FLOAT VectorNF::LengthSq() 
+float VectorNF::LengthSq() 
 {
 	double d = 0;
 	for (DWORD i=0; i<m_nElements; i++)

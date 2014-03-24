@@ -7,6 +7,8 @@
 
 namespace DxUt {
 
+//TODO: make generic
+
 template <typename T>
 class CFinitePointGrid3F {
 private:
@@ -17,20 +19,20 @@ private:
 		T val;
 	};
 	struct SCell {
-		CArray<SEntry> rgPoint;
+		CArray<SEntry> points;
 	};
 
 	int m_iCellsX;
 	int m_iCellsY;
 	int m_iCellsZ;
-	float m_fCellSize;
+	float m_CellSize;
 
-	SCell * m_rgCell;
+	SCell * m_Cells;
 	Vector3F m_CellOrigin;
 
 	DWORD ComputeGridIndex(Vector3F & pt) {
 		Vector3F gridPt(pt - m_CellOrigin);
-		gridPt /= m_fCellSize;
+		gridPt /= m_CellSize;
 
 		int x = (int)floorf(gridPt.x);
 		int y = (int)floorf(gridPt.y);
@@ -41,27 +43,27 @@ private:
 		return (DWORD)(z * m_iCellsY * m_iCellsX + y * m_iCellsX + x);
 	}
 public:
-	CFinitePointGrid3F():m_rgCell(0) {}
+	CFinitePointGrid3F():m_Cells(0) {}
 	//~CFinitePointGrid3F() {}
 
-	void CreateGrid(DWORD iCellsX, DWORD iCellsY, DWORD iCellsZ, float fCellSize, Vector3F & minGridPt) {
+	void CreateGrid(DWORD iCellsX, DWORD iCellsY, DWORD iCellsZ, float cellSize, Vector3F & minGridPt) {
 		m_iCellsX = (int)iCellsX;
 		m_iCellsY = (int)iCellsY;
 		m_iCellsZ = (int)iCellsZ;
-		m_fCellSize = fCellSize;
+		m_CellSize = cellSize;
 		m_CellOrigin = minGridPt;
-		m_rgCell = new SCell[iCellsX*iCellsY*iCellsZ];
+		m_Cells = new SCell[iCellsX*iCellsY*iCellsZ];
 	}
 
 	void AddPoint(Vector3F & pt, T & val) {
-		m_rgCell[ComputeGridIndex(pt)].rgPoint.PushBack(SEntry(pt, val));
+		m_Cells[ComputeGridIndex(pt)].points.PushBack(SEntry(pt, val));
 	}
 
 	bool PointInGrid(Vector3F & pt, T * val) {
 		int gridId = ComputeGridIndex(pt);
-		CArray<SEntry> & rgPoint = m_rgCell[gridId].rgPoint;
-		SEntry * pPoints = rgPoint.GetData();
-		for (DWORD i=0, end=rgPoint.GetSize(); i<end; i++) {
+		CArray<SEntry> & points = m_Cells[gridId].points;
+		SEntry * pPoints = points.GetData();
+		for (DWORD i=0, end=points.GetSize(); i<end; i++) {
 			if (pPoints[i].pt == pt) {
 				*val = pPoints[i].val;
 				return 1;
@@ -74,17 +76,17 @@ public:
 	/* */
 	void Reset() {
 		for (DWORD i=0, end=(DWORD)(m_iCellsX*m_iCellsY*m_iCellsZ); i<end; i++) {
-			m_rgCell[i].rgPoint.Resize(0);
+			m_Cells[i].points.Resize(0);
 		}
 	}
 
 	void DestroyGrid() {
-		if (m_rgCell) {
+		if (m_Cells) {
 			for (DWORD i=0, end=(DWORD)(m_iCellsX*m_iCellsY*m_iCellsZ); i<end; i++) {
-				m_rgCell[i].rgPoint.Clear();
+				m_Cells[i].points.Clear();
 			}
-			delete[] m_rgCell;
-			m_rgCell = 0;
+			delete[] m_Cells;
+			m_Cells = 0;
 		}
 	}
 };
@@ -105,7 +107,7 @@ struct SCellKey {
 		int x,y,z; 
 	};
 	struct SCellVal {
-		CArray<Vector3F> rgVert;
+		CArray<Vector3F> verts;
 	};
 	struct SHashFunc {
 		int Hash(SCellKey & pt) {

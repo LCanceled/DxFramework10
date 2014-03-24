@@ -2,6 +2,7 @@
 #include "DxUtOBBox.h"
 #include "DxUtTriangle.h"
 #include "DxUtMesh.h"
+#include "DxUtPlane.h"
 
 //For use in the COBBox Intersect Test
 #define _Abs(x, t) ((t=x) < 0 ? -t : t)
@@ -18,28 +19,28 @@ COBBox::COBBox():m_CenterW(0, 0, 0), m_HalfWidthsW(0, 0, 0)
 void COBBox::ComputeOBB(ID3DX10Mesh * pMesh, DWORD dwStride, OBBComputeMethod method)
 {
 	DWORD nVert = 0;
-	Vector3F * rgVert = NULL;
+	Vector3F * verts = NULL;
 
 	if (method == CVTriangles) {
 		nVert = 3*pMesh->GetFaceCount();
-		rgVert = new Vector3F[nVert];
+		verts = new Vector3F[nVert];
 
-		ExtractVertexTriangleListFromMesh(pMesh, rgVert, dwStride);
+		ExtractVertexTriangleListFromMesh(pMesh, verts, dwStride);
 	}
 	else {
 		nVert = pMesh->GetVertexCount();
-		rgVert = new Vector3F[nVert];
+		verts = new Vector3F[nVert];
 
-		ExtractVerticesFromMesh(pMesh, rgVert, dwStride);
+		ExtractVerticesFromMesh(pMesh, verts, dwStride);
 	}
 
-	ComputeOBB(rgVert, nVert, method);
+	ComputeOBB(verts, nVert, method);
 
-	delete[] rgVert;
-	rgVert = NULL;
+	delete[] verts;
+	verts = NULL;
 }
 
-void COBBox::ComputeOBB(Vector3F * rgVert, DWORD nVert, OBBComputeMethod method)
+void COBBox::ComputeOBB(Vector3F * verts, DWORD nVert, OBBComputeMethod method)
 {
 	if (method == CVTriangles && (nVert%3))
 		DxUtSendError("COBBox::ComputeOBB nVert must be divisible by 3.");
@@ -47,8 +48,8 @@ void COBBox::ComputeOBB(Vector3F * rgVert, DWORD nVert, OBBComputeMethod method)
 	Matrix4x4F cov;
 	Vector3F mean;
 	if (method == CVVertices) 
-		CovarianceVertices3x3F(rgVert, nVert, cov, mean);	
-	else CovarianceTriangles3x3F(rgVert, nVert, cov, mean);
+		CovarianceVertices3x3F(verts, nVert, cov, mean);	
+	else CovarianceTriangles3x3F(verts, nVert, cov, mean);
 
 	Matrix4x4F A;								//Eigen vectors
 	Vector3F lambda;							//Eigen values
@@ -62,7 +63,7 @@ void COBBox::ComputeOBB(Vector3F * rgVert, DWORD nVert, OBBComputeMethod method)
 	FLOAT dMin[3] = {FLT_MAX, FLT_MAX, FLT_MAX};
 	FLOAT dMax[3] = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
 	for (DWORD i=0; i<nVert; i++) {
-		Vector3F & v = rgVert[i];
+		Vector3F & v = verts[i];
 		dot = DotXYZ(m_RotVecW[0], v);
 		if (dot < dMin[0]) 
 			dMin[0] = dot;
@@ -212,12 +213,7 @@ BOOL COBBox::OBBoxIntersectW(COBBox & oBB)
 	return 1;
 }
 
-
-
-
-
-
-
+/*
 
 #define SEP_AXIS(proj1, proj2, tProj, nx, ny, nz)	\
 {													\
@@ -324,14 +320,14 @@ void FindClosestVertices(Vector3F * rotVec, Vector3F & halfWidths, Vector3F & ce
 	//v2 = oBBB.m_CenterW + (s2[0]*oBBB.m_HalfWidthsW.x)*oBBB.m_RotVecW[0] + (s2[1]*oBBB.m_HalfWidthsW.y)*oBBB.m_RotVecW[1] + (s2[2]*oBBB.m_HalfWidthsW.z)*oBBB.m_RotVecW[2];
 }
 
-inline bool VertexUnderPlane(__Plane & planeA, Vector3F & v, Vector3F & vCopy) 
+inline bool VertexUnderPlane(PlaneF & planeA, Vector3F & v, Vector3F & vCopy) 
 {
 	Vector3F dif(v - planeA.p);
 	if (DotXYZ(dif, planeA.n) <= 0) {vCopy = v; return 1; }
 	return 0;
 }
 
-void IntersectLineAABB(double hWX, double hWY, Vector2F & rayPos, Vector2F & rayDir, Vector3F & rayWPos, Vector3F & rayWDir, Vector3F & cn, std::vector<SContactPoint> & rgCP)
+void IntersectLineAABB(double hWX, double hWY, Vector2F & rayPos, Vector2F & rayDir, Vector3F & rayWPos, Vector3F & rayWDir, Vector3F & cn, std::vector<SContactPoint> & CPs)
 {	
 	static const float eps=1e-4f;
 	hWX += eps;
@@ -361,11 +357,11 @@ void IntersectLineAABB(double hWX, double hWY, Vector2F & rayPos, Vector2F & ray
 		SContactPoint cp;
 		cp.iPos = rgP[i];
 		cp.iNor = cn;
-		rgCP.push_back(cp);
+		CPs.push_back(cp);
 	}
 }
 
-inline void PointInOBB(Vector2F pt, Vector3F & vAW, Vector2F hWB, Vector2F & rVB1, Vector2F & rVB2, Vector2F & centerB, Vector3F & contactNormal, std::vector<SContactPoint> & rgCP)
+inline void PointInOBB(Vector2F pt, Vector3F & vAW, Vector2F hWB, Vector2F & rVB1, Vector2F & rVB2, Vector2F & centerB, Vector3F & contactNormal, std::vector<SContactPoint> & CPs)
 {
 	pt -= centerB;
 	float cmp1 = DotXY(pt, rVB1);
@@ -376,7 +372,7 @@ inline void PointInOBB(Vector2F pt, Vector3F & vAW, Vector2F hWB, Vector2F & rVB
 	SContactPoint cp;
 	cp.iPos = vAW;
 	cp.iNor = contactNormal;
-	rgCP.push_back(cp);
+	CPs.push_back(cp);
 }
 
 void IntersectOBB2D(
@@ -387,21 +383,21 @@ void IntersectOBB2D(
 	Vector2F & vBL0, Vector2F & vBL1, Vector2F & vBL2, Vector2F & vBL3,
 	Vector3F & vBW0, Vector3F & vBW1, Vector3F & vBW2, Vector3F & vBW3,
 	Vector2F & centerB,
-	Vector3F & contactNormal, std::vector<SContactPoint> & rgCP)
+	Vector3F & contactNormal, std::vector<SContactPoint> & CPs)
 {
-	IntersectLineAABB(hWA.x, hWA.y, vBL0, (vBL1-vBL0), vBW0, (vBW1-vBW0), contactNormal, rgCP);
-	IntersectLineAABB(hWA.x, hWA.y, vBL1, (vBL2-vBL1), vBW1, (vBW2-vBW1), contactNormal, rgCP);
-	IntersectLineAABB(hWA.x, hWA.y, vBL2, (vBL3-vBL2), vBW2, (vBW3-vBW2), contactNormal, rgCP);
-	IntersectLineAABB(hWA.x, hWA.y, vBL3, (vBL0-vBL3), vBW3, (vBW0-vBW3), contactNormal, rgCP);
+	IntersectLineAABB(hWA.x, hWA.y, vBL0, (vBL1-vBL0), vBW0, (vBW1-vBW0), contactNormal, CPs);
+	IntersectLineAABB(hWA.x, hWA.y, vBL1, (vBL2-vBL1), vBW1, (vBW2-vBW1), contactNormal, CPs);
+	IntersectLineAABB(hWA.x, hWA.y, vBL2, (vBL3-vBL2), vBW2, (vBW3-vBW2), contactNormal, CPs);
+	IntersectLineAABB(hWA.x, hWA.y, vBL3, (vBL0-vBL3), vBW3, (vBW0-vBW3), contactNormal, CPs);
 
 	hWB = hWB * hWB;
-	PointInOBB(Vector2F(+hWA.x, +hWA.y), vAW0, hWB, rVB1, rVB2, centerB, contactNormal, rgCP);
-	PointInOBB(Vector2F(+hWA.x, -hWA.y), vAW1, hWB, rVB1, rVB2, centerB, contactNormal, rgCP);
-	PointInOBB(Vector2F(-hWA.x, -hWA.y), vAW2, hWB, rVB1, rVB2, centerB, contactNormal, rgCP);
-	PointInOBB(Vector2F(-hWA.x, +hWA.y), vAW3, hWB, rVB1, rVB2, centerB, contactNormal, rgCP);
+	PointInOBB(Vector2F(+hWA.x, +hWA.y), vAW0, hWB, rVB1, rVB2, centerB, contactNormal, CPs);
+	PointInOBB(Vector2F(+hWA.x, -hWA.y), vAW1, hWB, rVB1, rVB2, centerB, contactNormal, CPs);
+	PointInOBB(Vector2F(-hWA.x, -hWA.y), vAW2, hWB, rVB1, rVB2, centerB, contactNormal, CPs);
+	PointInOBB(Vector2F(-hWA.x, +hWA.y), vAW3, hWB, rVB1, rVB2, centerB, contactNormal, CPs);
 }
 
-BOOL COBBox::OBBoxIntersectW(COBBox & oBB, std::vector<SContactPoint> & rgCP)
+BOOL COBBox::OBBoxIntersectW(COBBox & oBB, std::vector<SContactPoint> & CPs)
 {
 	//See Ericson, Christer, Real Time Collision Detection, page 101, and
 
@@ -571,9 +567,9 @@ BOOL COBBox::OBBoxIntersectW(COBBox & oBB, std::vector<SContactPoint> & rgCP)
 			vBL0, vBL1, vBL2, vBL3,
 			vBW0, vBW1, vBW2, vBW3,
 			offsetBL,
-			bBoxFlipSign*faceContactNormal, rgCP);
+			bBoxFlipSign*faceContactNormal, CPs);
 
-		return rgCP.size();
+		return CPs.size();
 	}
 	else if (axisIndexA > 5) { //Edge-Edge contact
 		contactNormal = faceContactNormal;
@@ -589,7 +585,7 @@ BOOL COBBox::OBBoxIntersectW(COBBox & oBB, std::vector<SContactPoint> & rgCP)
 		SContactPoint cp;
 		cp.iPos = contactPoint;
 		cp.iNor = bBoxFlipSign*contactNormal;
-		rgCP.push_back(cp);
+		CPs.push_back(cp);
 
 		return 1;
 	}
@@ -626,17 +622,17 @@ BOOL COBBox::OBBoxIntersectW(COBBox & oBB, std::vector<SContactPoint> & rgCP)
 		float hWX = hWA[axisIndexA1];
 		float hWY = hWA[axisIndexA2];
 
-		IntersectLineAABB(hWX, hWY, v1Proj, (v2Proj-v1Proj), v1, (v2-v1), contactNormal, rgCP);
+		IntersectLineAABB(hWX, hWY, v1Proj, (v2Proj-v1Proj), v1, (v2-v1), contactNormal, CPs);
 
 		//Test for weather the other end point of the ray segments is in the box
 		if (v2Proj.x >= -hWX && v2Proj.x <= hWX && v2Proj.y >= -hWY && v2Proj.y <= hWY) {
 			SContactPoint cp;
 			cp.iNor = contactNormal;
 			cp.iPos = v2;
-			rgCP.push_back(cp);
+			CPs.push_back(cp);
 		}
 
-		return rgCP.size();
+		return CPs.size();
 	}
 	else if (!cond0 && !cond1) return 0;
 
@@ -646,11 +642,11 @@ BOOL COBBox::OBBoxIntersectW(COBBox & oBB, std::vector<SContactPoint> & rgCP)
 	SContactPoint cp;
 	cp.iPos = v;
 	cp.iNor = contactNormal;
-	rgCP.push_back(cp);
+	CPs.push_back(cp);
 
 	return 1;
 }
-
+*/
 
 
 	//The smallest axis will either be from a or from b; make it so that A is the smallest axis box, and B is the other
@@ -673,7 +669,7 @@ BOOL COBBox::OBBoxIntersectW(COBBox & oBB, std::vector<SContactPoint> & rgCP)
 
 
 /*
-void COBBox::IntersectOBB2D(COBBox & oBBA, int axisIndexA, COBBox & oBBB, int axisIndexB, __Plane & planeA, Vector3F & contactNormal, std::vector<SContactPoint> & rgCP) 
+void COBBox::IntersectOBB2D(COBBox & oBBA, int axisIndexA, COBBox & oBBB, int axisIndexB, __Plane & planeA, Vector3F & contactNormal, std::vector<SContactPoint> & CPs) 
 {
 	int axisIndex1 = (axisIndexA-1) < 0 ? 2 : (axisIndexA-1); 
 	int axisIndex2 = (axisIndexA+1) > 2 ? 0 : (axisIndexA+1);
@@ -708,12 +704,12 @@ void COBBox::IntersectOBB2D(COBBox & oBBA, int axisIndexA, COBBox & oBBB, int ax
 				SContactPoint cp;
 				cp.iNor = contactNormal;
 				cp.iPos = intersectPt;
-				rgCP.push_back(cp);
+				CPs.push_back(cp);
 
 				//Do not want to duplicate points
 				if (isIntersectEdgePt && !lastIntersect) {
 					intersectEdgePt = intersectEdgePt;
-					rgCP.push_back(cp);
+					CPs.push_back(cp);
 				}
 				lastIntersect++;
 			}
@@ -721,21 +717,8 @@ void COBBox::IntersectOBB2D(COBBox & oBBA, int axisIndexA, COBBox & oBBB, int ax
 	}
 }*/
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 //Rotation, Translation, Scaling must be expressed in this oBB's cordinate frame
-BOOL COBBox::OBBoxIntersectW(COBBox & oBB, Matrix4x4F & rot, Vector3F & tns, FLOAT fScl)
+BOOL COBBox::OBBoxIntersectW(COBBox & oBB, Matrix4x4F & rot, Vector3F & tns, FLOAT scl)
 {
 	//See Ericson, Christer, Real Time Collision Detection, page 101, and
 	//Gottschalk, Stefan, Collision Queries using Oriented Bounding Boxes
@@ -745,7 +728,7 @@ BOOL COBBox::OBBoxIntersectW(COBBox & oBB, Matrix4x4F & rot, Vector3F & tns, FLO
 	float fRA=0, fRB=0, t=0;
 	const float ep = 1e-4f;
 	Vector3F & hWA = m_HalfWidthsW;
-	Vector3F hWB(fScl*oBB.m_HalfWidthsW);
+	Vector3F hWB(scl*oBB.m_HalfWidthsW);
 
 	//Rotation matrices in a's coordinate frame
     Matrix4x4F aRt;

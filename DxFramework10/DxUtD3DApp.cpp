@@ -1,20 +1,11 @@
 
 #include "DxUtD3DApp.h"
 #include "DxUtEffectPool.h"
+#include "DxUtMeshPool.h"
+#include "DxUtCollisionGraphics.h"
 
 namespace DxUt {
 
-	/*
-//Sets the global file directory from the current directory
-void InitializeDxFramework()
-{
-}
-
-//Sets the global file directory from globalFileDir
-void InitializeDxFramework(CHAR * szGlobalFileDir)
-{
-	sprintf_s(g_szFileDir, "%s/", szGlobalFileDir);
-}*/
 	
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -22,10 +13,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	switch(msg)
 	{
 	case WM_ACTIVATE:
-		if (wParam == WA_ACTIVE || wParam == WA_CLICKACTIVE) //For some reason, wParam will become WA_ACTIVE
+		/*if (wParam == WA_ACTIVE || wParam == WA_CLICKACTIVE) //wParam will become WA_ACTIVE
 			g_D3DApp->SetPaused(FALSE);						 //when the window is minized and LOWORD(wParam) == WA_ACTIVE.
 		else if (LOWORD(wParam) == WA_INACTIVE)				 //The problem is fixed by wParam == WA_ACTIVE.
-			g_D3DApp->SetPaused(TRUE);
+			g_D3DApp->SetPaused(TRUE);*/
 
 		return 0;
 
@@ -154,7 +145,11 @@ CD3DApp::CD3DApp(HINSTANCE hInst, TCHAR * szClassName, TCHAR * szTitleText,
 		DxUtSendError("Mouse could not set cooperative level."); }
 	m_pMouse->Acquire();
 
+	// Create the memory pools
 	m_pEffectPool = new CEffectPool;
+	m_pMeshPool = new CMeshPool;
+	m_pCollisionGraphics = new CCollisionGraphics;
+	m_pCollisionGraphics->CreateGraphics();
 
 	QueryPerformanceCounter((LARGE_INTEGER*)&m_liCountNum);
 
@@ -171,7 +166,8 @@ CD3DApp::CD3DApp(CD3DApp & cpy)
 
 void CD3DApp::Loop(void (*loopFunction)())
 {
-	//m_liLastCountNum = 0;
+	QueryPerformanceCounter((LARGE_INTEGER*)&m_liLastCountNum);
+
 	MSG msg;
 	ZeroMemory(&msg, sizeof(msg));
 	while (msg.message != WM_QUIT) {
@@ -179,8 +175,9 @@ void CD3DApp::Loop(void (*loopFunction)())
 			TranslateMessage(&msg);
 			DispatchMessage(&msg); }
 		else {
-			if (m_bPaused)
+			if (m_bPaused) {
 				Sleep(80);
+			}
 			else {
 				static int frameCount = 0; frameCount++;
 				double time = g_TimeElapsed;
@@ -313,6 +310,68 @@ void CD3DApp::PollMouse()
 	}
 }
 
+
+//Resets the render target and views to the global ones
+void CD3DApp::ResetRenderTargetAndView()
+{
+	g_pD3DDevice->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
+
+	D3D10_VIEWPORT vp;
+	vp.TopLeftX = 0;
+	vp.TopLeftY = 0;
+	vp.Width    = g_uiWndWidth;
+	vp.Height   = g_uiWndHeight;
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+
+	g_pD3DDevice->RSSetViewports(1, &vp);
+}
+
+void CD3DApp::ExtractPixelsFromImageFile(CHAR * szImageFile, void ** ppData,
+	DWORD dwStride, DWORD * pdwImageWidth, DWORD * pdwImageHeight)
+{
+	D3DX10_IMAGE_INFO imageInfo;
+	D3DX10GetImageInfoFromFileA(szImageFile, 0, &imageInfo, 0);
+	DWORD width = imageInfo.Width; 
+	if (pdwImageWidth) *pdwImageWidth = width;
+	DWORD height = imageInfo.Height;
+	if (pdwImageHeight) *pdwImageHeight = height;
+
+	D3DX10_IMAGE_LOAD_INFO loadInfo;
+	loadInfo.Width  = width;
+	loadInfo.Height = height;
+	loadInfo.Depth  = imageInfo.Depth;
+	loadInfo.FirstMipLevel = 0;
+	loadInfo.MipLevels = imageInfo.MipLevels;
+	loadInfo.Usage = D3D10_USAGE_STAGING;
+	loadInfo.BindFlags = 0;
+	loadInfo.CpuAccessFlags = D3D10_CPU_ACCESS_READ;
+	loadInfo.MiscFlags = 0;
+	loadInfo.Format = imageInfo.Format;
+	loadInfo.Filter = D3DX10_FILTER_NONE;
+	loadInfo.MipFilter = D3DX10_FILTER_NONE;
+	loadInfo.pSrcInfo  = 0;
+
+	ID3D10Texture2D * tex;
+	if (FAILED(D3DX10CreateTextureFromFileA(g_pD3DDevice, szImageFile, &loadInfo, 0, (ID3D10Resource**)&tex, NULL))) {
+		DxUtSendErrorEx("ExtractValuesFromImageFile could not load the image file.", szImageFile);
+	}
+
+	*ppData = new CHAR[dwStride*width*height];
+	D3D10_MAPPED_TEXTURE2D map;
+	tex->Map(0, D3D10_MAP_READ, 0, &map);
+	BYTE * ar = (BYTE*)map.pData;
+	for (DWORD i=0; i<height; i++) {
+		DWORD rowStart1 = i*dwStride*width;
+		DWORD rowStart2 = i*dwStride*map.RowPitch/4;
+		for (DWORD j=0; j<dwStride*width; j++) {
+			((BYTE*)(*ppData))[rowStart1 + j] = ar[rowStart2 + j];
+		}
+	}
+	tex->Unmap(0);
+	ReleaseX(tex);
+}
+
 void CD3DApp::DestroyD3DApp()
 {
 	g_uiWndWidth = 0;
@@ -329,10 +388,16 @@ void CD3DApp::DestroyD3DApp()
 	g_uiWndWidth = 0;
 	g_uiWndHeight = 0;
 
-	/* Free Effect pools */
-	m_pEffectPool->DestroyEffectPool();
+	/* Free pools */
+	m_pEffectPool->Destroy();
 	delete m_pEffectPool;
 	m_pEffectPool = NULL;
+	m_pMeshPool->Destroy();
+	delete m_pMeshPool;
+	m_pMeshPool = NULL;
+	m_pCollisionGraphics->DestroyGraphics();
+	delete m_pCollisionGraphics;
+	m_pCollisionGraphics = NULL;
 
 	ReleaseX(g_pSwapChain);
 	ReleaseX(g_pD3DDevice);
@@ -357,124 +422,3 @@ void CD3DApp::DestroyD3DApp()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-void CD3DApp::InitDirectX()
-{
-	DXGI_SWAP_CHAIN_DESC desc;
-	desc.BufferCount = 1;
-	desc.BufferDesc.Width = g_uiWndWidth;
-	desc.BufferDesc.Height = g_uiWndHeight;
-	desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	desc.BufferDesc.RefreshRate.Denominator = 60;
-	desc.BufferDesc.RefreshRate.Numerator = 1;
-	desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-	desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	desc.Flags = NULL;
-	desc.OutputWindow = g_hWnd;
-	desc.SampleDesc.Count = 1;
-	desc.SampleDesc.Quality = 0;
-	desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-	desc.Windowed = TRUE;
-
-	UINT flags = 0;
-#if defined(DEBUG) || defined(_DEBUG)  
-    flags |= D3D10_CREATE_DEVICE_DEBUG;
-#endif
-
-	if (FAILED(D3D10CreateDeviceAndSwapChain(NULL, D3D10_DRIVER_TYPE_HARDWARE, NULL, flags, D3D10_SDK_VERSION, &desc, &g_pSwapChain, &g_pD3DDevice))) {
-		DxUtSendError("Direct3D device could not be created.");
-	}
-
-	WindowResize();
-
-	if (FAILED(DirectInput8Create(m_hInst, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&m_pDinput, NULL))) {
-		DxUtSendError("Dinput8 could not be created."); }
-
-	if (FAILED(m_pDinput->CreateDevice(GUID_SysKeyboard, &m_pKeyboard, NULL))) {
-		DxUtSendError("Dinput8 could not be create keyboard."); }
-	if (FAILED(m_pKeyboard->SetDataFormat(&c_dfDIKeyboard))) {
-		DxUtSendError("Keyboard could not set format."); }
-	if (FAILED(m_pKeyboard->SetCooperativeLevel(g_hWnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE))) {
-		DxUtSendError("Keyboard could not set cooperative level."); }
-	m_pKeyboard->Acquire();
-
-	if (FAILED(m_pDinput->CreateDevice(GUID_SysMouse, &m_pMouse, NULL))) {
-		DxUtSendError("Dinput8 could not be create mouse."); }
-	if (FAILED(m_pMouse->SetDataFormat(&c_dfDIMouse))) {
-		DxUtSendError("Mouse could not set format."); }
-	if (FAILED(m_pMouse->SetCooperativeLevel(g_hWnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE))) {
-		DxUtSendError("Mouse could not set cooperative level."); }
-	m_pMouse->Acquire();
-
-	QueryPerformanceCounter((LARGE_INTEGER*)&m_liCountNum);
-
-	ShowWindow(g_hWnd, SW_SHOWDEFAULT);
-} */
-
-/*
-void CD3DApp::InitCallbacks(WNDPROC wndProc, void (*onResizeWindowFunction)())
-{
-	m_WndProc = wndProc;
-	m_fpnOnResizeWindow = onResizeWindowFunction;
-}
-
-void CD3DApp::InitWindow(HINSTANCE hInst, TCHAR * szClassName, TCHAR * szTitleText, HMODULE hMod, 
-	LPCWSTR iconResource, WORD wWndPosX, WORD wWndPosY, WORD wWndWidth, WORD wWndHeight)
-{
-	WORD len = (WORD)wcslen(szClassName);
-	m_szWndClassName = new TCHAR[len+1];
-	wmemcpy(m_szWndClassName, szClassName, len);
-	m_szWndClassName[len] = '\0';
-
-	len = (WORD)wcslen(szTitleText);
-	m_szWndTitleText = new TCHAR[len+1];
-	wmemcpy(m_szWndTitleText, szTitleText, len);
-	m_szWndTitleText[len] = '\0';
-
-	m_hInst = hInst;
-	m_wWndPosX = wWndPosX;
-	m_wWndPosY = wWndPosY;
-	g_uiWndWidth = wWndWidth;
-	g_uiWndHeight = wWndHeight;
-	m_bFullscreen = 0;
-
-	WNDCLASSW wc;
-	wc.hInstance = m_hInst;
-	wc.lpfnWndProc = m_WndProc;
-	wc.lpszClassName = m_szWndClassName;
-	wc.hIcon = LoadIcon(hMod, iconResource);
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.hbrBackground = (HBRUSH)(BLACK_BRUSH);
-	wc.style = CS_CLASSDC;
-	wc.lpszMenuName = NULL;
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
-
-	RegisterClassW(&wc);
-
-	RECT rect = {0, 0, g_uiWndWidth, g_uiWndHeight};
-	AdjustWindowRect(&rect, WS_CAPTION | WS_SYSMENU | WS_SIZEBOX | WS_MINIMIZEBOX, TRUE);
-	g_hWnd = CreateWindow(m_szWndClassName, m_szWndTitleText, WS_CAPTION | WS_SYSMENU | WS_SIZEBOX | WS_MINIMIZEBOX,
-		m_wWndPosX, m_wWndPosY, (rect.right - rect.left), (rect.bottom - rect.top), NULL, NULL, m_hInst, NULL);
-
-	if (!g_hWnd) {
-		DxUtSendError("Window could not be created."); }
-
-	UpdateWindow(g_hWnd);
-}*/

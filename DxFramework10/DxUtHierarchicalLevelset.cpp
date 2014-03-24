@@ -21,17 +21,17 @@ void COctreeLevelSet::CBVTreeEx::CreateBVTree(SNode * pKdTree, DWORD dwMaxDepth)
 	Assert(!m_pTree, "CBVTreeEx::CreateBVTree tree must be destroyed before creating a new one.");
 
 	m_pTree = new BranchNode;
-	m_rgBV = new COBBox[2*(1 << dwMaxDepth)];
+	m_BVs = new COBBox[2*(1 << dwMaxDepth)];
 	m_nBV = 0;
 
 	m_dwMaxDepth = dwMaxDepth;
 	BuildBVTree(pOctree, m_pTree, 0);
 
 	Matrix4x4F rot;
-	m_rgBV[0].RotationW(rot); //why???
-	m_rgBV[0].GetRotVecW(0) = rot.GetColumnVec3F(0);
-	m_rgBV[0].GetRotVecW(1) = rot.GetColumnVec3F(1);
-	m_rgBV[0].GetRotVecW(2) = rot.GetColumnVec3F(2);
+	m_BVs[0].RotationW(rot); //why???
+	m_BVs[0].GetRotVecW(0) = rot.GetColumnVec3F(0);
+	m_BVs[0].GetRotVecW(1) = rot.GetColumnVec3F(1);
+	m_BVs[0].GetRotVecW(2) = rot.GetColumnVec3F(2);
 
 	m_TopLevelOBBoxW = *m_pTree->pOBB;
 }
@@ -44,9 +44,9 @@ void COctreeLevelSet::CSDFBVTree::BuildBVTree(COctreeLevelSet::SNode * pOctree, 
 	m_nBranchNodes++;
 
 	// Compute OBB
-	COBBox & oBB = m_rgBV[m_nBV];
+	COBBox & oBB = m_BVs[m_nBV];
 	oBB = pOctree->box;
-	pNode->pOBB = &m_rgBV[m_nBV++];
+	pNode->pOBB = &m_BVs[m_nBV++];
 
 	pNode->pChildA = new BranchNode;
 	BuildBVTree(, pNode->pChildA, dwDepth+1);
@@ -71,7 +71,7 @@ void COctreeLevelSet::CSDFBVTree::BuildBVTree(COctreeLevelSet::SNode * pOctree, 
 	pNode->pChildB->pOBB->SetOBB(rotT*(pNode->pChildB->pOBB->GetCenterW() - pNode->pOBB->GetCenterW()), pNode->pChildB->pOBB->GetHalfWidthsW(), rotVec1);
 }*/
 
-void COctreeLevelSet::CBVTreeEx::CreateBVTree(Vector3F * rgVert, DWORD nVert, DWORD * pAdj, DWORD dwTriPerBV, DWORD nVertexParticles, DWORD nEdges, DWORD nCellsX,
+void COctreeLevelSet::CBVTreeEx::CreateBVTree(Vector3F * verts, DWORD nVert, DWORD * pAdj, DWORD dwTriPerBV, DWORD nVertexParticles, DWORD nEdges, DWORD nCellsX,
 	DWORD nCellsY, DWORD nCellsZ, float fCellSize, Vector3F gridMinP, CFinitePointGrid3F<DWORD> & vertToIdx, CFinitePointGrid3F<DWORD> & edgeToIdx, bool bKdTree)
 {
 	Assert(!m_pTree, "CSDFBVTree::CreateBVTree tree must be destroyed before creating a new one.");
@@ -79,19 +79,18 @@ void COctreeLevelSet::CBVTreeEx::CreateBVTree(Vector3F * rgVert, DWORD nVert, DW
 	if (nVert % 3) {DxUtSendError("The nVert must be divisible by 3."); }
 	DWORD nTri = nVert/3;
 
-	m_rgAdj = new DWORD[3*nTri];
-	memcpy(m_rgAdj, pAdj, sizeof(DWORD)*3*nTri);
+	m_pAdj = new DWORD[3*nTri];
+	memcpy(m_pAdj, pAdj, sizeof(DWORD)*3*nTri);
 
 	DWORD * rgFaceIndex = new DWORD[nVert/3];
 	for (DWORD i=0; i<nTri; i++) rgFaceIndex[i] = i;
 
 	m_pTree = new BranchNode;
-	m_rgBV = new COBBox[2*nTri]; // Worst case there are this many bv's
+	m_BVs = new COBBox[2*nTri]; // Worst case there are this many bv's
 	m_nBV = 0;
-	//m_rgTri = new STriangleF[nTri];
-	//m_rgTransformedTri = new STriangleF[nTri];
+	//m_Tris = new STriangleF[nTri];
+	//m_TransformedTris = new STriangleF[nTri];
 	//m_nTri = nTri;
-	m_bKdTree = bKdTree;
 
 	//m_dwMaxDepth = dwMaxDepth;
 	m_dwTriPerBV = dwTriPerBV;
@@ -102,16 +101,16 @@ void COctreeLevelSet::CBVTreeEx::CreateBVTree(Vector3F * rgVert, DWORD nVert, DW
 	m_rgEdgeDuplicate.Resize(nEdges);
 	for (DWORD i=0, end=m_rgEdgeDuplicate.GetSize(); i<end; i++) m_rgEdgeDuplicate[i] = 0;
 
-	BuildBVTree(m_pTree, rgVert, rgFaceIndex, nVert, 0, &m_pTree);
+	BuildBVTree(m_pTree, verts, rgFaceIndex, nVert, 0, &m_pTree);
 
 	if (m_nBV >= 2*nTri)
 		DebugBreak();
 
 	Matrix4x4F rot;
-	m_rgBV[0].RotationW(rot);
-	m_rgBV[0].GetRotVecW(0) = rot.GetColumnVec3F(0);
-	m_rgBV[0].GetRotVecW(1) = rot.GetColumnVec3F(1);
-	m_rgBV[0].GetRotVecW(2) = rot.GetColumnVec3F(2); 
+	m_BVs[0].RotationW(rot);
+	m_BVs[0].GetRotVecW(0) = rot.GetColumnVec3F(0);
+	m_BVs[0].GetRotVecW(1) = rot.GetColumnVec3F(1);
+	m_BVs[0].GetRotVecW(2) = rot.GetColumnVec3F(2); 
 
 	delete[] rgFaceIndex;
 	rgFaceIndex = NULL;
@@ -119,24 +118,24 @@ void COctreeLevelSet::CBVTreeEx::CreateBVTree(Vector3F * rgVert, DWORD nVert, DW
 	m_TopLevelOBBoxW = *m_pTree->pOBB;
 }
 
-void COctreeLevelSet::CBVTreeEx::BuildBVTree(BranchNode * pNode, Vector3F * rgVert, DWORD * rgFaceIndex, DWORD nVert, DWORD dwDepth, BranchNode ** pPreNode)
+void COctreeLevelSet::CBVTreeEx::BuildBVTree(BranchNode * pNode, Vector3F * verts, DWORD * rgFaceIndex, DWORD nVert, DWORD dwDepth, BranchNode ** pPreNode)
 {
 	if (nVert > 3 && nVert/3 > m_dwTriPerBV) {
 		m_nBranchNodes++;
 
-		FLOAT fMean = 0;
+		float mean = 0;
 		Vector3F axis;
-		ComputeOBB(rgVert, nVert, m_rgBV[m_nBV], fMean, axis, dwDepth);
+		ComputeOBB(verts, nVert, m_BVs[m_nBV], mean, axis, dwDepth);
 
 		DWORD dwSplitIndex = 0;
-		PartitionVert(rgVert, rgFaceIndex, nVert, axis, fMean, dwSplitIndex);
-		pNode->pOBB = &m_rgBV[m_nBV++];
+		PartitionVert(verts, rgFaceIndex, nVert, axis, mean, dwSplitIndex);
+		pNode->pOBB = &m_BVs[m_nBV++];
 
 		pNode->pChildA = new BranchNode;
-		BuildBVTree(pNode->pChildA, rgVert, rgFaceIndex, dwSplitIndex, dwDepth+1, &pNode->pChildA);
+		BuildBVTree(pNode->pChildA, verts, rgFaceIndex, dwSplitIndex, dwDepth+1, &pNode->pChildA);
 
 		pNode->pChildB = new BranchNode;
-		BuildBVTree(pNode->pChildB, &rgVert[dwSplitIndex], &rgFaceIndex[dwSplitIndex/3], nVert-dwSplitIndex, dwDepth+1, &pNode->pChildB);
+		BuildBVTree(pNode->pChildB, &verts[dwSplitIndex], &rgFaceIndex[dwSplitIndex/3], nVert-dwSplitIndex, dwDepth+1, &pNode->pChildB);
 
 		Matrix4x4F rotT, cRot;
 		pNode->pOBB->RotationW(rotT);
@@ -167,18 +166,18 @@ void COctreeLevelSet::CBVTreeEx::BuildBVTree(BranchNode * pNode, Vector3F * rgVe
 		//SLeafNodeEx * pLeaf = new SLeafNodeEx;
 		//(SLeafNodeEx*)*pPreNode = pLeaf;
 
-		FLOAT fMean;
+		float mean;
 		Vector3F axis;
-		ComputeOBB(rgVert, nVert, m_rgBV[m_nBV], fMean, axis, dwDepth);
-		pLeaf->pOBB = &m_rgBV[m_nBV++];
+		ComputeOBB(verts, nVert, m_BVs[m_nBV], mean, axis, dwDepth);
+		pLeaf->pOBB = &m_BVs[m_nBV++];
 	
 		/* Compute the vertex particles */
 		DWORD dwVal = 0, dwEntry = 0;
 		pLeaf->rgVertexParticleIndex.Reserve(nVert);
 		for (DWORD i=0; i<nVert; i++) {
-			if (m_pVertexPointGrid->PointInGrid(rgVert[i], &dwVal)) {
+			if (m_pVertexPointGrid->PointInGrid(verts[i], &dwVal)) {
 				if (dwVal != -1 && !pLeaf->rgVertexParticleIndex.FindIfEquals(dwVal, dwEntry)) {
-					//g_D3DApp->Print(rgVert[i].x); g_D3DApp->Print(rgVert[i].y); g_D3DApp->Print(rgVert[i].z); g_D3DApp->Print("\n");
+					//g_D3DApp->Print(verts[i].x); g_D3DApp->Print(verts[i].y); g_D3DApp->Print(verts[i].z); g_D3DApp->Print("\n");
 					pLeaf->rgVertexParticleIndex.PushBack(dwVal);
 				}
 			}
@@ -188,9 +187,9 @@ void COctreeLevelSet::CBVTreeEx::BuildBVTree(BranchNode * pNode, Vector3F * rgVe
 		DWORD nEdges = (pLeaf->rgVertexParticleIndex.GetSize() + nVert/3);
 		pLeaf->rgEdgeIndex.Reserve(nEdges);
 		for (DWORD i=0; i<nVert; i+=3) {
-			SVisitedEdge e1(rgVert[i+0], rgVert[i+1]);
-			SVisitedEdge e2(rgVert[i+1], rgVert[i+2]);
-			SVisitedEdge e3(rgVert[i+2], rgVert[i+0]);
+			SVisitedEdge e1(verts[i+0], verts[i+1]);
+			SVisitedEdge e2(verts[i+1], verts[i+2]);
+			SVisitedEdge e3(verts[i+2], verts[i+0]);
 
 			//DWORD dwTmp = 0;
 			//if (dwVal != -1) {
@@ -226,22 +225,22 @@ DWORD COctreeLevelSet::CBVTreeEx::BVCollision(CBVTreeEx & collideBVTree, CArray<
 	m_nBVBVTests = m_nTriTriTests = 0;
 
 	Matrix4x4F rot;
-	m_rgBV[0].RotationW(rot);
+	m_BVs[0].RotationW(rot);
 	rot = m_Rot*rot;
-	Vector3F pos(m_fScale*(m_Rot*m_rgBV[0].GetCenterW()) + m_Trans);
+	Vector3F pos(m_Scale*(m_Rot*m_BVs[0].GetCenterW()) + m_Trans);
 
 	Matrix4x4F cRot;
-	collideBVTree.m_rgBV[0].RotationW(cRot);
+	collideBVTree.m_BVs[0].RotationW(cRot);
 	cRot = collideBVTree.m_Rot*cRot;
-	Vector3F cPos(collideBVTree.m_fScale*(collideBVTree.m_Rot*
-		collideBVTree.m_rgBV[0].GetCenterW()) + collideBVTree.m_Trans);
+	Vector3F cPos(collideBVTree.m_Scale*(collideBVTree.m_Rot*
+		collideBVTree.m_BVs[0].GetCenterW()) + collideBVTree.m_Trans);
 
 	//Compute the pos, rot, scl relative to the this BVTree
 	Matrix4x4F rotR(rot.Transpose());
-	Vector3F posR((rotR*(cPos - pos))/m_fScale);
+	Vector3F posR((rotR*(cPos - pos))/m_Scale);
 	rotR = rotR*cRot;
-	//m_RelativeScale = collideBVTree.m_fScale/m_fScale;
-	FLOAT fSclR = collideBVTree.m_fScale/m_fScale;
+	//m_RelativeScale = collideBVTree.m_Scale/m_Scale;
+	float fSclR = collideBVTree.m_Scale/m_Scale;
 
 	DWORD oldSize = rgVertexParticleIndex.GetSize();
 	FindBVCollisions(m_pTree, collideBVTree.m_pTree, rotR, posR, fSclR);
@@ -249,11 +248,11 @@ DWORD COctreeLevelSet::CBVTreeEx::BVCollision(CBVTreeEx & collideBVTree, CArray<
 	return rgVertexParticleIndex.GetSize() - oldSize;	
 }
 
-bool COctreeLevelSet::CBVTreeEx::FindBVCollisions(BranchNode * pNode, BranchNode * pCollideNode, Matrix4x4F & rot, Vector3F & trans, FLOAT fScl)
+bool COctreeLevelSet::CBVTreeEx::FindBVCollisions(BranchNode * pNode, BranchNode * pCollideNode, Matrix4x4F & rot, Vector3F & trans, float scl)
 {
 	m_nBVBVTests++;
 
-	if (pNode->pOBB->OBBoxIntersectW(*pCollideNode->pOBB, rot, trans, fScl)) {
+	if (pNode->pOBB->OBBoxIntersectW(*pCollideNode->pOBB, rot, trans, scl)) {
 		if (!IsLeaf(pNode) || !IsLeaf(pCollideNode)) {
 			if (IsLeaf(pCollideNode) || (!IsLeaf(pNode) && pNode->pOBB->GetHalfWidthsW().x >= pCollideNode->pOBB->GetHalfWidthsW().x)) {
 				Matrix4x4F rotR;
@@ -262,30 +261,30 @@ bool COctreeLevelSet::CBVTreeEx::FindBVCollisions(BranchNode * pNode, BranchNode
 				Vector3F transR(rotR*(trans - pNode->pChildA->pOBB->GetCenterW()));
 				rotR *= rot;
 
-				if (FindBVCollisions(pNode->pChildA, pCollideNode, rotR, transR, fScl)) return 1;
+				if (FindBVCollisions(pNode->pChildA, pCollideNode, rotR, transR, scl)) return 1;
 
 				pNode->pChildB->pOBB->RotationWT(rotR);
 
 				transR = Vector3F(rotR*(trans - pNode->pChildB->pOBB->GetCenterW()));
 				rotR *= rot;
 
-				if (FindBVCollisions(pNode->pChildB, pCollideNode, rotR, transR, fScl)) return 1; 
+				if (FindBVCollisions(pNode->pChildB, pCollideNode, rotR, transR, scl)) return 1; 
 			}
 			else {
 				Matrix4x4F rotR;
 				pCollideNode->pChildA->pOBB->RotationW(rotR);
 
 				rotR = rot*rotR;
-				Vector3F transR(fScl*(rot*pCollideNode->pChildA->pOBB->GetCenterW()) + trans);
+				Vector3F transR(scl*(rot*pCollideNode->pChildA->pOBB->GetCenterW()) + trans);
 
-				if (FindBVCollisions(pNode, pCollideNode->pChildA, rotR, transR, fScl)) return 1;
+				if (FindBVCollisions(pNode, pCollideNode->pChildA, rotR, transR, scl)) return 1;
 
 				pCollideNode->pChildB->pOBB->RotationW(rotR);
 
 				rotR = rot*rotR;
-				transR = fScl*(rot*pCollideNode->pChildB->pOBB->GetCenterW()) + trans;
+				transR = scl*(rot*pCollideNode->pChildB->pOBB->GetCenterW()) + trans;
 
-				if (FindBVCollisions(pNode, pCollideNode->pChildB, rotR, transR, fScl)) return 1;
+				if (FindBVCollisions(pNode, pCollideNode->pChildB, rotR, transR, scl)) return 1;
 			}
 		}
 		else {
@@ -358,23 +357,23 @@ void COctreeLevelSet::CBVTreeEx::DestroyBVTree()
 		m_nBranchNodes = 0;
 		m_nLeafNodes = 0;
 
-		delete[] m_rgAdj;
-		m_rgAdj = NULL;
+		delete[] m_pAdj;
+		m_pAdj = NULL;
 
-		delete[] m_rgBV;
+		delete[] m_BVs;
 		m_nBV = NULL;
-		//delete[] m_rgTri;
+		//delete[] m_Tris;
 		//m_nTri = NULL;
-		//delete[] m_rgTransformedTri;
-		//m_rgTransformedTri = NULL;
+		//delete[] m_TransformedTris;
+		//m_TransformedTris = NULL;
 
 		m_Trans.x = 0;
 		m_Trans.y = 0;
 		m_Trans.z = 0;
-		m_fScale = 0;
+		m_Scale = 0;
 
 		m_pCollideBVTree = NULL;
-		m_rgCP = NULL;
+		m_CPs = NULL;
 		m_nBVBVTests = 0;
 		m_nTriTriTests = 0;
 
@@ -404,26 +403,26 @@ void COctreeLevelSet::CBVTreeEx::DestroyBVTree()
 void COctreeLevelSet::ComputeSDF(ID3DX10Mesh * pMesh, DWORD dwStride, char * szLevelSetFile, float fMinCellSize, float fInterpolationError, Vector3F & expansion)
 {
 	DWORD nVert = 3*pMesh->GetFaceCount();
-	Vector3F * rgVert = new Vector3F[nVert];
-	ExtractVertexTriangleListFromMesh(pMesh, rgVert, dwStride);
+	Vector3F * verts = new Vector3F[nVert];
+	ExtractVertexTriangleListFromMesh(pMesh, verts, dwStride);
 
-	DWORD * rgAdj = new DWORD[3*nVert];
-	ExtractAdjanceyFromMesh(pMesh, rgAdj);
+	DWORD * pAdj = new DWORD[3*nVert];
+	ExtractAdjanceyFromMesh(pMesh, pAdj);
 
-	ComputeSDF(rgVert, nVert, rgAdj, szLevelSetFile, fMinCellSize, fInterpolationError, expansion);
+	ComputeSDF(verts, nVert, pAdj, szLevelSetFile, fMinCellSize, fInterpolationError, expansion);
 }
 
-void COctreeLevelSet::ComputeSDF(STriangleF * rgTri, DWORD nTri, DWORD * rgAdj, char * szLevelSetFile, float fMinCellSize, float fInterpolationError, Vector3F & expansion)
+void COctreeLevelSet::ComputeSDF(STriangleF * tris, DWORD nTri, DWORD * pAdj, char * szLevelSetFile, float fMinCellSize, float fInterpolationError, Vector3F & expansion)
 {
 	Assert(0, "COctreeLevelSet::ComputeSDF function not implemented.");
 }
 
-void COctreeLevelSet::ComputeSDF(Vector3F * rgVert, DWORD nVert, DWORD * rgAdj, char * szLevelSetFile, float fMinCellSize, float fInterpolationError, Vector3F & expansion)
+void COctreeLevelSet::ComputeSDF(Vector3F * verts, DWORD nVert, DWORD * pAdj, char * szLevelSetFile, float fMinCellSize, float fInterpolationError, Vector3F & expansion)
 {
 	/* Construct HLevelSet */
 	CAABBox aabb;
 	static const float eps = 1e-3;
-	m_GridBox.ComputeAABBox(rgVert, nVert);
+	m_GridBox.ComputeAABBox(verts, nVert);
 	m_GridMin = m_GridBox.MinPW() - Vector3F(eps);
 	m_GridMax = m_GridBox.MaxPW() + Vector3F(eps);
 	m_GridBox.SetMinP(m_GridMin);
@@ -437,25 +436,25 @@ void COctreeLevelSet::ComputeSDF(Vector3F * rgVert, DWORD nVert, DWORD * rgAdj, 
 	m_nOcts = 0;
 	m_dwMaxDepth = 0;
 
-	STriangleFEx * rgTri = new STriangleFEx[nVert/3];
+	STriangleFEx * tris = new STriangleFEx[nVert/3];
 	for (DWORD i=0, end=nVert/3; i<end; i++) {
 		float fDummy = 0;
-		rgTri[i].vPosW[0] = rgVert[3*i + 0];
-		rgTri[i].vPosW[1] = rgVert[3*i + 1];
-		rgTri[i].vPosW[2] = rgVert[3*i + 2];
-		rgTri[i].nor = rgTri[i].Normal();
-		rgTri[i].bBadTriangle |= ComputeAdmissibleZone(i, 0, rgVert, rgAdj, rgTri[i].vertNor[0], rgTri[i].edgeNor[0], fDummy) == -1;
-		rgTri[i].bBadTriangle |= ComputeAdmissibleZone(i, 1, rgVert, rgAdj, rgTri[i].vertNor[1], rgTri[i].edgeNor[1], fDummy) == -1;
-		rgTri[i].bBadTriangle |= ComputeAdmissibleZone(i, 2, rgVert, rgAdj, rgTri[i].vertNor[2], rgTri[i].edgeNor[2], fDummy) == -1;
-		rgTri[i].bBadTriangle |= rgTri[i].Area() < 1e-4;
-		if (rgTri[i].bBadTriangle)
+		tris[i].vPosW[0] = verts[3*i + 0];
+		tris[i].vPosW[1] = verts[3*i + 1];
+		tris[i].vPosW[2] = verts[3*i + 2];
+		tris[i].nor = tris[i].Normal();
+		tris[i].bBadTriangle |= ComputeAdmissibleZone(i, 0, verts, pAdj, tris[i].vertNor[0], tris[i].edgeNor[0], fDummy) == -1;
+		tris[i].bBadTriangle |= ComputeAdmissibleZone(i, 1, verts, pAdj, tris[i].vertNor[1], tris[i].edgeNor[1], fDummy) == -1;
+		tris[i].bBadTriangle |= ComputeAdmissibleZone(i, 2, verts, pAdj, tris[i].vertNor[2], tris[i].edgeNor[2], fDummy) == -1;
+		tris[i].bBadTriangle |= tris[i].Area() < 1e-4;
+		if (tris[i].bBadTriangle)
 			int a=0;
 	}
 	m_fMinCellSize =  fMinCellSize;
 	m_fInterpolationEps = fInterpolationError;
-	BuildOctree(m_pOctree, 0, rgVert, nVert, rgTri);
+	BuildOctree(m_pOctree, 0, verts, nVert, tris);
 	WriteOctree(szLevelSetFile);
-	delete[] rgTri;
+	delete[] tris;
 }
 
 void COctreeLevelSet::CreateParticleRepresentation(ID3DX10Mesh * pMesh, DWORD dwStride, DWORD dwMaxDepth, DWORD dwTriPerOct, char * szLevelSetFile)
@@ -465,15 +464,15 @@ void COctreeLevelSet::CreateParticleRepresentation(ID3DX10Mesh * pMesh, DWORD dw
 	CLevelSet::CreateParticleRepresentation(pMesh, dwStride, szLevelSetFile);
 }
 
-void COctreeLevelSet::CreateParticleRepresentation(STriangleF * rgTri, DWORD nTri, DWORD * rgAdj, DWORD dwMaxDepth, DWORD dwTriPerOct, char * szLevelSetFile)
+void COctreeLevelSet::CreateParticleRepresentation(STriangleF * tris, DWORD nTri, DWORD * pAdj, DWORD dwMaxDepth, DWORD dwTriPerOct, char * szLevelSetFile)
 {
 }
 
-void COctreeLevelSet::CreateParticleRepresentation(Vector3F * rgVert, DWORD nVert, DWORD * rgAdj, DWORD dwMaxDepth, DWORD dwTriPerOct, char * szLevelSetFile)
+void COctreeLevelSet::CreateParticleRepresentation(Vector3F * verts, DWORD nVert, DWORD * pAdj, DWORD dwMaxDepth, DWORD dwTriPerOct, char * szLevelSetFile)
 {
 	m_dwMaxDepth = dwMaxDepth;
 	m_dwTriPerVolume = dwTriPerOct;
-	ComputeMeshParticles(nVert, nVert/3, rgVert, rgAdj, szLevelSetFile);
+	ComputeMeshParticles(nVert, nVert/3, verts, pAdj, szLevelSetFile);
 }
 
 float COctreeLevelSet::ComputeSignedDistance(SNode * pNode, Vector3F & pt)
@@ -503,7 +502,7 @@ bool COctreeLevelSet::ParticleInOct(SNode * pNode, Vector3F & pt, float & fDist)
 	return t < -m_fValidParticleDistance;
 }
 
-bool COctreeLevelSet::IsOctRefined(SNode * pNode, Vector3F * rotVec, Vector3F & hW, Vector3F & center, DWORD dwDepth, Vector3F * rgVert, DWORD nVert, STriangleFEx * rgTri)
+bool COctreeLevelSet::IsOctRefined(SNode * pNode, Vector3F * rotVec, Vector3F & hW, Vector3F & center, DWORD dwDepth, Vector3F * verts, DWORD nVert, STriangleFEx * tris)
 {
 	if (pNode->box.CenterPointW().y > .85f && pNode->box.CenterPointW().x < -5.45f && abs(pNode->box.CenterPointW().z) < 6.f)
 		int a=0;
@@ -514,7 +513,7 @@ bool COctreeLevelSet::IsOctRefined(SNode * pNode, Vector3F * rotVec, Vector3F & 
 	}
 
 	/* Determine if the cell is empty */				
-	float fExactDist = ComputeClosestDistance(pNode->box.CenterPointW(), rgVert, nVert, rgTri);
+	float fExactDist = ComputeClosestDistance(pNode->box.CenterPointW(), verts, nVert, tris);
 	float fMaxHW = Max(hW.x, hW.y); fMaxHW = Max(hW.y, hW.z);
 	if (fExactDist > fMaxHW) {
 		return 1;
@@ -533,7 +532,7 @@ bool COctreeLevelSet::IsOctRefined(SNode * pNode, Vector3F * rotVec, Vector3F & 
 					continue;
 
 				Vector3F pt(center.x + (float)k*hW.x, center.y + (float)j*hW.y, center.z + (float)i*hW.z);
-				float fExactDist = ComputeClosestDistance(pt, rgVert, nVert, rgTri);
+				float fExactDist = ComputeClosestDistance(pt, verts, nVert, tris);
 
 				float fInterpDist;
 				ParticleInOct(pNode, pt, fInterpDist);
@@ -548,7 +547,7 @@ bool COctreeLevelSet::IsOctRefined(SNode * pNode, Vector3F * rotVec, Vector3F & 
 	return 1;
 }
 
-void COctreeLevelSet::ComputeOctDists(SNode * pNode, Vector3F * rgVert, DWORD nVert, STriangleFEx * rgTri)
+void COctreeLevelSet::ComputeOctDists(SNode * pNode, Vector3F * verts, DWORD nVert, STriangleFEx * tris)
 {
 	Vector3F & hW = pNode->box.HalfWidthsW();
 	Vector3F & center = pNode->box.CenterPointW();
@@ -556,7 +555,7 @@ void COctreeLevelSet::ComputeOctDists(SNode * pNode, Vector3F * rgVert, DWORD nV
 		for (int j=-1; j<=1; j+=2) {
 			for (int k=-1; k<=1; k+=2, idx++) {
 				pNode->V[idx] = FLT_MAX;
-				pNode->V[idx] = ComputeClosestDistance(Vector3F(center.x + (float)k*hW.x, center.y + (float)j*hW.y, center.z + (float)i*hW.z), rgVert, nVert, rgTri);
+				pNode->V[idx] = ComputeClosestDistance(Vector3F(center.x + (float)k*hW.x, center.y + (float)j*hW.y, center.z + (float)i*hW.z), verts, nVert, tris);
 				//CLevelSet::ParticleInLevelSet_Fast(Vector3F(center.x + (float)k*hW.x, center.y + (float)j*hW.y, center.z + (float)i*hW.z), pNode->V[idx]);
 				if (pNode->V[idx] == FLT_MAX) {
 					CLevelSet::ParticleInLevelSet_Fast(Vector3F(center.x + (float)k*hW.x, center.y + (float)j*hW.y, center.z + (float)i*hW.z), pNode->V[idx]);
@@ -577,7 +576,7 @@ void COctreeLevelSet::ComputeOctDists(SNode * pNode, Vector3F * rgVert, DWORD nV
 					if (idx == 5)
 						int a=0;
 					pNode->V[idx] = 4096;
-					pNode->V[idx] = ComputeClosestDistance(Vector3F(center.x + (float)k*hW.x, center.y + (float)j*hW.y, center.z + (float)i*hW.z), rgVert, nVert, rgTri);
+					pNode->V[idx] = ComputeClosestDistance(Vector3F(center.x + (float)k*hW.x, center.y + (float)j*hW.y, center.z + (float)i*hW.z), verts, nVert, tris);
 					//CLevelSet::ParticleInLevelSet_Fast(Vector3F(center.x + (float)k*hW.x, center.y + (float)j*hW.y, center.z + (float)i*hW.z), pNode->V[idx]);
 					if (pNode->V[idx] == 4096) {
 						CLevelSet::ParticleInLevelSet_Fast(Vector3F(center.x + (float)k*hW.x, center.y + (float)j*hW.y, center.z + (float)i*hW.z), pNode->V[idx]);
@@ -589,17 +588,17 @@ void COctreeLevelSet::ComputeOctDists(SNode * pNode, Vector3F * rgVert, DWORD nV
 	}*/
 }
 
-void COctreeLevelSet::BuildOctree(SNode * pTree, DWORD dwDepth, Vector3F * rgVert, DWORD nVert, STriangleFEx * rgTri)
+void COctreeLevelSet::BuildOctree(SNode * pTree, DWORD dwDepth, Vector3F * verts, DWORD nVert, STriangleFEx * tris)
 {
 	Vector3F rotVec[3] = {Vector3F(1.f, 0., 0.), Vector3F(0., 1.f, 0.), Vector3F(0., 0., 1.f) };
 	Vector3F & hW = pTree->box.HalfWidthsW();
 	Vector3F & center = pTree->box.CenterPointW();
-	ComputeOctDists(pTree, rgVert, nVert, rgTri);
+	ComputeOctDists(pTree, verts, nVert, tris);
 	m_nOcts++;
 
 	m_dwMaxDepth = max(m_dwMaxDepth, dwDepth);
 
-	if (IsOctRefined(pTree, rotVec, hW, center, dwDepth, rgVert, nVert, rgTri)) {
+	if (IsOctRefined(pTree, rotVec, hW, center, dwDepth, verts, nVert, tris)) {
 		pTree->bLeaf = 1;
 		return;
 	}
@@ -611,13 +610,13 @@ void COctreeLevelSet::BuildOctree(SNode * pTree, DWORD dwDepth, Vector3F * rgVer
 			for (int k=-1; k<=1; k+=2) {
 				pTree->rgChild[idx] = new SNode;
 				pTree->rgChild[idx]->box.SetAABB(Vector3F(center.x + (float)k*hHW.x, center.y + (float)j*hHW.y, center.z + (float)i*hHW.z), hHW);
-				BuildOctree(pTree->rgChild[idx], dwDepth+1, rgVert, nVert, rgTri); idx++;
+				BuildOctree(pTree->rgChild[idx], dwDepth+1, verts, nVert, tris); idx++;
 			}
 		}
 	}
 }
 
-void COctreeLevelSet::DoAdditionalProcessing(char * szLevelSet, Vector3F * rgVert, DWORD nVert, DWORD * rgAdj, 
+void COctreeLevelSet::DoAdditionalProcessing(char * szLevelSet, Vector3F * verts, DWORD nVert, DWORD * pAdj, 
 	CFinitePointGrid3F<DWORD> & vertToIdx, CFinitePointGrid3F<DWORD> & edgeToIdx) 
 {
 	if (!LoadOctree(szLevelSet)) {
@@ -627,7 +626,7 @@ void COctreeLevelSet::DoAdditionalProcessing(char * szLevelSet, Vector3F * rgVer
 
 	/* Construct triangle hierarchies */
 	Vector3F gridMinP = m_GridMin;
-	m_TriBVTree.CreateBVTree(rgVert, nVert, rgAdj, m_dwTriPerVolume, m_rgVertexParticle.GetSize(), m_rgEdge.GetSize(),
+	m_TriBVTree.CreateBVTree(verts, nVert, pAdj, m_dwTriPerVolume, m_rgVertexParticle.GetSize(), m_rgEdge.GetSize(),
 		m_nCellsX, m_nCellsY, m_nCellsZ, m_fMinCellSize, gridMinP, vertToIdx, edgeToIdx, 0);
 
 	m_rgVertexParticleIndex.Reserve(m_rgVertexParticle.GetSize());
@@ -638,7 +637,6 @@ bool COctreeLevelSet::LoadOctree(char * szFile)
 {
 	char file[MAX_PATH];
 	ChangeExtension(szFile, "olvset", file);
-	InsertDirectoryEx(g_szFileDir, file, file);  
 
 	std::ifstream stream(file, std::ios::binary);
 	if (!stream) {
@@ -662,7 +660,6 @@ void COctreeLevelSet::WriteOctree(char * szFile)
 {
 	char file[MAX_PATH];
 	ChangeExtension(szFile, "olvset", file);
-	InsertDirectoryEx(g_szFileDir, file, file);
 
 	std::ofstream stream(file, std::ios::out | std::ios::binary); stream.close();
 	stream.open(file, std::ios::out | std::ios::binary);
@@ -698,7 +695,7 @@ void COctreeLevelSet::WriteOctreeLevel(std::ofstream & stream, SNode * pNode)
 	}
 }
 
-DWORD COctreeLevelSet::LevelSetCollision(CLevelSet & _collideLevelSet, CArray<SContactPoint> * rgCP)
+DWORD COctreeLevelSet::LevelSetCollision(CLevelSet & _collideLevelSet, CArray<SContactPoint> * CPs)
 {
 	COctreeLevelSet & collideLevelSet = *((COctreeLevelSet*)&_collideLevelSet);
 	/* Compute collision indicies */
@@ -717,7 +714,7 @@ DWORD COctreeLevelSet::LevelSetCollision(CLevelSet & _collideLevelSet, CArray<SC
 	}
 
 	m_pLastOct = NULL;
-	DWORD n = CLevelSet::LevelSetCollision(collideLevelSet, rgCP); 
+	DWORD n = CLevelSet::LevelSetCollision(collideLevelSet, CPs); 
 	m_rgVertexParticleIndex.SetSize(0);
 	m_rgEdgeIndex.SetSize(0);
 	m_TriBVTree.ResetDuplicateArrays();
@@ -829,7 +826,7 @@ Vector3F COctreeLevelSet::ComputeGradient_Fast(Vector3F & pt)
 	return m_TransformNormalGridToWorld * grad.Normalize();
 }
 
-bool COctreeLevelSet::HandleEdgeEdgeCollision(SEdge & edge, Matrix4x4F & T, CArray<SContactPoint> * rgCP, 
+bool COctreeLevelSet::HandleEdgeEdgeCollision(SEdge & edge, Matrix4x4F & T, CArray<SContactPoint> * CPs, 
 	DWORD dwType, float norFlip, CLevelSet & collideLevelSet)
 {
 	/* If both vertices are admissible, then there is no reason to consider the rest of the edge */
@@ -862,8 +859,8 @@ bool COctreeLevelSet::HandleEdgeEdgeCollision(SEdge & edge, Matrix4x4F & T, CArr
 
 	if (m_bUseDumbScheme) {
 		m_rgEdgePiece.Resize(0);
-		BisectionSearch(collideLevelSet, intersect0.pos, intersect1.pos, coneDir, edge.coneAngle, norFlip, rgCP);
-		ProcessEdgePieces(collideLevelSet, coneDir, edge.coneAngle, norFlip, rgCP);
+		BisectionSearch(collideLevelSet, intersect0.pos, intersect1.pos, coneDir, edge.coneAngle, norFlip, CPs);
+		ProcessEdgePieces(collideLevelSet, coneDir, edge.coneAngle, norFlip, CPs);
 	}
 
 	Vector3F v1Initial(v1);//intersect0.pos;
@@ -892,15 +889,15 @@ bool COctreeLevelSet::HandleEdgeEdgeCollision(SEdge & edge, Matrix4x4F & T, CArr
 	Vector3F dir((v1Interior - v2));
 	float ddd = DotXYZ(dir, edgeDirV2)/edgeLen;
 	if (ddd < 3.f*((COctreeLevelSet*)&collideLevelSet)->m_fMinCellSize)
-		return ComputeEdgeEdgeIntersection(collideLevelSet, nVertPerEdge, edge.pVP1->bAdmissible, edge.pVP2->bAdmissible, v1, v2, edgeDirV1, coneDir, edge.coneAngle, norFlip, rgCP);
+		return ComputeEdgeEdgeIntersection(collideLevelSet, nVertPerEdge, edge.pVP1->bAdmissible, edge.pVP2->bAdmissible, v1, v2, edgeDirV1, coneDir, edge.coneAngle, norFlip, CPs);
 	else {
 		Vector3F v2Interior; fClosestDistV2 = 0;
 		float fAdvanceOld2 = fAdvance2;
 		if (!MarchInteriorEdgeVertex(collideLevelSet, edge.edgeLength, v2Initial, edgeDirV2, _ray, fClosestDistV2, v2Interior, fAdvanceOld2))
 			return 0;
 
-		return ComputeEdgeEdgeIntersection(collideLevelSet, nVertPerEdge, edge.pVP1->bAdmissible, 0, v1, v1Interior, edgeDirV1, coneDir, edge.coneAngle, norFlip, rgCP)
-			&& ComputeEdgeEdgeIntersection(collideLevelSet, nVertPerEdge, edge.pVP2->bAdmissible, 0, v2, v2Interior, edgeDirV2, coneDir, edge.coneAngle, norFlip, rgCP);
+		return ComputeEdgeEdgeIntersection(collideLevelSet, nVertPerEdge, edge.pVP1->bAdmissible, 0, v1, v1Interior, edgeDirV1, coneDir, edge.coneAngle, norFlip, CPs)
+			&& ComputeEdgeEdgeIntersection(collideLevelSet, nVertPerEdge, edge.pVP2->bAdmissible, 0, v2, v2Interior, edgeDirV2, coneDir, edge.coneAngle, norFlip, CPs);
 	}
 }
 
@@ -916,15 +913,15 @@ bool COctreeLevelSet::MarchExteriorEdgeVertex(CLevelSet & collideLevelSet, float
 
 	SRayIntersectData data;
 	while (!collideLevelSet.ParticleInLevelSet(wEP.v, fClosestDist)) {
-		float fStepSize = ((COctreeLevelSet*)&collideLevelSet)->m_fMinCellSize;
+		float stepSize = ((COctreeLevelSet*)&collideLevelSet)->m_fMinCellSize;
 		if (((COctreeLevelSet*)&collideLevelSet)->m_pLastOct) { //Should check that it is not null
 			if (((COctreeLevelSet*)&collideLevelSet)->m_pLastOct->box.InteresectFromInside(tmpRay, data)) {
-				fStepSize = data.t;
+				stepSize = data.t;
 			}
 		}
 		float fAClosestDist = Abs(fClosestDist);
-		fStepSize = Max(fAClosestDist, fStepSize);
-		fAdvance += fStepSize + 1e-3;
+		stepSize = Max(fAClosestDist, stepSize);
+		fAdvance += stepSize + 1e-3;
 
 		if (fAdvance > fEdgeLength) {
 			return 0;
@@ -948,15 +945,15 @@ bool COctreeLevelSet::MarchInteriorEdgeVertex(CLevelSet & collideLevelSet, float
 
 	SRayIntersectData data;
 	while (collideLevelSet.ParticleInLevelSet(wEP.v, fClosestDist)) {//Make closest dist positive when below
-		float fStepSize = ((COctreeLevelSet*)&collideLevelSet)->m_fMinCellSize;
+		float stepSize = ((COctreeLevelSet*)&collideLevelSet)->m_fMinCellSize;
 		if (((COctreeLevelSet*)&collideLevelSet)->m_pLastOct) {// Should check that it is not null
 			if (((COctreeLevelSet*)&collideLevelSet)->m_pLastOct->box.InteresectFromInside(tmpRay, data)) {
-				fStepSize = data.t;
+				stepSize = data.t;
 			}
 		}
 		float fAClosestDist = Abs(fClosestDist);
-		fStepSize = Max(fAClosestDist, fStepSize);
-		fAdvance += fStepSize + 1e-3;
+		stepSize = Max(fAClosestDist, stepSize);
+		fAdvance += stepSize + 1e-3;
 
 		if (fAdvance > fEdgeLength) {
 			finalPt = wEP.v;
@@ -969,7 +966,7 @@ bool COctreeLevelSet::MarchInteriorEdgeVertex(CLevelSet & collideLevelSet, float
 	return 1;
 }
 
-void COctreeLevelSet::DrawOctreeLevel(CCollisionGraphics * pInstance, DWORD dwMaxLevel, SNode * pOctree, DWORD dwCurLevel)
+void COctreeLevelSet::DrawOctreeLevel(DWORD dwMaxLevel, SNode * pOctree, DWORD dwCurLevel)
 {
 	if (dwCurLevel == dwMaxLevel || pOctree->bLeaf) {
 		Vector3F & pt = pOctree->box.CenterPointW();
@@ -981,7 +978,7 @@ void COctreeLevelSet::DrawOctreeLevel(CCollisionGraphics * pInstance, DWORD dwMa
 		float fDist;
 		if (ParticleInOct(pOctree, pt, fDist)) // && (pOctree->box.CenterPointW().y > 1.0f && pOctree->box.CenterPointW().x > -0.f && pOctree->box.CenterPointW().z < 0.f)) {
 		//	ParticleInOct(pOctree, pt, fDist);
-			pInstance->DrawBox(m_TransformObjToWorld*pt, pOctree->box.HalfWidthsW(), m_TransformNormalGridToWorld);
+			CCollisionGraphics::DrawBox(m_TransformObjToWorld*pt, pOctree->box.HalfWidthsW(), m_TransformNormalGridToWorld);
 		//
 		return;
 	}
@@ -989,13 +986,13 @@ void COctreeLevelSet::DrawOctreeLevel(CCollisionGraphics * pInstance, DWORD dwMa
 	for (DWORD i=0; i<8; i++) {
 		if (!pOctree->rgChild[i])
 			DebugBreak();
-		DrawOctreeLevel(pInstance, dwMaxLevel, pOctree->rgChild[i], dwCurLevel+1);
+		DrawOctreeLevel(dwMaxLevel, pOctree->rgChild[i], dwCurLevel+1);
 	}
 }
 
-void COctreeLevelSet::DrawOctLevelSet(CCollisionGraphics * pInstance, DWORD dwLevel)
+void COctreeLevelSet::DrawOctLevelSet(DWORD dwLevel)
 {
-	DrawOctreeLevel(pInstance, dwLevel, m_pOctree, 0);
+	DrawOctreeLevel(dwLevel, m_pOctree, 0);
 }
 
 void COctreeLevelSet::DestroyOctree(SNode * pNode)
@@ -1028,7 +1025,7 @@ void COctreeLevelSet::DestroyLevelSet()
 	}
 }
 
-void COctreeLevelSet::BisectionSearch(CLevelSet & collideLevelSet, Vector3F & v1, Vector3F & v2, Vector3F & coneDir, float coneAngle, float norFlip, CArray<SContactPoint> * rgCP)
+void COctreeLevelSet::BisectionSearch(CLevelSet & collideLevelSet, Vector3F & v1, Vector3F & v2, Vector3F & coneDir, float coneAngle, float norFlip, CArray<SContactPoint> * CPs)
 {
 	float d1, d2, edgeLen;
 	edgeLen = (v1 - v2).Length();
@@ -1046,7 +1043,7 @@ void COctreeLevelSet::BisectionSearch(CLevelSet & collideLevelSet, Vector3F & v1
 				cp.iNor = norFlip*computedNor;
 				cp.iPos = v1;
 				cp.dist = d1;
-				rgCP->PushBack(cp);*/
+				CPs->PushBack(cp);*/
 			}
 		}
 		else if (d2 < 0) {
@@ -1058,17 +1055,17 @@ void COctreeLevelSet::BisectionSearch(CLevelSet & collideLevelSet, Vector3F & v1
 				cp.iNor = norFlip*computedNor;
 				cp.iPos = v2;
 				cp.dist = d2;
-				rgCP->PushBack(cp);*/
+				CPs->PushBack(cp);*/
 			}
 		}
 		return;
 	}
 
-	BisectionSearch(collideLevelSet, v1, .5f*(v1+v2), coneDir, coneAngle, norFlip, rgCP);
-	BisectionSearch(collideLevelSet, .5f*(v1+v2), v2, coneDir, coneAngle, norFlip, rgCP);
+	BisectionSearch(collideLevelSet, v1, .5f*(v1+v2), coneDir, coneAngle, norFlip, CPs);
+	BisectionSearch(collideLevelSet, .5f*(v1+v2), v2, coneDir, coneAngle, norFlip, CPs);
 }
 
-void COctreeLevelSet::HandleFace(CLevelSet & collideLevelSet, STriangleF & face, float norFlip, CArray<SContactPoint> * rgCP)
+void COctreeLevelSet::HandleFace(CLevelSet & collideLevelSet, STriangleF & face, float norFlip, CArray<SContactPoint> * CPs)
 {
 	float fClosestDist;
 	Vector3F ctd(face.Centroid());
@@ -1117,19 +1114,19 @@ void COctreeLevelSet::HandleFace(CLevelSet & collideLevelSet, STriangleF & face,
 		bool bFound = 0;
 		if (collideLevelSet.ParticleInLevelSet(cp.iPos, fClosestDist) && IsNormalAdmissible(computedNor, .95f, nor)) {
 			cp.iPos = face.vPosW[1];
-			rgCP->PushBack(cp); 
+			CPs->PushBack(cp); 
 			cp.iPos = face.vPosW[2];
-			rgCP->PushBack(cp); 
+			CPs->PushBack(cp); 
 			cp.iPos = face.vPosW[3];
-			rgCP->PushBack(cp); 
+			CPs->PushBack(cp); 
 			bFound=1;
 		}
 		cp.iPos = ctd;//face.vPosW[1];
 
-		/*if (collideLevelSet.ParticleInLevelSet(cp.iPos, fClosestDist) && IsNormalAdmissible(computedNor, .95f, nor)) {rgCP->PushBack(cp); bFound=1; }
+		/*if (collideLevelSet.ParticleInLevelSet(cp.iPos, fClosestDist) && IsNormalAdmissible(computedNor, .95f, nor)) {CPs->PushBack(cp); bFound=1; }
 		cp.iPos = face.vPosW[2];
 
-		if (collideLevelSet.ParticleInLevelSet(cp.iPos, fClosestDist) && IsNormalAdmissible(computedNor, .95f, nor)) {rgCP->PushBack(cp); bFound=1; }*/
+		if (collideLevelSet.ParticleInLevelSet(cp.iPos, fClosestDist) && IsNormalAdmissible(computedNor, .95f, nor)) {CPs->PushBack(cp); bFound=1; }*/
 
 		if (bFound) {
 			if (m_bDrawTris) m_pCGraphics->DrawTriangle(face.vPosW[0], face.vPosW[1], face.vPosW[2], &Vector3F(0, 1.f, 0));
@@ -1150,16 +1147,16 @@ void COctreeLevelSet::HandleFace(CLevelSet & collideLevelSet, STriangleF & face,
 		Vector3F computedNor = collideLevelSet.ComputeGradient(cp.iPos);
 		bool bFound = 0;
 		if (collideLevelSet.ParticleInLevelSet(cp.iPos, fClosestDist) && IsNormalAdmissible(computedNor, .95f, nor)) {
-			rgCP->PushBack(cp); bFound=1; }
+			CPs->PushBack(cp); bFound=1; }
 		cp.iPos = face.vPosW[1];
 		computedNor = collideLevelSet.ComputeGradient(cp.iPos);
 		if (collideLevelSet.ParticleInLevelSet(cp.iPos, fClosestDist) && IsNormalAdmissible(computedNor, .95f, nor)) {
-			rgCP->PushBack(cp); bFound=1; }
+			CPs->PushBack(cp); bFound=1; }
 		cp.iPos = face.vPosW[2];
 		computedNor = collideLevelSet.ComputeGradient(cp.iPos);
 		if (collideLevelSet.ParticleInLevelSet(cp.iPos, fClosestDist) && IsNormalAdmissible(computedNor, .95f, nor)) {
 			this;
-			rgCP->PushBack(cp); bFound=1; }
+			CPs->PushBack(cp); bFound=1; }
 
 		if (bFound) {
 			if (m_bDrawTris) m_pCGraphics->DrawTriangle(face.vPosW[0], face.vPosW[1], face.vPosW[2], &Vector3F(0, 1.f, 0)); }
@@ -1171,13 +1168,13 @@ void COctreeLevelSet::HandleFace(CLevelSet & collideLevelSet, STriangleF & face,
 	STriangleF rgSubdividedTri[4];
 	SubdivideTriangle(face, rgSubdividedTri);
 
-	HandleFace(collideLevelSet, rgSubdividedTri[0], norFlip, rgCP);
-	HandleFace(collideLevelSet, rgSubdividedTri[1], norFlip, rgCP);
-	HandleFace(collideLevelSet, rgSubdividedTri[2], norFlip, rgCP);
-	HandleFace(collideLevelSet, rgSubdividedTri[3], norFlip, rgCP);
+	HandleFace(collideLevelSet, rgSubdividedTri[0], norFlip, CPs);
+	HandleFace(collideLevelSet, rgSubdividedTri[1], norFlip, CPs);
+	HandleFace(collideLevelSet, rgSubdividedTri[2], norFlip, CPs);
+	HandleFace(collideLevelSet, rgSubdividedTri[3], norFlip, CPs);
 }
 
-void COctreeLevelSet::ProcessEdgePieces(CLevelSet & collideLevelSet, Vector3F & coneDir, float coneAngle, float norFlip, CArray<SContactPoint> * rgCP)
+void COctreeLevelSet::ProcessEdgePieces(CLevelSet & collideLevelSet, Vector3F & coneDir, float coneAngle, float norFlip, CArray<SContactPoint> * CPs)
 {
 	DWORD i=0;
 	//if (m_rgEdgePiece[0].d[0] > 0) i++;
@@ -1190,7 +1187,7 @@ void COctreeLevelSet::ProcessEdgePieces(CLevelSet & collideLevelSet, Vector3F & 
 		Vector3F & v2 = m_rgEdgePiece[i].v[1];
 		float d2 = m_rgEdgePiece[i].d[1];
 
-		ComputeEdgeEdgeIntersection(collideLevelSet, 1, 0, 0, v1, v2, v2-v1, coneDir, coneAngle, norFlip, rgCP);
+		ComputeEdgeEdgeIntersection(collideLevelSet, 1, 0, 0, v1, v2, v2-v1, coneDir, coneAngle, norFlip, CPs);
 	}
 }
 

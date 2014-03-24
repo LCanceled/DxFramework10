@@ -51,7 +51,7 @@ Matrix4x4F Matrix4x4F::operator*(Matrix4x4F & A)
 		m[3][0] * A.m[0][3] + m[3][1] * A.m[1][3] + m[3][2] * A.m[2][3] + m[3][3] * A.m[3][3]);
 }
 
-Matrix4x4F operator*(FLOAT flt, Matrix4x4F & A)
+Matrix4x4F operator*(float flt, Matrix4x4F & A)
 {
 	return Matrix4x4F(
 		A.m[0][0] * flt, A.m[1][0] * flt, A.m[2][0] * flt, A.m[3][0] * flt,
@@ -60,7 +60,7 @@ Matrix4x4F operator*(FLOAT flt, Matrix4x4F & A)
 		A.m[0][3] * flt, A.m[1][3] * flt, A.m[2][3] * flt, A.m[3][3] * flt);
 }
 
-Matrix4x4F Matrix4x4F::operator*(FLOAT flt)
+Matrix4x4F Matrix4x4F::operator*(float flt)
 {
 	return Matrix4x4F(
 		m[0][0] * flt, m[1][0] * flt, m[2][0] * flt, m[3][0] * flt,
@@ -112,7 +112,7 @@ Matrix4x4F & Matrix4x4F::operator*=(Matrix4x4F & A)
 	return *this;
 }
 
-Matrix4x4F & Matrix4x4F::operator*=(FLOAT flt)
+Matrix4x4F & Matrix4x4F::operator*=(float flt)
 {
 	m[0][0] *= flt, m[1][0] *= flt, m[2][0] *= flt, m[3][0] *= flt;
 	m[0][1] *= flt, m[1][1] *= flt, m[2][1] *= flt, m[3][1] *= flt;
@@ -330,7 +330,7 @@ void CovarianceVertices3x3F(Vector3F * pVert, DWORD nVert, Matrix4x4F & cov, Vec
 	Vector3F avg(0, 0, 0);
 	for (DWORD i=0; i<nVert; i++)
 		avg += pVert[i];
-	mean = (avg /= (FLOAT)nVert);
+	mean = (avg /= (float)nVert);
 
 	float m02=0, m01=0, m12=0, m00=0, m11=0, m22=0;
 	for (DWORD i=0; i<nVert; i++) {
@@ -344,7 +344,7 @@ void CovarianceVertices3x3F(Vector3F * pVert, DWORD nVert, Matrix4x4F & cov, Vec
 		m22 = pos.z*pos.z;
 	}
     
-	FLOAT mul = 1.f/(FLOAT)nVert;
+	float mul = 1.f/(float)nVert;
 	cov.MIdenity();
 	cov.m[0][0] = mul*m00;
 	cov.m[1][1] = mul*m11;
@@ -366,7 +366,7 @@ void CovarianceTriangles3x3F(Vector3F * pVert, DWORD nVert, Matrix4x4F & cov, Ve
 	for (DWORD i=0; i<nTri; i++) {
 		STriangleF tri(pVert[3*i+0],  pVert[3*i+1],  pVert[3*i+2]);
 
-		FLOAT area = tri.Area();		sArea += area;
+		float area = tri.Area();		sArea += area;
 		Vector3F ctd(tri.Centroid());	tCtd += area*ctd;
 
 		Vector3F * v = tri.vPosW;
@@ -416,11 +416,11 @@ void CovarianceTriangles3x3F(Vector3F * pVert, DWORD nVert, Matrix4x4F & cov, Ve
 //Finds the covariance and the mean of a list of triangles in R^3
 void CovarianceTriangles3x3F(STriangleF * pTri, DWORD nTri, Matrix4x4F & cov, Vector3F & mean)
 {
-	FLOAT sArea = 0;								//Surface area of all the triangles
+	float sArea = 0;								//Surface area of all the triangles
 	Vector3F tCtd(0, 0, 0);							//Triangle centroid or mean of the triangles
-	FLOAT m02=0, m01=0, m12=0, m00=0, m11=0, m22=0;
+	float m02=0, m01=0, m12=0, m00=0, m11=0, m22=0;
 	for (DWORD i=0, j=0; i<nTri; i++) {
-		FLOAT area = pTri[i].Area();		sArea += area;
+		float area = pTri[i].Area();		sArea += area;
 		Vector3F ctd(pTri[i].Centroid());	tCtd += area*ctd;
 
 		Vector3F * v = pTri[i].vPosW;
@@ -454,7 +454,7 @@ void CovarianceTriangles3x3F(STriangleF * pTri, DWORD nTri, Matrix4x4F & cov, Ve
 			v[1].z*v[1].z +
 			v[2].z*v[2].z)/12.f;
 	}
-	FLOAT mul = 1.f/sArea;
+	float mul = 1.f/sArea;
 	mean = mul*tCtd;
 
 	cov.MIdenity();
@@ -542,7 +542,7 @@ void MatrixNxNF::CreateMatrix(DWORD nRows)
 {
 	Assert(!c, "MatrixNxNF::CreateMatrix must destroy the matrix before creating a new one.");
 
-	c = new FLOAT[nRows*nRows];
+	c = new float[nRows*nRows];
 	m_nRows = nRows;
 }
 
@@ -591,7 +591,7 @@ MatrixNxNF & MatrixNxNF::operator-=(MatrixNxNF & A)
 	return *this;
 }
 
-MatrixNxNF & MatrixNxNF::operator*=(FLOAT flt)
+MatrixNxNF & MatrixNxNF::operator*=(float flt)
 {
 	float mul = flt;
 	for (DWORD i=0; i<m_nRows; i++) {
@@ -612,58 +612,6 @@ void MatrixNxNF::DestroyMatrix()
 	m_nRows = 0;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////       MatrixNxNF Functions    //////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//xI is the original x
-void JacobiSolve(MatrixNxNF & A, VectorNF & oldX,
-	VectorNF & x, VectorNF & b, VectorNF & xI, FLOAT eps, WORD numIter)
-{
-	for (DWORD iter=0; iter<numIter; iter++) {
-		DWORD n = x.Size();
-		double dif = 0;
-		for (DWORD i=0; i<n; i++) {	
-			double val = 0;
-			for (DWORD j=0; j<i; j++) {
-				val += A.c[j*n+i]*xI.c[j];
-			}
-			for (DWORD j=i+1; j<n; j++) {
-				val += A.c[j*n+i]*xI.c[j];
-			}
-			double a = A.c[i*n+i] ? A.c[i*n+i] : 1.f;
-			val = (b.c[i] - val)/a;
-			x.c[i] = (float)val;
-			val = x.c[i] - xI.c[i];
-			dif += val*val;
-		}
-		if (((float)(dif*dif)) < (eps*eps))
-			break;
-		xI = x;
-	}
-}
-
-void ProjectedGaussSeidelMethod(MatrixNxNF & A, VectorNF & x, VectorNF & b, FLOAT eps, DWORD numIter)
-{
-	for (DWORD iter=0; iter<numIter; iter++) {
-		DWORD n = x.Size();
-		double dif = 0;
-		for (DWORD i=0; i<n; i++) {	
-			double val = 0;
-			for (DWORD j=0; j<i; j++) {
-				val += A.c[i+j*n]*x.c[j];
-			}
-			for (DWORD j=i+1; j<n; j++) {
-				val += A.c[i+j*n]*x.c[j];
-			}
-			double a = A.c[i+i*n];
-			if (a == 0) a = 1e-5;
-			val = (b.c[i] - val)/a;
-			if (val < 0) val = 0;
-			x.c[i] = (float)val;
-		}
-	}
-}
 
 
 };

@@ -7,11 +7,13 @@
 #include "DxUtMaterial.h"
 #include "DxUtVertex.h"
 #include "DxUtCamera.h"
+#include <string>
 
 namespace DxUt {
 
 class CMesh {
 protected:
+	std::string m_Name;
 	ID3DX10Mesh * m_pMesh;
 	DWORD m_dwStride;
 	DWORD m_nSubsets; 
@@ -29,9 +31,9 @@ public:
 	virtual ~CMesh() {}
 
 	void CMesh::CreateMesh(DWORD nTri, DWORD nVert, DWORD dwOptions, 
-		const D3D10_INPUT_ELEMENT_DESC * aDesc, DWORD cDesc, DWORD nSubsets);
+		const D3D10_INPUT_ELEMENT_DESC * aDesc, DWORD cDesc, DWORD nSubsets, char * szName);
 
-	/* Loads a PNT mesh from a txt file scaled by fScale */
+	/* Loads a PNT mesh from a txt file scaled by scale */
 	virtual void LoadMeshFromFile(char * szMeshFile, DWORD dwOptions, Vector3F & scale);
 
 	virtual void SetupDraw(CCamera * pCam, SLightDir & light) {}
@@ -77,12 +79,12 @@ inline ID3D10ShaderResourceView * CMesh::GetSHView(DWORD dwIndex)
 	return m_rgSRView[dwIndex];
 }
 
-void ExtractVerticesFromMesh(ID3DX10Mesh * pMesh, Vector3F * rgVert, DWORD dwStride);
+void ExtractVerticesFromMesh(ID3DX10Mesh * pMesh, Vector3F * verts, DWORD dwStride);
 
-void ExtractVertexTriangleListFromMesh(ID3DX10Mesh * pMesh, Vector3F * rgVert, DWORD dwStride);
+void ExtractVertexTriangleListFromMesh(ID3DX10Mesh * pMesh, Vector3F * verts, DWORD dwStride);
 
 /* pMesh must have adjancey information */
-void ExtractAdjanceyFromMesh(ID3DX10Mesh * pMesh, DWORD * rgAdj);
+void ExtractAdjanceyFromMesh(ID3DX10Mesh * pMesh, DWORD * pAdj);
 
 
 };

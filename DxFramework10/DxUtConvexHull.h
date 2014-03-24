@@ -7,11 +7,11 @@
 
 namespace DxUt {
 
-struct SConvexHull2F {
+struct SConvexHullVector2F {
 	Vector2F pos2F;
 };
 
-/* Template class T must inherit from SConvexHull2F */ 
+/* Template class T must inherit from SConvexHullVector2F */ 
 /* Returns a list of points on the convex hull in counter-clockwise order */
 template <typename T>
 void ComputeConvexHull2D(CArray<T> & rgPtIn, CArray<T> & rgPtOut)

@@ -23,13 +23,13 @@ protected:
 	Matrix4x4F m_View;
 	Matrix4x4F m_Proj;
 
-	float m_fFov;
-	float m_fAspect;
-	float m_fWidth, m_fHeight;
-	float m_fNearField, m_fFarField;
-	float m_fAngleYZ, m_fTanYZ, m_fCosYZ;
-	float m_fAngleXZ, m_fTanXZ, m_fCosXZ;
-	float m_fAlpha, m_fPhi, m_fTheta; 
+	float m_Fov;
+	float m_Aspect;
+	float m_Width, m_Height;
+	float m_NearField, m_FarField;
+	float m_AngleYZ, m_TanYZ, m_CosYZ;
+	float m_AngleXZ, m_TanXZ, m_CosXZ;
+	float m_Alpha, m_Phi, m_Theta; 
 
 	WORD m_wKeyPX, m_wKeyMX;
 	WORD m_wKeyPY, m_wKeyMY;
@@ -73,20 +73,20 @@ public:
 	Vector3F & GetForwardVector() {return m_ForwardVec;}
 	Matrix4x4F & GetView() {return m_View;}
 	Matrix4x4F & GetProjection() {return m_Proj;}
-	float GetWidth() {return m_fWidth;}
-	float GetHeight() {return m_fHeight;}
-	float GetNearField() {return m_fNearField;}
-	float GetFarField() {return m_fFarField;}
-	float GetAngleXZ() {return m_fAngleXZ;}
-	float GetAngleYZ() {return m_fAngleYZ;}
-	float GetAlpha() {return m_fAlpha;}
-	float GetPhi() {return m_fPhi;}
-	float GetTheta() {return m_fTheta;}
-	float GetTanXZ() {return m_fTanXZ;}
-	float GetTanYZ() {return m_fTanYZ;}
+	float GetWidth() {return m_Width;}
+	float GetHeight() {return m_Height;}
+	float GetNearField() {return m_NearField;}
+	float GetFarField() {return m_FarField;}
+	float GetAngleXZ() {return m_AngleXZ;}
+	float GetAngleYZ() {return m_AngleYZ;}
+	float GetAlpha() {return m_Alpha;}
+	float GetPhi() {return m_Phi;}
+	float GetTheta() {return m_Theta;}
+	float GetTanXZ() {return m_TanXZ;}
+	float GetTanYZ() {return m_TanYZ;}
 
 	virtual void OnSize() {
-		CreateCameraLH(m_fFov, g_uiWndWidth, g_uiWndHeight, m_fNearField, m_fFarField); }
+		CreateCameraLH(m_Fov, g_uiWndWidth, g_uiWndHeight, m_NearField, m_FarField); }
 
 	virtual CCamera operator=(CCamera & ref);
 };

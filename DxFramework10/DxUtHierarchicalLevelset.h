@@ -65,12 +65,12 @@ private:
 		CArray<bool> m_rgVertexParticleDuplicate;
 		CArray<bool> m_rgEdgeDuplicate;
 
-		void BuildBVTree(BranchNode * pNode, Vector3F * rgVert, DWORD * rgFaceIndex, DWORD nVert, DWORD dwDepth, BranchNode ** pPreNode);
-		bool FindBVCollisions(BranchNode * pNode, BranchNode * pCollideNode, Matrix4x4F & rot, Vector3F & trans, FLOAT fScl);
+		void BuildBVTree(BranchNode * pNode, Vector3F * verts, DWORD * rgFaceIndex, DWORD nVert, DWORD dwDepth, BranchNode ** pPreNode);
+		bool FindBVCollisions(BranchNode * pNode, BranchNode * pCollideNode, Matrix4x4F & rot, Vector3F & trans, float scl);
 	public:
 		CBVTreeEx() {}
 		
-		void CreateBVTree(Vector3F * rgVert, DWORD nVert, DWORD * pAdj, DWORD dwTriPerBV, DWORD nVertexParticles, DWORD nEdges, DWORD nCellsX, DWORD nCellsY,
+		void CreateBVTree(Vector3F * verts, DWORD nVert, DWORD * pAdj, DWORD dwTriPerBV, DWORD nVertexParticles, DWORD nEdges, DWORD nCellsX, DWORD nCellsY,
 			DWORD nCellsZ, float fCellSize, Vector3F gridMinP, CFinitePointGrid3F<DWORD> & vertToIdx, CFinitePointGrid3F<DWORD> & edgeToIdx, bool bKdTree=0);
 	
 		DWORD BVCollision(CBVTreeEx & collideBVTree, CArray<DWORD> & rgVertexParticleIndex, CArray<DWORD> & rgEdgeIndex);
@@ -101,33 +101,33 @@ private:
 	//CArray<DWORD> m_rgVertexParticleDuplicate;
 	//CArray<DWORD> m_rgEdgeDuplicate;
 
-	void DoAdditionalProcessing(char * szLevelSet, Vector3F * rgVert, DWORD nVert, DWORD * rgAdj, 
+	void DoAdditionalProcessing(char * szLevelSet, Vector3F * verts, DWORD nVert, DWORD * pAdj, 
 		CFinitePointGrid3F<DWORD> & vertToIdx, CFinitePointGrid3F<DWORD> & edgeToIdx);
-	void BuildOctree(SNode * pTree, DWORD dwDepth, Vector3F * rgVert, DWORD nVert, STriangleFEx * rgTri);
-	void ComputeOctDists(SNode * pNode, Vector3F * rgVert, DWORD nVert, STriangleFEx * rgTri);
-	bool IsOctRefined(SNode * pNode, Vector3F * rotVec, Vector3F & hW, Vector3F & center, DWORD dwDepth, Vector3F * rgVert, DWORD nVert, STriangleFEx * rgTri);
+	void BuildOctree(SNode * pTree, DWORD dwDepth, Vector3F * verts, DWORD nVert, STriangleFEx * tris);
+	void ComputeOctDists(SNode * pNode, Vector3F * verts, DWORD nVert, STriangleFEx * tris);
+	bool IsOctRefined(SNode * pNode, Vector3F * rotVec, Vector3F & hW, Vector3F & center, DWORD dwDepth, Vector3F * verts, DWORD nVert, STriangleFEx * tris);
 	float ComputeSignedDistance(SNode * pNode, Vector3F & pt);
 	bool ParticleInOct(SNode * pNode, Vector3F & pt, float & fDist);
 	bool ParticleInOctreeLevel(SNode * pNode, Vector3F & pt, float & fDist);
 	void ComputeGradientLevel(SNode * pNode, Vector3F & pt, Vector3F & grad);
-	bool HandleEdgeEdgeCollision(SEdge & edge, Matrix4x4F & T,
-		CArray<SContactPoint> * rgCP, DWORD dwType, float norFlip, CLevelSet & collideLevelSet);
+	bool HandleEdgeEdgeCollision(SEdgeParticle & edge, Matrix4x4F & T,
+		CArray<SContactPoint> * CPs, DWORD dwType, float norFlip, CLevelSet & collideLevelSet);
 	bool MarchExteriorEdgeVertex(CLevelSet & collideLevelSet, float fEdgeLength, 
 		Vector3F & v1, Vector3F & edgeDir, SRay & ray, float & fClosestDist, Vector3F & finalPt, float & fAdvance);
 	bool MarchInteriorEdgeVertex(CLevelSet & collideLevelSet, float fEdgeLength, 
 		Vector3F & v1, Vector3F & edgeDir, SRay & ray, float & fClosestDist, Vector3F & finalPt, float & fAdvance);
 	
-	void BisectionSearch(CLevelSet & collideLevelSet, Vector3F & v1, Vector3F & v2, Vector3F & coneDir, float coneAngle, float norFlip, CArray<SContactPoint> * rgCP);
-	void HandleFace(CLevelSet & collideLevelSet, STriangleF & face, float norFlip, CArray<SContactPoint> * rgCP);
-	void ProcessEdgePieces(CLevelSet & collideLevelSet, Vector3F & coneDir, float coneAngle, float norFlip, CArray<SContactPoint> * rgCP);
+	void BisectionSearch(CLevelSet & collideLevelSet, Vector3F & v1, Vector3F & v2, Vector3F & coneDir, float coneAngle, float norFlip, CArray<SContactPoint> * CPs);
+	void HandleFace(CLevelSet & collideLevelSet, STriangleF & face, float norFlip, CArray<SContactPoint> * CPs);
+	void ProcessEdgePieces(CLevelSet & collideLevelSet, Vector3F & coneDir, float coneAngle, float norFlip, CArray<SContactPoint> * CPs);
 
 	bool LoadOctree(char * szFile);
 	void WriteOctree(char * szFile);
 	void LoadOctreeLevel(std::ifstream & stream, SNode ** pNode);
 	void WriteOctreeLevel(std::ofstream & stream, SNode * pNode);
 
-	void DrawOctreeLevel(CCollisionGraphics * pInstance, DWORD dwLevel, SNode * pOctree, DWORD dwCurLevel);
-	//void ComputeMeshParticles(DWORD nVert, DWORD nTri, Vector3F * rgVert, DWORD * rgAdj, char * szLevelSetFile, float fCellSize);
+	void DrawOctreeLevel(DWORD dwLevel, SNode * pOctree, DWORD dwCurLevel);
+	//void ComputeMeshParticles(DWORD nVert, DWORD nTri, Vector3F * verts, DWORD * pAdj, char * szLevelSetFile, float fCellSize);
 
 	void DestroyOctree(SNode * pNode);
 public:
@@ -139,13 +139,13 @@ public:
 
 	/* Compute the ASDF and write it to a file */
 	void ComputeSDF(ID3DX10Mesh * pMesh, DWORD dwStride, char * szLevelSetFile, float fMinCellSize, float fInterpolationError, Vector3F & expansion);
-	void ComputeSDF(STriangleF * rgTri, DWORD nTri, DWORD * rgAdj, char * szLevelSetFile, float fMinCellSize, float fInterpolationError, Vector3F & expansion);
-	void ComputeSDF(Vector3F * rgVert, DWORD nVert, DWORD * rgAdj, char * szLevelSetFile, float fMinCellSize, float fInterpolationError, Vector3F & expansion);
+	void ComputeSDF(STriangleF * tris, DWORD nTri, DWORD * pAdj, char * szLevelSetFile, float fMinCellSize, float fInterpolationError, Vector3F & expansion);
+	void ComputeSDF(Vector3F * verts, DWORD nVert, DWORD * pAdj, char * szLevelSetFile, float fMinCellSize, float fInterpolationError, Vector3F & expansion);
 
 	void CreateParticleRepresentation(ID3DX10Mesh * pMesh, DWORD dwStride, DWORD dwMaxDepth, DWORD dwTriPerOct, char * szLevelSetFile);
 	/* For the creation of face vertices a higher tessellated mesh needs to be passed in */ 
-	void CreateParticleRepresentation(STriangleF * rgTri, DWORD nTri, DWORD * rgAdj, DWORD dwMaxDepth, DWORD dwTriPerOct, char * szLevelSetFile);
-	void CreateParticleRepresentation(Vector3F * rgVert, DWORD nVert, DWORD * rgAdj, DWORD dwMaxDepth, DWORD dwTriPerOct, char * szLevelSetFile);
+	void CreateParticleRepresentation(STriangleF * tris, DWORD nTri, DWORD * pAdj, DWORD dwMaxDepth, DWORD dwTriPerOct, char * szLevelSetFile);
+	void CreateParticleRepresentation(Vector3F * verts, DWORD nVert, DWORD * pAdj, DWORD dwMaxDepth, DWORD dwTriPerOct, char * szLevelSetFile);
 
 	void SetTransform(Matrix4x4F & rot, Vector3F & trans) {
 		CLevelSet::SetTransform(rot, trans);
@@ -155,15 +155,15 @@ public:
 	bool ParticleInLevelSet(Vector3F & particle, float & fDist);
 	bool ParticleInLevelSet_Fast(Vector3F & particle, float & fDist);
 
-	DWORD LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactPoint> * rgCP);
+	DWORD LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactPoint> * CPs);
 	
 	Vector3F ComputeGradient(Vector3F & pt);
 	Vector3F ComputeGradient_Fast(Vector3F & pt);
 
-	void DrawBVTree(CCollisionGraphics * pInstance, DWORD dwLevel) {
-		m_TriBVTree.DrawBVTree(pInstance, dwLevel);
+	void DrawBVTree(DWORD dwLevel) {
+		m_TriBVTree.DrawBVTree(dwLevel);
 	}
-	void DrawOctLevelSet(CCollisionGraphics * pInstance, DWORD dwLevel);
+	void DrawOctLevelSet(DWORD dwLevel);
 
 	void DestroyLevelSet();
 };

@@ -46,6 +46,8 @@ void _SendError(CHAR * szFunction, CHAR * szError, CHAR * szFile, DWORD dwLine)
 #else
 	if (TERMINATE_ON_RELEASE_ERROR) _DestroyProcess();	
 #endif
+
+	delete text;
 }
 
 void _SendErrorEx(CHAR * szFunction, CHAR * szError1, CHAR * szError2, CHAR * szFile, DWORD dwLine)
@@ -62,5 +64,7 @@ void _SendErrorEx(CHAR * szFunction, CHAR * szError1, CHAR * szError2, CHAR * sz
 #else
 	if (TERMINATE_ON_RELEASE_ERROR) _DestroyProcess();	
 #endif
+
+	delete text;
 }
 

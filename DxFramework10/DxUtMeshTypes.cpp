@@ -32,7 +32,7 @@ void CMeshParallaxMapped::LoadMeshFromFile(char * szMeshFile, DWORD dwOptions)
 {
 	CMesh::LoadMeshFromFile(szMeshFile, dwOptions, Vector3F(1.f));
 
-	m_Effect.CreateEffect("/PNT_Phong.fx");
+	m_Effect.CreateEffect("PNT_Phong.fx");
 	m_Effect.eTech		= m_Effect->GetTechniqueByIndex(0);
 	m_Effect.eWVP		= m_Effect->GetVariableByName("g_WVP")->AsMatrix();
 	m_Effect.eWorld		= m_Effect->GetVariableByName("g_World")->AsMatrix();
