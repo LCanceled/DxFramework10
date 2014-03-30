@@ -24,8 +24,8 @@ private:
 		Vector3F iNor;
 		float dist;
 		float pushOutVel;
-		DWORD dwLayer;
-		DWORD dwIndex;
+		UINT uiLayer;
+		UINT uiIndex;
 		
 		/* Cached solver info */
 		Vector3F t1, t2;
@@ -39,7 +39,7 @@ private:
 		WORD bUsed;
 		WORD bActive;
 		int iHeight;
-		DWORD dwLayer;
+		UINT uiLayer;
 		CRigidBody rB;
 		CArray<SRBContact*> RBCPs;
 		bool bConstrainCM;
@@ -67,11 +67,11 @@ private:
 	bool m_bUseHierarchicalLevelSet;
 	bool m_bUsePushOut;
 
-	DWORD FindContacts();
-	void SolveConstraints(DWORD nContacts);
-	void SolveLayer(DWORD k, VectorNF & lambda, float dt);
-	void PGSSolve(DWORD nContacts, float dt, bool bNeedSetup);
-	void PGSSetup(DWORD nContacts);
+	UINT FindContacts();
+	void SolveConstraints(UINT nContacts);
+	void SolveLayer(UINT k, VectorNF & lambda, float dt);
+	void PGSSolve(UINT nContacts, float dt, bool bNeedSetup);
+	void PGSSetup(UINT nContacts);
 	void ComputeContactGraph();
 	void ApplyCMConstraint(SRBObject & rBO, float dt);
 public:
@@ -79,59 +79,59 @@ public:
 	//~CRigidBodyWorld() {}
 
 	/* Give a nonzero hint as to how many RBs and contacts among them there will be */
-	void CreateRigidBodyWorld(DWORD nHintRBs, DWORD nHintContacts, bool bUseHierarchicalLevelSet=0,
+	void CreateRigidBodyWorld(UINT nHintRBs, UINT nHintContacts, bool bUseHierarchicalLevelSet=0,
 		Vector3F * gravity=&Vector3F(0, 3.8f, 0), float stepSize=.03f, float fMaxVelocity=10.f);
 
 	/* The funciton returns the id for this rigidbody */
 	/* Any future changes to a body's characteristics can be changed by way of calling */
 	/* GetRigidBody on that id to obtain the CRigidBody and using its getters and setters */
-	DWORD AddRigidBody(CMesh * pMesh, float scale, float mass, Vector3F & pos, Matrix4x4F & rot, Vector3F & linVel, Vector3F & angVel,
-		float elasticity, float mu, Vector3F & force, Vector3F & torque, char * szLevelSet, DWORD dwTriPerOct,
+	UINT AddRigidBody(CMesh * pMesh, float scale, float mass, Vector3F & pos, Matrix4x4F & rot, Vector3F & linVel, Vector3F & angVel,
+		float elasticity, float mu, Vector3F & force, Vector3F & torque, char * szLevelSet, UINT uiTriPerOct,
 		CRigidBody::GeometryType type=CRigidBody::GT_TRIANGLE_MESH, SMaterial * pOverrideMaterial=NULL);
-	void DisableRigidBody(DWORD dwId);
-	void EnableRigidBody(DWORD dwId);
+	void DisableRigidBody(UINT uiId);
+	void EnableRigidBody(UINT uiId);
 
 	/* Constrains the center of mass to lie at a certain position */
-	void AddCenterOfMassPositionConstraint(DWORD dwRigidBody, Vector3F & pos);
+	void AddCenterOfMassPositionConstraint(UINT uiRigidBody, Vector3F & pos);
 
 	void UpdateRigidBodies(float dt, Vector3F & gAcel);
 
-	void DrawRigidBodies(CCamera * pCam, SLightDir & light, DWORD dwShaderPass);
+	void DrawRigidBodies(CCamera * pCam, SLightDir & light, UINT uiShaderPass);
 
 	void SetCameraForCollisionGraphics(CCamera * pCam) {CCollisionGraphics::SetCamera(pCam); }
 	void DrawCollisionGraphics(CCamera * pCam);
 
 	void Dent(Vector3F & cpt);
 
-	/* Returns the world matrix for the body with dwId */
-	Matrix4x4F GetRBWorld(DWORD dwId);
-	CRigidBody * GetRigidBody(DWORD dwId);
-	DWORD GetNumBodies() {return m_RBObjects.GetSize(); }
+	/* Returns the world matrix for the body with uiId */
+	Matrix4x4F GetRBWorld(UINT uiId);
+	CRigidBody * GetRigidBody(UINT uiId);
+	UINT GetNumBodies() {return m_RBObjects.GetSize(); }
 
 	void DestroyRigidBodyWorld();
 };
 
-inline void CRigidBodyWorld::DrawRigidBodies(CCamera * pCam, SLightDir & light, DWORD dwShaderPass)
+inline void CRigidBodyWorld::DrawRigidBodies(CCamera * pCam, SLightDir & light, UINT uiShaderPass)
 {
-	for (DWORD i=0, end=m_RBObjects.GetSize(); i<end; i++) {
+	for (UINT i=0, end=m_RBObjects.GetSize(); i<end; i++) {
 		m_RBObjects[i].rB.GetMesh()->SetupDraw(pCam, light);
-		m_RBObjects[i].rB.GetMesh()->DrawAllSubsets(pCam, m_pRBObject[i].rB.GetWorldMatrix(), dwShaderPass, m_RBObjects[i].rB.GetOverrideMaterial());
+		m_RBObjects[i].rB.GetMesh()->DrawAllSubsets(pCam, m_pRBObject[i].rB.GetWorldMatrix(), uiShaderPass, m_RBObjects[i].rB.GetOverrideMaterial());
 	}
 }
 
-inline Matrix4x4F CRigidBodyWorld::GetRBWorld(DWORD dwId) 
+inline Matrix4x4F CRigidBodyWorld::GetRBWorld(UINT uiId) 
 {
-	Assert(dwId < m_RBObjects.GetSize(), "CRigidBodyWorld::GetRBWorld "
+	Assert(uiId < m_RBObjects.GetSize(), "CRigidBodyWorld::GetRBWorld "
 		"an id was specifed which does not exist for any body.");
 
-	return m_pRBObject[dwId].rB.GetWorldMatrix();
+	return m_pRBObject[uiId].rB.GetWorldMatrix();
 }
-inline CRigidBody * CRigidBodyWorld::GetRigidBody(DWORD dwId) 
+inline CRigidBody * CRigidBodyWorld::GetRigidBody(UINT uiId) 
 {
-	Assert(dwId < m_RBObjects.GetSize(), "CRigidBodyWorld::GetRigidBody "
+	Assert(uiId < m_RBObjects.GetSize(), "CRigidBodyWorld::GetRigidBody "
 		"an id was specifed which does not exist for any body.");
 
-	return &m_RBObjects[dwId].rB;
+	return &m_RBObjects[uiId].rB;
 }
 
 

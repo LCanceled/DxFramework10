@@ -9,8 +9,8 @@ CMesh::CMesh():m_pMesh(0), m_nSubsets(0)
 {
 }
 /*
-void CMesh::CreateMesh(DWORD nTri, DWORD nVert, DWORD dwOptions, 
-	const D3D10_INPUT_ELEMENT_DESC * aDesc, DWORD cDesc, DWORD nSubsets, char * szName)
+void CMesh::CreateMesh(UINT nTri, UINT nVert, UINT uiOptions, 
+	const D3D10_INPUT_ELEMENT_DESC * aDesc, UINT cDesc, UINT nSubsets, char * szName)
 {
 	Assert(!m_pMesh, "CMesh::CreateMesh mesh must be destroyed before creating a new one.");
 
@@ -19,7 +19,7 @@ void CMesh::CreateMesh(DWORD nTri, DWORD nVert, DWORD dwOptions,
 		ReleaseX(m_pMesh);
 	}
 
-	if (FAILED(D3DX10CreateMesh(g_pD3DDevice, aDesc, cDesc, aDesc->SemanticName, nVert, nTri, dwOptions, &m_pMesh))) {
+	if (FAILED(D3DX10CreateMesh(g_pD3DDevice, aDesc, cDesc, aDesc->SemanticName, nVert, nTri, uiOptions, &m_pMesh))) {
 		DxUtSendError("CMesh::CreateMesh ID3DX10Mesh could not be created."); 
 	}
 
@@ -30,7 +30,7 @@ void CMesh::CreateMesh(DWORD nTri, DWORD nVert, DWORD dwOptions,
 	m_Materials = new SMaterial[nSubsets];
 	m_SRViews = new ID3D10ShaderResourceView*[nSubsets];
 		
-	for (DWORD i=0; i<1; i++) {
+	for (UINT i=0; i<1; i++) {
 		m_Materials[i].amb = D3DXCOLOR(.4f, .4f, .4f, 1.f);
 		m_Materials[i].dif = D3DXCOLOR(.7f, .7f, .7f, 1.f);
 		m_Materials[i].spe = D3DXCOLOR(.4f, .4f, .4f, 1.f);
@@ -40,7 +40,7 @@ void CMesh::CreateMesh(DWORD nTri, DWORD nVert, DWORD dwOptions,
 			DxUtSendErrorEx("CMesh::LoadMeshFromFile could not load mesh texture.", "White.dds");
 		}
 	}
-	for (DWORD i=1; i<nSubsets; i++) {
+	for (UINT i=1; i<nSubsets; i++) {
 		m_Materials[i].amb = D3DXCOLOR(.4f, .4f, .4f, 1.f);
 		m_Materials[i].dif = D3DXCOLOR(.7f, .7f, .7f, 1.f);
 		m_Materials[i].spe = D3DXCOLOR(.4f, .4f, .4f, 1.f);
@@ -50,22 +50,23 @@ void CMesh::CreateMesh(DWORD nTri, DWORD nVert, DWORD dwOptions,
 	CMeshPool::PutResource(szName, (ID3DX10MeshEx*)m_pMesh);
 }*/
 
-void CMesh::LoadMeshFromFile(char * szMeshFile, DWORD dwOptions, Vector3F & scale)
+void CMesh::LoadMeshFromFile(char * szMeshFile, UINT uiOptions, Vector3F & scale)
 {
 	Assert(!m_pMesh, "CMesh::CreateMesh mesh must be destroyed before creating a new one.");
 
 	HANDLE hFile = CreateFileA(szMeshFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (!hFile) DxUtSendErrorEx("CMesh::LoadMeshFromFile could not open mesh file.", szMeshFile);
-	DWORD nFaces, nVert, num=0;
-	ReadFile(hFile, &nFaces, sizeof(DWORD), &num, 0);
-	ReadFile(hFile, &nVert, sizeof(DWORD), &num, 0);
+	UINT nFaces, nVert;
+	DWORD dwNum=0;
+	ReadFile(hFile, &nFaces, sizeof(UINT), &dwNum, 0);
+	ReadFile(hFile, &nVert, sizeof(UINT), &dwNum, 0);
 	D3D10_INPUT_ELEMENT_DESC const * aDesc = GetVertexElementDescPNT();
-	m_dwStride = sizeof(SVertexPNT);
+	m_uiStride = sizeof(SVertexPNT);
 
 
 	m_Name = szMeshFile;
 	if (!CMeshPool::GetResource((char*)szMeshFile, this)) {
-		if (FAILED(D3DX10CreateMesh(g_pD3DDevice, aDesc, 3, aDesc->SemanticName, nVert, nFaces, dwOptions, &m_pMesh))) {
+		if (FAILED(D3DX10CreateMesh(g_pD3DDevice, aDesc, 3, aDesc->SemanticName, nVert, nFaces, uiOptions, &m_pMesh))) {
 			DxUtSendErrorEx("CMesh::LoadMeshFromFile could not be loaded from file.", szMeshFile); 
 		}
 
@@ -73,16 +74,16 @@ void CMesh::LoadMeshFromFile(char * szMeshFile, DWORD dwOptions, Vector3F & scal
 		m_nVertices = nVert;
 		m_Vertices = new Vector3F[nVert];
 		SVertexPNT * vert = new SVertexPNT[nVert];
-		ReadFile(hFile, vert, nVert*sizeof(SVertexPNT), &num, 0);
-		for (DWORD i=0; i<nVert; i++) {
+		ReadFile(hFile, vert, nVert*sizeof(SVertexPNT), &dwNum, 0);
+		for (UINT i=0; i<nVert; i++) {
 			vert[i].pos = scale*vert[i].pos;
 			m_Vertices[i] = scale*vert[i].pos;
 		}
 		m_pMesh->SetVertexData(0, vert);
 
 		//Set the index data
-		DWORD * indi = (DWORD*)vert;
-		ReadFile(hFile, indi, 3*nFaces*sizeof(DWORD), &num, 0);
+		UINT * indi = (UINT*)vert;
+		ReadFile(hFile, indi, 3*nFaces*sizeof(UINT), &dwNum, 0);
 		m_pMesh->SetIndexData(indi, 3*nFaces);
 
 		// Extract the triangles
@@ -96,12 +97,12 @@ void CMesh::LoadMeshFromFile(char * szMeshFile, DWORD dwOptions, Vector3F & scal
 
 		//Set the attribute data
 		UINT * atri = (UINT*)vert;
-		ReadFile(hFile, atri, nFaces*sizeof(UINT), &num, 0);
+		ReadFile(hFile, atri, nFaces*sizeof(UINT), &dwNum, 0);
 		m_pMesh->SetAttributeData(atri);
 
 		// Extract the adj info
-		m_Adj = new DWORD[3*nFaces];
-		ReadFile(hFile, m_Adj, 3*nFaces*sizeof(DWORD), &num, 0);
+		m_Adj = new UINT[3*nFaces];
+		ReadFile(hFile, m_Adj, 3*nFaces*sizeof(UINT), &dwNum, 0);
 
 		delete[] vert;
 		vert = 0;
@@ -112,19 +113,19 @@ void CMesh::LoadMeshFromFile(char * szMeshFile, DWORD dwOptions, Vector3F & scal
 
 		CMeshPool::PutResource(szMeshFile, this);
 	} else {
-		SetFilePointer(hFile, nVert*sizeof(SVertexPNT)+3*nFaces*sizeof(DWORD)+nFaces*sizeof(UINT)+3*nFaces*sizeof(DWORD), NULL, FILE_CURRENT);
+		SetFilePointer(hFile, nVert*sizeof(SVertexPNT)+3*nFaces*sizeof(UINT)+nFaces*sizeof(UINT)+3*nFaces*sizeof(UINT), NULL, FILE_CURRENT);
 	}
 
-	ReadFile(hFile, &m_nSubsets, sizeof(DWORD), &num, 0);
+	ReadFile(hFile, &m_nSubsets, sizeof(UINT), &dwNum, 0);
 	m_Materials = new SMaterial[m_nSubsets];
 	m_SRViews = new ID3D10ShaderResourceView*[m_nSubsets];
 
-	for (DWORD i=0, len=0; i<m_nSubsets; i++) {
-		ReadFile(hFile, &m_Materials[i], sizeof(SMaterial), &num, 0);
-		ReadFile(hFile, &len, sizeof(DWORD), &num, 0);
+	for (UINT i=0, len=0; i<m_nSubsets; i++) {
+		ReadFile(hFile, &m_Materials[i], sizeof(SMaterial), &dwNum, 0);
+		ReadFile(hFile, &len, sizeof(UINT), &dwNum, 0);
 		if (len) {
 			CHAR texFileName[128] = {0};					//It is assumed that the name of a file is small.
-			ReadFile(hFile, &texFileName, len, &num, 0);
+			ReadFile(hFile, &texFileName, len, &dwNum, 0);
 			
 			if (FAILED(D3DX10CreateShaderResourceViewFromFileA(g_pD3DDevice, texFileName, 0, 0, &m_SRViews[i], 0))) {
 				DxUtSendErrorEx("CMesh::LoadMeshFromFile could not load mesh texture.", texFileName);
@@ -157,7 +158,7 @@ void CMesh::ShallowCopy(CMesh * pMesh)
 {
 	this->m_Name = pMesh->m_Name;
 	this->m_pMesh = pMesh->m_pMesh;
-	this->m_dwStride = pMesh->m_dwStride;
+	this->m_uiStride = pMesh->m_uiStride;
 	this->m_nSubsets = pMesh->m_nSubsets;
 	this->m_nVertices = pMesh->m_nVertices;
 	this->m_nFaces = pMesh->m_nFaces;
@@ -176,7 +177,7 @@ void CMesh::Destroy()
 		delete[] m_Materials;
 		m_Materials = NULL;
 
-		for (DWORD i=0; i<m_nSubsets; i++) ReleaseX(m_SRViews[i]);
+		for (UINT i=0; i<m_nSubsets; i++) ReleaseX(m_SRViews[i]);
 		delete[] m_SRViews;
 		m_SRViews = NULL;
 	}
@@ -213,11 +214,11 @@ void CMesh::Destroy()
 	}
 
 	//Faces and vertices
-	DWORD num=0;
-	DWORD nFaces = m_pMesh->GetNumFaces();
-	WriteFile(hFile, &nFaces, sizeof(DWORD), &num, 0);
-	DWORD nVert = m_pMesh->GetNumVertices();
-	WriteFile(hFile, &nVert, sizeof(DWORD), &num, 0);
+	UINT dwNum=0;
+	UINT nFaces = m_pMesh->GetNumFaces();
+	WriteFile(hFile, &nFaces, sizeof(UINT), &dwNum, 0);
+	UINT nVert = m_pMesh->GetNumVertices();
+	WriteFile(hFile, &nVert, sizeof(UINT), &dwNum, 0);
 
 	//Vertex buffer
 	LPDIRECT3DVERTEXBUFFER9 vB;
@@ -225,51 +226,51 @@ void CMesh::Destroy()
 
 	SVertexPNT * vert;
 	vB->Lock(0, 0, (void**)&vert, 0);
-	WriteFile(hFile, (void*)vert, nVert*sizeof(SVertexPNT), &num, 0);
+	WriteFile(hFile, (void*)vert, nVert*sizeof(SVertexPNT), &dwNum, 0);
 	vB->Unlock();
 
 	//Index buffer
 	LPDIRECT3DINDEXBUFFER9 iB;
 	m_pMesh->GetIndexBuffer(&iB);
 
-	DWORD * index;
+	UINT * index;
 	iB->Lock(0, 0, (void**)&index, 0);
-	WriteFile(hFile, (void*)index, 3*nFaces*sizeof(DWORD), &num, 0);
+	WriteFile(hFile, (void*)index, 3*nFaces*sizeof(UINT), &dwNum, 0);
 	iB->Unlock();
 	
 	//Attributes
-	DWORD * atri;
-	m_pMesh->LockAttributeBuffer(0, (DWORD**)&atri);
-	WriteFile(hFile, atri, nFaces*sizeof(DWORD), &num, 0);
+	UINT * atri;
+	m_pMesh->LockAttributeBuffer(0, (UINT**)&atri);
+	WriteFile(hFile, atri, nFaces*sizeof(UINT), &dwNum, 0);
 	m_pMesh->UnlockAttributeBuffer();
 
 	//Number of materials
-	WriteFile(hFile, &numMaterial, sizeof(DWORD), &num, 0);
+	WriteFile(hFile, &numMaterial, sizeof(UINT), &dwNum, 0);
 
 	D3DXMATERIAL * d3dMat = (D3DXMATERIAL*)materialBuf->GetBufferPointer();
-	for (DWORD i=0; i<numMaterial; i++) {
+	for (UINT i=0; i<numMaterial; i++) {
 		Material mat;
 		mat.amb = d3dMat[i].MatD3D.Ambient;
 		mat.dif = d3dMat[i].MatD3D.Diffuse;
 		mat.spe = d3dMat[i].MatD3D.Specular;
 		mat.pow = d3dMat[i].MatD3D.Power;
-		WriteFile(hFile, &mat, sizeof(Material), &num, 0);
+		WriteFile(hFile, &mat, sizeof(Material), &dwNum, 0);
 
 		if (d3dMat[i].pTextureFilename) {
-			DWORD len = strlen(d3dMat[i].pTextureFilename)+1;
-			WriteFile(hFile, &len, sizeof(DWORD), &num, 0);  
+			UINT len = strlen(d3dMat[i].pTextureFilename)+1;
+			WriteFile(hFile, &len, sizeof(UINT), &dwNum, 0);  
 
 			CHAR * texFile = new CHAR[len+1];
 			memcpy(texFile+1, d3dMat[i].pTextureFilename, len-1);
 			texFile[0] = '/';
 			texFile[len] = '\0';
-			WriteFile(hFile, texFile, len, &num, 0);  
+			WriteFile(hFile, texFile, len, &dwNum, 0);  
 
 			delete[] texFile;
 		}
 		else {
-			DWORD d=0;
-			WriteFile(hFile, &d, sizeof(DWORD), &num, 0);  
+			UINT d=0;
+			WriteFile(hFile, &d, sizeof(UINT), &dwNum, 0);  
 		}
 	}
 
@@ -282,10 +283,10 @@ void CMesh::Destroy()
 	/*hFile = CreateFileA(szMeshFile, GENERIC_READ, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (!hFile) return false;
 
-	nFaces, nVert, num=0;
-	DWORD a, b;
-	ReadFile(hFile, &a, sizeof(DWORD), &num, 0);
-	ReadFile(hFile, &b, sizeof(DWORD), &num, 0);
+	nFaces, nVert, dwNum=0;
+	UINT a, b;
+	ReadFile(hFile, &a, sizeof(UINT), &dwNum, 0);
+	ReadFile(hFile, &b, sizeof(UINT), &dwNum, 0);
 
 	return true;
 	}

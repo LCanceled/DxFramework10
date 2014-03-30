@@ -14,11 +14,11 @@ CRigidBody::CRigidBody():m_bNotStatic(1),m_pOverrideMaterial(0)
 }
 
 void CRigidBody::CreateRigidBody(CMesh * pMesh, float scale, float mass, Vector3F & gravity, float timeStepSize,
-	float fMaxVelocity, char * szLevelSet, DWORD dwTriPerOct, bool bUseHierarchicalLevelSet, GeometryType type, SMaterial * pOverideMaterial)
+	float fMaxVelocity, char * szLevelSet, UINT uiTriPerOct, bool bUseHierarchicalLevelSet, GeometryType type, SMaterial * pOverideMaterial)
 {
 	m_pMesh = pMesh;
 	
-	DWORD nVert = 3*pMesh->GetNumTriangles();
+	UINT nVert = 3*pMesh->GetNumTriangles();
 	Vector3F * verts = pMesh->GetNewVertexTriangleList();
 	
 	double density = 0;
@@ -27,7 +27,7 @@ void CRigidBody::CreateRigidBody(CMesh * pMesh, float scale, float mass, Vector3
 	delete[] verts;
 
 	/* Center the mass at the center of mass */
-	/*for (DWORD i=0; i<nVert; i++) {
+	/*for (UINT i=0; i<nVert; i++) {
 		verts[i] -= m_CenterOfMass;
 	}*/
 
@@ -37,7 +37,7 @@ void CRigidBody::CreateRigidBody(CMesh * pMesh, float scale, float mass, Vector3
 	//else 
 	m_pLevelSet = new CLevelSet;
 	//if (bUseHierarchicalLevelSet)
-	//	((COctreeLevelSet*)m_pLevelSet)->CreateParticleRepresentation(verts, nVert, pAdj, 1, dwTriPerOct, szLevelSet);
+	//	((COctreeLevelSet*)m_pLevelSet)->CreateParticleRepresentation(verts, nVert, pAdj, 1, uiTriPerOct, szLevelSet);
 	//else 
 	m_pLevelSet->CreateLevelSet(m_pMesh, szLevelSet);
 
@@ -100,16 +100,16 @@ void CRigidBody::IntegrateVel(float dt, Vector3F & gAcel)
 		-dt*(m_AngVel.SkewMatrix3x3F()*m_I*m_AngVel)) + m_Torque;// + m_Torque);
 }
 /*
-DWORD CRigidBody::DetermineCollision(CRigidBody * pRB, CArray<SContactPoint> * CPs)
+UINT CRigidBody::DetermineCollision(CRigidBody * pRB, CArray<SContactPoint> * CPs)
 {
 	//Code may need to consider m_CenterOfMass
 	m_BVTree->SetTransform(m_Rot, m_Pos, m_Scale);
 	pRB->m_BVTree->SetTransform(pRB->m_Rot, pRB->m_Pos, m_Scale);
 
-	DWORD n = m_BVTree->BVCollision(*pRB->m_BVTree, CPs);
+	UINT n = m_BVTree->BVCollision(*pRB->m_BVTree, CPs);
 	/*if (n) {
 		SRBContact * ptr = CPs->data() + (CPs->size()-n);
-		for (DWORD i=0; i<n; i++, ptr++) { 
+		for (UINT i=0; i<n; i++, ptr++) { 
 			/* This body i 
 			ptr->rBi = this;
 			ptr->rBj = pRB;
@@ -127,9 +127,9 @@ DWORD CRigidBody::DetermineCollision(CRigidBody * pRB, CArray<SContactPoint> * C
 	return n;
 }*/
 
-DWORD CRigidBody::DetermineCollisionLevelSet(CRigidBody * pRB, CArray<SContactPoint> * CPs)
+UINT CRigidBody::DetermineCollisionLevelSet(CRigidBody * pRB, CArray<SContactPoint> * CPs)
 {
-	DWORD n = m_pLevelSet->LevelSetCollision(*pRB->m_pLevelSet, CPs);
+	UINT n = m_pLevelSet->LevelSetCollision(*pRB->m_pLevelSet, CPs);
 
 	return n;
 }
@@ -279,11 +279,11 @@ void CRigidBody::DestroyRigidBody()
 //////////////////////////////////    CRigidBody Functions    /////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ComputeVolume(STriangleF * tris, DWORD nTri, double & vol)
+void ComputeVolume(STriangleF * tris, UINT nTri, double & vol)
 {
 	double f1x;
 	double intg = 0;
-	for (DWORD i=0; i<nTri; i++) {
+	for (UINT i=0; i<nTri; i++) {
 		double x0 = tris[i].vPosW[0].x, y0 = tris[i].vPosW[0].y, z0 = tris[i].vPosW[0].z;
 		double x1 = tris[i].vPosW[1].x, y1 = tris[i].vPosW[1].y, z1 = tris[i].vPosW[1].z;
 		double x2 = tris[i].vPosW[2].x, y2 = tris[i].vPosW[2].y, z2 = tris[i].vPosW[2].z;
@@ -304,10 +304,10 @@ void ComputeVolume(STriangleF * tris, DWORD nTri, double & vol)
 }
 /*
 //The vertices must be in a triangle list order
-void ComputeVolume(Vector3F * verts, DWORD nVert, double & vol)
+void ComputeVolume(Vector3F * verts, UINT nVert, double & vol)
 {
 	if (nVert % 3) {DxUtSendError("ComputeVolume the verts must be divisible by 3.");}
-	DWORD nTri = nVert/3;
+	UINT nTri = nVert/3;
 
 	ComputeVolume((STriangleF*)verts, nTri, vol);
 }*/
@@ -319,7 +319,7 @@ void ComputeVolume(Vector3F * verts, DWORD nVert, double & vol)
 	g0 = f2+w0*(f1+w0); g1 = f2+w1*(f1+w1); g2 = f2+w2*(f1+w2);				\
 }
 
-void ComputeInertiaTensor(STriangleF * tris, DWORD nTri, double mass, Matrix4x4F & I, Vector3F & cm, double & density)
+void ComputeInertiaTensor(STriangleF * tris, UINT nTri, double mass, Matrix4x4F & I, Vector3F & cm, double & density)
 {
 	double temp0, temp1, temp2;
 	double f1x, f2x, f3x, g0x, g1x, g2x;
@@ -328,7 +328,7 @@ void ComputeInertiaTensor(STriangleF * tris, DWORD nTri, double mass, Matrix4x4F
 	const double mult[10] = {1.f/6,1.f/24,1.f/24,1.f/24,1.f/60,1.f/60,1.f/60,1.f/120,1.f/120,1.f/120};
 	double intg[10] = {0,0,0,0,0,0,0,0,0,0}; // order: 1, x, y, z, x^2, y^2, z^2, xy, yz, zx
 
-	for (DWORD i=0; i<nTri; i++) {
+	for (UINT i=0; i<nTri; i++) {
 		double x0 = tris[i].vPosW[0].x, y0 = tris[i].vPosW[0].y, z0 = tris[i].vPosW[0].z;
 		double x1 = tris[i].vPosW[1].x, y1 = tris[i].vPosW[1].y, z1 = tris[i].vPosW[1].z;
 		double x2 = tris[i].vPosW[2].x, y2 = tris[i].vPosW[2].y, z2 = tris[i].vPosW[2].z;
@@ -374,14 +374,14 @@ void ComputeInertiaTensor(STriangleF * tris, DWORD nTri, double mass, Matrix4x4F
 }
 
 //The vertices must be in a triangle list order
-void ComputeInertiaTensor(Vector3F * verts, DWORD nVert, double mass,
+void ComputeInertiaTensor(Vector3F * verts, UINT nVert, double mass,
 	Matrix4x4F & I, Vector3F & cm, double & density)
 {
 	if (nVert % 3) {DxUtSendError("ComputeInertiaTensor the verts must be divisible by 3.");}
-	DWORD nTri = nVert/3;
+	UINT nTri = nVert/3;
 
 	STriangleF * rgTris = new STriangleF[nTri];
-	for (DWORD i=0; i<nTri; i++) {
+	for (UINT i=0; i<nTri; i++) {
 		rgTris[i] = STriangleF(verts[3*i+0],verts[3*i+1],verts[3*i+2]);
 	}
 	ComputeInertiaTensor(rgTris, nTri, mass,  I, cm, density);

@@ -134,7 +134,7 @@ bool TriTriIntersect(STriangleF & t1, STriangleF & t2,  STriTriIntersectData & t
 	return 0;*/
 
 	int c = 0; 
-	DWORD dwType = 0;
+	UINT uiType = 0;
 	double iPos1[3], iPos2[3];
 	double pl1[4], pl2[4], iLine[3];
 
@@ -147,7 +147,7 @@ bool TriTriIntersect(STriangleF & t1, STriangleF & t2,  STriTriIntersectData & t
 	double q3[3] = {t2.vPosW[2].x, t2.vPosW[2].y, t2.vPosW[2].z};
 
 	if (!tri_tri_intersection_test_3d(p1, p2, p3, q1, q2, q3,
-		&c, iPos1, iPos2, pl1, pl2, triData.dwType, iLine) || c) return 0;
+		&c, iPos1, iPos2, pl1, pl2, triData.uiType, iLine) || c) return 0;
 
 	triData.iPos[0] = Vector3F((float)iPos1[0], (float)iPos1[1], (float)iPos1[2]);
 	triData.iPos[1] = Vector3F((float)iPos2[0], (float)iPos2[1], (float)iPos2[2]);
@@ -158,10 +158,10 @@ bool TriTriIntersect(STriangleF & t1, STriangleF & t2,  STriTriIntersectData & t
 		triData.iPos[0] = triData.iPos[1];
 		triData.iPos[1] = tmp;
 
-		BYTE b = ((BYTE*)&triData.dwType)[1];
-		((BYTE*)&triData.dwType)[1] = ((BYTE*)&triData.dwType)[2];
-		((BYTE*)&triData.dwType)[2] = b;
-		((BYTE*)&triData.dwType)[3] = 1;
+		BYTE b = ((BYTE*)&triData.uiType)[1];
+		((BYTE*)&triData.uiType)[1] = ((BYTE*)&triData.uiType)[2];
+		((BYTE*)&triData.uiType)[2] = b;
+		((BYTE*)&triData.uiType)[3] = 1;
 	}
 	triData.normals[0] = Vector3F((float)pl1[0], (float)pl1[1], (float)pl1[2]).Normalize();
 	triData.normals[1] = Vector3F((float)pl2[0], (float)pl2[1], (float)pl2[2]).Normalize();
@@ -169,7 +169,7 @@ bool TriTriIntersect(STriangleF & t1, STriangleF & t2,  STriTriIntersectData & t
 	return 1;
 }
 
-Vector3F ComputeClosestPoint(STriangleF & tri, Vector3F & p, DWORD & dwType)
+Vector3F ComputeClosestPoint(STriangleF & tri, Vector3F & p, UINT & uiType)
 {
 	Vector3F & a = tri.vPosW[0];
 	Vector3F & b = tri.vPosW[1];
@@ -183,7 +183,7 @@ Vector3F ComputeClosestPoint(STriangleF & tri, Vector3F & p, DWORD & dwType)
 	float d1 = DotXYZ(ab, ap);
 	float d2 = DotXYZ(ac, ap);
 	if (d1 <= 0.f && d2 <= 0.f) {
-		dwType = (0x0 << 2) | (0x2);
+		uiType = (0x0 << 2) | (0x2);
 		return a;
 	}
 
@@ -192,14 +192,14 @@ Vector3F ComputeClosestPoint(STriangleF & tri, Vector3F & p, DWORD & dwType)
 	float d3 = DotXYZ(ab, bp);
 	float d4 = DotXYZ(ac, bp);
 	if (d3 >= 0.f && d4 <= d3) {
-		dwType = (0x1 << 2) | (0x2);
+		uiType = (0x1 << 2) | (0x2);
 		return b;
 	}
 
 	// Check if P in edge region of AB, if so return projection of P onto AB
 	float vc = d1*d4 - d3*d2;
 	if (vc <= 0.f && d1 >= 0.f && d3 <= 0.f) {
-		dwType = (0x0 << 2) | (0x1);
+		uiType = (0x0 << 2) | (0x1);
 		float v = d1 / (d1 - d3);
 		return a + v * ab;
 	}
@@ -209,14 +209,14 @@ Vector3F ComputeClosestPoint(STriangleF & tri, Vector3F & p, DWORD & dwType)
 	float d5 = DotXYZ(ab, cp);
 	float d6 = DotXYZ(ac, cp);
 	if (d6 >= 0.f && d5 <= d6) {
-		dwType = (0x2 << 2) | (0x2);
+		uiType = (0x2 << 2) | (0x2);
 		return c;
 	}
 
 	// Check if P in edge region of AC, if so return projection of P onto AC
 	float vb = d5*d2 - d1*d6;
 	if (vb <= 0.f && d2 >= 0.f && d6 <= 0.f) {
-		dwType = (0x2 << 2) | (0x1);
+		uiType = (0x2 << 2) | (0x1);
 		float w  = d2 / (d2 - d6);
 		return a + w * ac;
 	}
@@ -224,13 +224,13 @@ Vector3F ComputeClosestPoint(STriangleF & tri, Vector3F & p, DWORD & dwType)
 	// Check if P in edge region of BC, if so return projection  of P onto BC
 	float va = d3*d6 - d5*d4;
 	if (va <= 0.f && (d4 - d3) >= 0.f && (d5 - d6) >= 0.f)  {
-		dwType = (0x1 << 2) | (0x1);
+		uiType = (0x1 << 2) | (0x1);
 		float w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
 		return b + w * (c - b);
 	}
 
 	// P inside face region. Compute X through its barycentric coordinates (u, v, w)
-	dwType = (0x0 << 2) | (0x0);
+	uiType = (0x0 << 2) | (0x0);
 	float denom = 1.f / (va + vb + vc);
 	float v = vb * denom;
 	float w = vc * denom;
@@ -288,15 +288,15 @@ void SubdivideTriangle(STriangleF & tri, STriangleF * subdividedTris)
 
 
 /*struct SCollisionPair {
-	DWORD dwType;
-	DWORD dwIndx[2];
+	UINT uiType;
+	UINT uiIndx[2];
 	Vector3F iPos[2];
 	Vector3F iLine;
 };*/
 
 
 	/*int c = 0; 
-	DWORD dwType = 0;
+	UINT uiType = 0;
 	double iPos1[3], iPos2[3];
 	double pl1[4], pl2[4], iLine[3];
 
@@ -309,7 +309,7 @@ void SubdivideTriangle(STriangleF & tri, STriangleF * subdividedTris)
 	double q3[3] = {t2.vPosW[2].x, t2.vPosW[2].y, t2.vPosW[2].z};
 
 	if (!tri_tri_intersection_test_3d(p1, p2, p3, q1, q2, q3,
-		&c, iPos1, iPos2, pl1, pl2, triData.dwType, iLine) || c) return 0;
+		&c, iPos1, iPos2, pl1, pl2, triData.uiType, iLine) || c) return 0;
 
 	triData.iPos[0] = Vector3F((float)iPos1[0], (float)iPos1[1], (float)iPos1[2]);
 	triData.iPos[1] = Vector3F((float)iPos2[0], (float)iPos2[1], (float)iPos2[2]);
@@ -320,9 +320,9 @@ void SubdivideTriangle(STriangleF & tri, STriangleF * subdividedTris)
 		triData.iPos[0] = triData.iPos[1];
 		triData.iPos[1] = tmp;
 
-		BYTE b = ((BYTE*)&triData.dwType)[1];
-		((BYTE*)&triData.dwType)[1] = ((BYTE*)&triData.dwType)[2];
-		((BYTE*)&triData.dwType)[2] = b;
+		BYTE b = ((BYTE*)&triData.uiType)[1];
+		((BYTE*)&triData.uiType)[1] = ((BYTE*)&triData.uiType)[2];
+		((BYTE*)&triData.uiType)[2] = b;
 	}
 	triData.normals[0] = Vector3F((float)pl1[0], (float)pl1[1], (float)pl1[2]).Normalize();
 	triData.normals[1] = Vector3F((float)pl2[0], (float)pl2[1], (float)pl2[2]).Normalize();
@@ -333,7 +333,7 @@ void SubdivideTriangle(STriangleF & tri, STriangleF * subdividedTris)
 bool TriTriIntersect(STriangleF & t1, STriangleF & t2,  STriTriIntersectData & cData)
 {
 	int c = 0;
-	DWORD dwType = 0;
+	UINT uiType = 0;
 	double iPos1[3], iPos2[3];
 	double pl1[4], pl2[4], iLine[3];
 
@@ -346,13 +346,13 @@ bool TriTriIntersect(STriangleF & t1, STriangleF & t2,  STriTriIntersectData & c
 	double q3[3] = {t2.vPosW[2].x, t2.vPosW[2].y, t2.vPosW[2].z};
 
 	if (!tri_tri_intersection_test_3d(p1, p2, p3, q1, q2, q3,
-		&c, iPos1, iPos2, pl1, pl2, dwType, iLine) || c) return 0;
+		&c, iPos1, iPos2, pl1, pl2, uiType, iLine) || c) return 0;
 
 	if (!_finite(iPos1[0]) || !_finite(iPos2[0])) {
 		DebugBreak();
 		return 0;
 	}
-	cData.dwType = dwType;
+	cData.uiType = uiType;
 	cData.iPos[0] = Vector3F((float)iPos1[0], (float)iPos1[1], (float)iPos1[2]);
 	cData.iPos[1] = Vector3F((float)iPos2[0], (float)iPos2[1], (float)iPos2[2]);
 	cData.iLine = Vector3F((float)iLine[0], (float)iLine[1], (float)iLine[2]).Normalize();

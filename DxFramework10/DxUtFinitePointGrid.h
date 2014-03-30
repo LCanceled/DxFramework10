@@ -30,7 +30,7 @@ private:
 	SCell * m_Cells;
 	Vector3F m_CellOrigin;
 
-	DWORD ComputeGridIndex(Vector3F & pt) {
+	UINT ComputeGridIndex(Vector3F & pt) {
 		Vector3F gridPt(pt - m_CellOrigin);
 		gridPt /= m_CellSize;
 
@@ -40,13 +40,13 @@ private:
 		if (x < 0 || y < 0 || z < 0 || x >= m_iCellsX || y >= m_iCellsY || z >= m_iCellsZ) {
 			DebugBreak();
 		}
-		return (DWORD)(z * m_iCellsY * m_iCellsX + y * m_iCellsX + x);
+		return (UINT)(z * m_iCellsY * m_iCellsX + y * m_iCellsX + x);
 	}
 public:
 	CFinitePointGrid3F():m_Cells(0) {}
 	//~CFinitePointGrid3F() {}
 
-	void CreateGrid(DWORD iCellsX, DWORD iCellsY, DWORD iCellsZ, float cellSize, Vector3F & minGridPt) {
+	void CreateGrid(UINT iCellsX, UINT iCellsY, UINT iCellsZ, float cellSize, Vector3F & minGridPt) {
 		m_iCellsX = (int)iCellsX;
 		m_iCellsY = (int)iCellsY;
 		m_iCellsZ = (int)iCellsZ;
@@ -63,7 +63,7 @@ public:
 		int gridId = ComputeGridIndex(pt);
 		CArray<SEntry> & points = m_Cells[gridId].points;
 		SEntry * pPoints = points.GetData();
-		for (DWORD i=0, end=points.GetSize(); i<end; i++) {
+		for (UINT i=0, end=points.GetSize(); i<end; i++) {
 			if (pPoints[i].pt == pt) {
 				*val = pPoints[i].val;
 				return 1;
@@ -75,14 +75,14 @@ public:
 
 	/* */
 	void Reset() {
-		for (DWORD i=0, end=(DWORD)(m_iCellsX*m_iCellsY*m_iCellsZ); i<end; i++) {
+		for (UINT i=0, end=(UINT)(m_iCellsX*m_iCellsY*m_iCellsZ); i<end; i++) {
 			m_Cells[i].points.Resize(0);
 		}
 	}
 
 	void DestroyGrid() {
 		if (m_Cells) {
-			for (DWORD i=0, end=(DWORD)(m_iCellsX*m_iCellsY*m_iCellsZ); i<end; i++) {
+			for (UINT i=0, end=(UINT)(m_iCellsX*m_iCellsY*m_iCellsZ); i<end; i++) {
 				m_Cells[i].points.Clear();
 			}
 			delete[] m_Cells;

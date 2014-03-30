@@ -78,7 +78,7 @@ Vector4F Vector4F::Normalize()
 //////////////////////////////////     VectorNF    ///////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void VectorNF::CreateVector(DWORD nElements)
+void VectorNF::CreateVector(UINT nElements)
 {
 	Assert(!c, "VectorNF::CreateVector must destroy the vector before creating a new one.");
 	
@@ -89,7 +89,7 @@ void VectorNF::CreateVector(DWORD nElements)
 float VectorNF::Length() 
 {
 	double d = 0;
-	for (DWORD i=0; i<m_nElements; i++)
+	for (UINT i=0; i<m_nElements; i++)
 		d += c[i] * c[i];
 	return (float)fastSqrt(d);
 }
@@ -97,7 +97,7 @@ float VectorNF::Length()
 float VectorNF::LengthSq() 
 {
 	double d = 0;
-	for (DWORD i=0; i<m_nElements; i++)
+	for (UINT i=0; i<m_nElements; i++)
 		d += c[i] * c[i];
 	return (float)d;
 }

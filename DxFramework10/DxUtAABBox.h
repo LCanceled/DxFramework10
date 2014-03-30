@@ -30,7 +30,7 @@ public:
 	//Furthermore, the CAABBox will be computed with the
 	//vertex buffer before it has been commited to a device.
 	void ComputeAABBox(CMesh * pMesh);
-	void ComputeAABBox(Vector3F * verts, DWORD nVert);
+	void ComputeAABBox(Vector3F * verts, UINT nVert);
 
 	bool PointInAABBoxW(Vector3F & pt);
 	bool AABBoxIntersectW(CAABBox & box);

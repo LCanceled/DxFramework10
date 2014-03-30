@@ -73,19 +73,19 @@ public:
 
 	/* Mass < 0 represents an infinitely heavy object */
 	void CreateRigidBody(CMesh * pMesh, float scale, float mass, Vector3F & gravity, float timeStepSize, float maxVel,
-		char * szLevelSet, DWORD dwTriPerOct, bool bUseHierarchicalLevelSet, GeometryType type=GT_TRIANGLE_MESH, SMaterial * pOverrideMaterial=NULL);
+		char * szLevelSet, UINT uiTriPerOct, bool bUseHierarchicalLevelSet, GeometryType type=GT_TRIANGLE_MESH, SMaterial * pOverrideMaterial=NULL);
 
 	void IntegratePos(float dt);
 	void IntegrateVel(float dt, Vector3F & gAcel);
 
 	/* Returns -1 on no collision; otherwise, return is the number of contact points */
-	DWORD DetermineCollision(CRigidBody * pRB, CArray<SContactPoint> * CPs);
+	UINT DetermineCollision(CRigidBody * pRB, CArray<SContactPoint> * CPs);
 	/* Must be called before determing a collision */
 	void TransformLevelSet() {m_pLevelSet->SetTransform(m_Rot, m_Pos); }
-	DWORD DetermineCollisionLevelSet(CRigidBody * pRB, CArray<SContactPoint> * CPs);
-	//DWORD DetermineCollisionConvexPolyhedron(CRigidBody * pRB, CArray<SContactPoint> * CPs);
+	UINT DetermineCollisionLevelSet(CRigidBody * pRB, CArray<SContactPoint> * CPs);
+	//UINT DetermineCollisionConvexPolyhedron(CRigidBody * pRB, CArray<SContactPoint> * CPs);
 	/* Returns the number of contact points held in the array of them rgCPs */
-	//DWORD GetContactPoints(SRBContact * rgCPs) {rgCPs = m_rgCPs.data(); return m_rgCPs.size(); }
+	//UINT GetContactPoints(SRBContact * rgCPs) {rgCPs = m_rgCPs.data(); return m_rgCPs.size(); }
 	/* Sets this body's array of contact points to contain none */
 	//void ResetCollisions() {m_rgCPs.resize(0); }
 	
@@ -135,12 +135,12 @@ public:
 	void DestroyRigidBody();
 };
 	
-void ComputeVolume(STriangleF * tris, DWORD nTri, double & vol);
+void ComputeVolume(STriangleF * tris, UINT nTri, double & vol);
 //The vertices must be in a triangle list order
-void ComputeVolume(Vector3F * verts, DWORD nVert, double & vol);
+void ComputeVolume(Vector3F * verts, UINT nVert, double & vol);
 
-void ComputeInertiaTensor(STriangleF * tris, DWORD nTri, double mass, Matrix4x4F & I, Vector3F & cm, double & density);
-void ComputeInertiaTensor(Vector3F * verts, DWORD nVert, double mass, Matrix4x4F & I, Vector3F & cm, double & density);
+void ComputeInertiaTensor(STriangleF * tris, UINT nTri, double mass, Matrix4x4F & I, Vector3F & cm, double & density);
+void ComputeInertiaTensor(Vector3F * verts, UINT nVert, double mass, Matrix4x4F & I, Vector3F & cm, double & density);
 
 
 };

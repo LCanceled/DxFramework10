@@ -23,8 +23,8 @@ public:
 struct SRayIntersectData {
 	Vector3F pos;
 	Vector3F nor;
-	DWORD dwBody;
-	DWORD dwTri;
+	UINT uiBody;
+	UINT uiTri;
 	float t;
 	
 	/* Barycentric coordinates */

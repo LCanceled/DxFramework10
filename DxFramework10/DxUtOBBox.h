@@ -43,7 +43,7 @@ public:
 	void ComputeOBB(CMesh * pMesh, OBBComputeMethod method);
 
 	// For OBBComputeMethod::CVTriangles the verts must be in triangle list order
-	void ComputeOBB(Vector3F * verts, DWORD nVert, OBBComputeMethod method);
+	void ComputeOBB(Vector3F * verts, UINT nVert, OBBComputeMethod method);
 
 	BOOL PointInOBBW(Vector3F & pt);
 	BOOL OBBoxIntersectW(COBBox & oBB);
@@ -65,7 +65,7 @@ public:
 
 	Vector3F & GetCenterW() {return m_CenterW;}
 	Vector3F & GetHalfWidthsW() {return m_HalfWidthsW;}
-	Vector3F & GetRotVecW(DWORD dwIndex);
+	Vector3F & GetRotVecW(UINT uiIndex);
 
 	float GetMaxRadiusSq() {return m_HalfWidthsW.Length(); }
 	
@@ -118,11 +118,11 @@ inline void COBBox::TransformOBBW(Matrix4x4F & rT)
 	m_RotVecW[2] = m_RotVecL[0].MulNormal(rT, m_RotVecL[2]);
 }
 
-inline Vector3F & COBBox::GetRotVecW(DWORD dwIndex)
+inline Vector3F & COBBox::GetRotVecW(UINT uiIndex)
 {
-	Assert(dwIndex < 3, "COBBox::GetRotVecW index is out of range.");
+	Assert(uiIndex < 3, "COBBox::GetRotVecW index is out of range.");
 
-	return m_RotVecW[dwIndex];
+	return m_RotVecW[uiIndex];
 }
 
 inline void COBBox::RotationW(Matrix4x4F & rot)

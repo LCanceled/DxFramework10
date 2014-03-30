@@ -11,8 +11,8 @@ void OutputDebugString(int i, char * str);
 void OutputDebugString(float flt, char * str);
 
 void _DestroyProcess();
-void _SendError(CHAR * szFunction, CHAR * szError, CHAR * szFile, DWORD dwLine);
-void _SendErrorEx(CHAR * szFunction, CHAR * szError1, CHAR * szError2, CHAR * szFile, DWORD dwLine);
+void _SendError(CHAR * szFunction, CHAR * szError, CHAR * szFile, UINT uiLine);
+void _SendErrorEx(CHAR * szFunction, CHAR * szError1, CHAR * szError2, CHAR * szFile, UINT uiLine);
 
 #ifndef DxUtSendError
 #define DxUtSendError(szEr)									\

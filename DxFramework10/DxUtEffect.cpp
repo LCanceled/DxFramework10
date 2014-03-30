@@ -5,7 +5,7 @@ namespace DxUt {
 
 void CEffect::CreateEffect(CHAR * szFxFile)
 {
-	DWORD flags = D3D10_SHADER_ENABLE_STRICTNESS;
+	UINT flags = D3D10_SHADER_ENABLE_STRICTNESS;
 #if defined (DEBUG) | (_DEBUG)
 	flags |= D3D10_CREATE_DEVICE_DEBUG;
 #endif
@@ -24,7 +24,7 @@ void CEffect::CreateEffect(CHAR * szFxFile)
 
 void CEffect::CreateEffect(HMODULE hMod, LPCWSTR fxResource)
 {
-	DWORD flags = D3D10_SHADER_ENABLE_STRICTNESS;
+	UINT flags = D3D10_SHADER_ENABLE_STRICTNESS;
 #if defined (DEBUG) | (_DEBUG)
 	flags |= D3D10_CREATE_DEVICE_DEBUG;
 #endif
@@ -42,10 +42,10 @@ void CEffect::CreateEffect(HMODULE hMod, LPCWSTR fxResource)
 }
 
 void CreateInputLayout(ID3D10EffectTechnique *& pTec, CONST D3D10_INPUT_ELEMENT_DESC * rgDesc,
-	DWORD nEl, DWORD dwPass, ID3D10InputLayout *& lay)
+	UINT nEl, UINT uiPass, ID3D10InputLayout *& lay)
 {
 	D3D10_PASS_DESC pDsc;
-	pTec->GetPassByIndex(dwPass)->GetDesc(&pDsc);
+	pTec->GetPassByIndex(uiPass)->GetDesc(&pDsc);
 
 	if(FAILED(g_pD3DDevice->CreateInputLayout(rgDesc, nEl, pDsc.pIAInputSignature, pDsc.IAInputSignatureSize, &lay))) {
 		DxUtSendError("CreateInputLayout could not create ID3D10InputLayout.");

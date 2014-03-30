@@ -25,10 +25,10 @@ void CAABBox::ComputeAABBox(CMesh * pMesh)
 	delete[] verts;
 }
 
-void CAABBox::ComputeAABBox(Vector3F * verts, DWORD nVert)
+void CAABBox::ComputeAABBox(Vector3F * verts, UINT nVert)
 {
-	DWORD minX=0, maxX=0, minY=0, maxY=0, minZ=0, maxZ=0;
-	for (DWORD i=1; i<nVert; i++) {
+	UINT minX=0, maxX=0, minY=0, maxY=0, minZ=0, maxZ=0;
+	for (UINT i=1; i<nVert; i++) {
 		if (verts[i].x < verts[minX].x) minX = i;
 		if (verts[i].x > verts[maxX].x) maxX = i;
 		if (verts[i].y < verts[minY].y) minY = i;
@@ -118,8 +118,8 @@ void CAABBox::TransformAABBoxW(Vector3F & trans, Matrix4x4F & rot, float scale)
 {
 	Vector3F points[2] = {Vector3F(scale*(rot*m_MinPL) + trans), Vector3F(scale*(rot*m_MaxPL) + trans) };
 	
-	DWORD minX=0, maxX=0, minY=0, maxY=0, minZ=0, maxZ=0;
-	for (DWORD i=1; i<2; i++) {
+	UINT minX=0, maxX=0, minY=0, maxY=0, minZ=0, maxZ=0;
+	for (UINT i=1; i<2; i++) {
 		if (points[i].x < points[minX].x) minX = i;
 		if (points[i].x > points[maxX].x) maxX = i;
 		if (points[i].y < points[minY].y) minY = i;

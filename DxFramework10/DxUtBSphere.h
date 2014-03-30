@@ -32,7 +32,7 @@ public:
 	//Furthermore, the CAABBox will be computed with the
 	//vertex buffer before it has been commited to a device.
 	void ComputeBSphere(CMesh * pMesh);
-	void ComputeBSphere(Vector3F * verts, DWORD nVert);
+	void ComputeBSphere(Vector3F * verts, UINT nVert);
 
 	bool PointInBSphereW(Vector3F & pt);
 	bool BSphereIntersectW(CBSphere & bSph);

@@ -25,7 +25,7 @@ public:
 };
 
 void CreateInputLayout(ID3D10EffectTechnique *& pTec, CONST D3D10_INPUT_ELEMENT_DESC * rgDesc,
-	DWORD nElements, DWORD dwPass, ID3D10InputLayout *& pLayout);
+	UINT nElements, UINT uiPass, ID3D10InputLayout *& pLayout);
 
 };
 

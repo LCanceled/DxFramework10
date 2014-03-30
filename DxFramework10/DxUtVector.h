@@ -299,13 +299,13 @@ class VectorNF  {
 public:
 	float * c;
 private:
-	DWORD m_nElements;
+	UINT m_nElements;
 public:
 	VectorNF():c(0), m_nElements(0) {}
 	//~VectorNF() {}
 
-	void CreateVector(DWORD nElements);
-	DWORD Size() {return m_nElements; }
+	void CreateVector(UINT nElements);
+	UINT Size() {return m_nElements; }
 
 	VectorNF & operator=(VectorNF & v);
 	VectorNF & operator+=(VectorNF & v);
@@ -332,7 +332,7 @@ inline VectorNF & VectorNF::operator+=(VectorNF & v)
 {
 	Assert(m_nElements == v.m_nElements, "VectorNF::operator+= can not add vectors of different sizes.");
 
-	for (DWORD i=0; i<m_nElements; i++)
+	for (UINT i=0; i<m_nElements; i++)
 		c[i] += v.c[i];
 	return *this;
 }
@@ -341,7 +341,7 @@ inline VectorNF & VectorNF::operator-=(VectorNF & v)
 {
 	Assert(m_nElements == v.m_nElements, "VectorNF::operator-= can not subtract vectors of different sizes.");
 
-	for (DWORD i=0; i<m_nElements; i++)
+	for (UINT i=0; i<m_nElements; i++)
 		c[i] -= v.c[i];
 	return *this;
 }
@@ -349,7 +349,7 @@ inline VectorNF & VectorNF::operator-=(VectorNF & v)
 inline VectorNF & operator*=(VectorNF & v, float flt)
 {
 	float * c = v.c;
-	for (DWORD i=0, vSize = v.m_nElements; i<vSize; i++)
+	for (UINT i=0, vSize = v.m_nElements; i<vSize; i++)
 		c[i] *= flt;
 	return v;
 }
@@ -357,14 +357,14 @@ inline VectorNF & operator*=(VectorNF & v, float flt)
 inline VectorNF & VectorNF::operator/=(float flt) 
 {
 	float mul = 1.f/flt;
-	for (DWORD i=0; i<m_nElements; i++)
+	for (UINT i=0; i<m_nElements; i++)
 		c[i] *= mul;
 	return *this;
 }
 
 inline void VectorNF::Set(float flt)
 {
-	for (DWORD i=0; i<m_nElements; i++) c[i] = flt;
+	for (UINT i=0; i<m_nElements; i++) c[i] = flt;
 }
 
 

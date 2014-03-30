@@ -4,9 +4,9 @@
 
 namespace DxUt {
 	
-void CMeshPNT::LoadMeshFromFile(char * szMeshFile, DWORD dwOptions, Vector3F & scale, char * szFxFile)
+void CMeshPNT::LoadMeshFromFile(char * szMeshFile, UINT uiOptions, Vector3F & scale, char * szFxFile)
 {
-	CMesh::LoadMeshFromFile(szMeshFile, dwOptions, scale);
+	CMesh::LoadMeshFromFile(szMeshFile, uiOptions, scale);
 	SetEffect(szFxFile);
 }
 
@@ -42,7 +42,7 @@ void CMeshPNT::SetupDraw(CCamera * pCam, SLightDir & light)
 	m_Effect->eLight->SetRawValue(&light, 0, sizeof(DxUt::SLightDir));
 }
 	
-void CMeshPNT::DrawAllSubsets(CCamera * pCam, Matrix4x4F & world, DWORD dwShaderPass, SMaterial * pOverrideMaterial)
+void CMeshPNT::DrawAllSubsets(CCamera * pCam, Matrix4x4F & world, UINT uiShaderPass, SMaterial * pOverrideMaterial)
 {
 	Matrix4x4F & wT = world.MTranspose();
 	m_Effect->eWVP->SetMatrix((float*)&(wT*pCam->GetView()*pCam->GetProjection()));
@@ -50,14 +50,14 @@ void CMeshPNT::DrawAllSubsets(CCamera * pCam, Matrix4x4F & world, DWORD dwShader
 
 	m_Effect->eTexture->SetResource(m_SRViews[0]);
 
-	for (DWORD i=0; i<m_nSubsets; i++) {
+	for (UINT i=0; i<m_nSubsets; i++) {
 		if (pOverrideMaterial) {
 			m_Effect->eMaterial->SetRawValue(pOverrideMaterial, 0, sizeof(SMaterial));
 		} else {
 			m_Effect->eMaterial->SetRawValue(&m_Materials[i], 0, sizeof(SMaterial));
 		}
 
-		m_Effect->eTech->GetPassByIndex(dwShaderPass)->Apply(0);
+		m_Effect->eTech->GetPassByIndex(uiShaderPass)->Apply(0);
 
 		m_pMesh->DrawSubset(i);
 	}

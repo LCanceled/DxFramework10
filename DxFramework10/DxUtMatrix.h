@@ -70,8 +70,8 @@ public:
 	Matrix4x4F & MRotationZLH(float fTheta);
 	Matrix4x4F & MRotationAxisLH(Vector3F & v, float fTheta);
 
-	Vector3F GetColumnVec3F(DWORD c) {return Vector3F(m[0][c], m[1][c], m[2][c]); }
-	Vector3F GetRowVec3F(DWORD c) {return Vector3F(m[c][0], m[c][1], m[c][2]); }
+	Vector3F GetColumnVec3F(UINT c) {return Vector3F(m[0][c], m[1][c], m[2][c]); }
+	Vector3F GetRowVec3F(UINT c) {return Vector3F(m[c][0], m[c][1], m[c][2]); }
 };
 
 inline Matrix4x4F::Matrix4x4F(
@@ -140,15 +140,15 @@ inline Matrix4x4F _Idenity4x4F()
 /////////////////////////////////////////////////////////////////
 
 //Finds the covariance and the mean of a list of vertices in R^3
-void CovarianceVertices3x3F(Vector3F * pVert, DWORD nVert, Matrix4x4F & cov, Vector3F & mean);
+void CovarianceVertices3x3F(Vector3F * pVert, UINT nVert, Matrix4x4F & cov, Vector3F & mean);
 
 //Finds the covariance and the mean of a list of triangles in R^3
-void CovarianceTriangles3x3F(STriangleF * pTri, DWORD nTri, Matrix4x4F & cov, Vector3F & mean);
+void CovarianceTriangles3x3F(STriangleF * pTri, UINT nTri, Matrix4x4F & cov, Vector3F & mean);
 
 //Finds the covariance and the mean of a list of triangles in R^3 specified by their vertices
-void CovarianceTriangles3x3F(Vector3F * pVert, DWORD nVert, Matrix4x4F & cov, Vector3F & mean);
+void CovarianceTriangles3x3F(Vector3F * pVert, UINT nVert, Matrix4x4F & cov, Vector3F & mean);
 
-void JacobiTransformation3x3F(Matrix4x4F & A, Matrix4x4F & eiM, Vector3F & eiVal, DWORD maxIter=40);
+void JacobiTransformation3x3F(Matrix4x4F & A, Matrix4x4F & eiM, Vector3F & eiVal, UINT maxIter=40);
 //The column with the largest eiVal will be put in eiVec
 void MaxEigenVectors3x3F(Matrix4x4F & eiM, Vector3F & eiVal, Vector3F & eiVec);
 
@@ -160,13 +160,13 @@ class MatrixNxNF  {
 public:
 	float * c;
 private:
-	DWORD m_nRows;
+	UINT m_nRows;
 public:
 	MatrixNxNF():c(0), m_nRows(0) {}
 	//~MatrixNxNF() {}
 
-	void CreateMatrix(DWORD nRows);
-	DWORD Size() {return m_nRows;}
+	void CreateMatrix(UINT nRows);
+	UINT Size() {return m_nRows;}
 
 	MatrixNxNF & operator=(MatrixNxNF & A);
 	MatrixNxNF & operator+=(MatrixNxNF & A);

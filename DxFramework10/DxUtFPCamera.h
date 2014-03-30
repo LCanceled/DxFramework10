@@ -31,7 +31,7 @@ public:
 	void UpdateFPCamera(float dt);
 
 	void OnSize() {
-		CreateFPCameraLH(m_Fov, g_uiWndWidth, g_uiWndHeight, m_NearField, m_FarField, m_Velocity, m_RotSpeed); }
+		CreateFPCameraLH(m_Fov, g_uiWnuiIdth, g_uiWndHeight, m_NearField, m_FarField, m_Velocity, m_RotSpeed); }
 
 	CFPCamera operator=(CFPCamera & ref);
 };

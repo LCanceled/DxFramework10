@@ -36,21 +36,21 @@ protected:
 		/* Do not add any other variables to this struct! */
 	};
 	struct STriTriIntersectDataEx : public STriTriIntersectData {
-		DWORD dwFaceIndex[2];
+		UINT uiFaceIndex[2];
 		STriangleF tris[2];
 	};
 
 	BranchNode * m_pTree;
-	DWORD m_nBranchNodes;
-	DWORD m_nLeafNodes;
+	UINT m_nBranchNodes;
+	UINT m_nLeafNodes;
 
 	COBBox * m_BVs; 
-	DWORD m_nBV;
+	UINT m_nBV;
 	STriangleF * m_Tris;
 	STriangleF * m_TransformedTris;
-	DWORD m_nTri;
-	DWORD * m_pAdj;
-	/* DWORD m_nAdj = 3*m_nTri; */
+	UINT m_nTri;
+	UINT * m_pAdj;
+	/* UINT m_nAdj = 3*m_nTri; */
 
 	Matrix4x4F m_TriTransform;
 	Matrix4x4F m_Rot, m_InvRot;
@@ -63,28 +63,28 @@ protected:
 	//CContactRegions m_ContactRegion;
 	CArray<SContactPoint> * m_CPs;
 	//CArray<CContactRegions::SPolygon3FEx> m_rgPolygon;
-	DWORD dwCounter;
+	UINT uiCounter;
 
-	DWORD m_nBVBVTests, m_nTriTriTests;
+	UINT m_nBVBVTests, m_nTriTriTests;
 
 	//The top level OBBox transformed in world space
 	COBBox m_TopLevelOBBoxW;
 
-	DWORD m_dwDrawLevel;
+	UINT m_uiDrawLevel;
 
 	//The vertices must be in a triangle list order
-	void CreateBVTree(Vector3F * verts, DWORD nVert, DWORD * pAdj);
-	void BuildBVTree(BranchNode * pNode, Vector3F * verts, DWORD * rgFaceIndex, DWORD nVert, DWORD dwLevel);
-	void ComputeOBB(Vector3F * verts, DWORD nVert, COBBox & oBB, float & mean, Vector3F & axis, DWORD dwLevel);
-	void PartitionVert(Vector3F * verts, DWORD * rgFaceIndex, DWORD nVert, Vector3F & axis, float mean, DWORD & splitIndex);
+	void CreateBVTree(Vector3F * verts, UINT nVert, UINT * pAdj);
+	void BuildBVTree(BranchNode * pNode, Vector3F * verts, UINT * rgFaceIndex, UINT nVert, UINT uiLevel);
+	void ComputeOBB(Vector3F * verts, UINT nVert, COBBox & oBB, float & mean, Vector3F & axis, UINT uiLevel);
+	void PartitionVert(Vector3F * verts, UINT * uiFaceIncides, UINT nVert, Vector3F & axis, float mean, UINT & uiSplitIndex);
 
 	virtual bool FindBVCollisions(BranchNode * pNode, BranchNode * pCollideNode, Matrix4x4F & rot, Vector3F & trans, float scl);
 	bool FindBVCollisionsConvex(BranchNode * pNode, BranchNode * pCollideNode, Matrix4x4F & rot, Vector3F & trans, float scl);
 	bool FindContactPoints(STriTriIntersectDataEx & triData);
 	bool FindTriTriCollision(STriangleF & t1, STriangleF & t2, STriTriIntersectData & triData);
-	DWORD FindBVCollisions(BranchNode * pNode, SRay & rayR, SRay & worldRay, SRayIntersectData & data);
+	UINT FindBVCollisions(BranchNode * pNode, SRay & rayR, SRay & worldRay, SRayIntersectData & data);
 
-	void DrawBVTreeLevel(BranchNode * pNode, Matrix4x4F & rot, Vector3F & trans, DWORD dwLevel);
+	void DrawBVTreeLevel(BranchNode * pNode, Matrix4x4F & rot, Vector3F & trans, UINT uiLevel);
 
 	virtual void DestroyBVHierarchy(BranchNode * pNode);
 public:
@@ -93,7 +93,7 @@ public:
 
 	//It is assumed that adjancey information is contained in the mesh
 	void CreateBVTree(CMesh * pMesh);
-	void CreateBVTree(STriangleF * tris, DWORD nTri, DWORD * pAdj);
+	void CreateBVTree(STriangleF * tris, UINT nTri, UINT * pAdj);
 
 	//void LoadBVFromFile(char * file);
 	//void SaveBVToFile(char * file);
@@ -110,17 +110,17 @@ public:
 
 	//rgCPs should have some memory reserved as a guess at the total number of contact points
 	//Returns 0 when there are no collision; otherwise, it returns the number of collision pairs
-	virtual DWORD BVCollision(BVTree & collideBVTree, CArray<SContactPoint> * CPs);
+	virtual UINT BVCollision(BVTree & collideBVTree, CArray<SContactPoint> * CPs);
 
 	//If the two bodies are convex, this method may be called.
-	DWORD BVCollisionConvex(BVTree & collideBVTree, CArray<SContactPoint> * CPs);
+	UINT BVCollisionConvex(BVTree & collideBVTree, CArray<SContactPoint> * CPs);
 
 	bool IntersectRay(SRay & ray, SRayIntersectData & data);
 
-	void DrawBVTree(DWORD dwLevel);
+	void DrawBVTree(UINT uiLevel);
 
-	DWORD & GetNumBVBVTests() {return m_nBVBVTests; }
-	DWORD & GetNumTriTriTests() {return m_nTriTriTests; }
+	UINT & GetNumBVBVTests() {return m_nBVBVTests; }
+	UINT & GetNumTriTriTests() {return m_nTriTriTests; }
 
 	COBBox * GetTopLevelOBBox() {return &m_TopLevelOBBoxW; }
 

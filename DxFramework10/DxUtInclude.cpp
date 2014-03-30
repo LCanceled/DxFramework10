@@ -5,7 +5,7 @@
 namespace DxUt {
 
 HWND						g_hWnd =				0;
-UINT						g_uiWndWidth =			0;			
+UINT						g_uiWnuiIdth =			0;			
 UINT						g_uiWndHeight =			0;			
 char						g_szFileDir[MAX_PATH];
 
@@ -26,11 +26,11 @@ void InitializeDxFramework(char * nameOfRegKey, char * nameOfRegValue, char * dl
 {
 	HKEY key;
 	CHAR subKey[256];
-	DWORD dwIndex = 0;
+	UINT uiIndex = 0;
 	CHAR name[256];
-	DWORD nameSize = 256;
+	UINT nameSize = 256;
 	BYTE data[MAX_PATH];
-	DWORD dataSize = MAX_PATH;
+	UINT dataSize = MAX_PATH;
 
 	sprintf_s(subKey, "SOFTWARE\\%s", nameOfRegKey);
 	if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, subKey, 0, KEY_READ, &key) == ERROR_SUCCESS) {

@@ -66,7 +66,7 @@ void CCollisionGraphics::DrawPointArray(CArray<Vector3F> & positions, float scal
 	scaling.MScaling(Vector3F(scale));
 		
 	Vector3F * pPos = positions.GetData();
-	for (DWORD i=0, end=positions.GetSize(); i<end; i++) {
+	for (UINT i=0, end=positions.GetSize(); i<end; i++) {
 		trans.MTranslation(pPos[i]);
 
 		world = (trans*scale);
@@ -101,7 +101,7 @@ void CCollisionGraphics::DrawContactPoints(CArray<SContactPoint> * CPs)
 	mat.pow = 20.f;
 	
 	SContactPoint * pCP = CPs->GetData();
-	for (DWORD i=0, end=CPs->GetSize(); i<end; i++) {
+	for (UINT i=0, end=CPs->GetSize(); i<end; i++) {
 		
 		Vector3F up(0, 1.f, 0);
 		Vector3F dir = pCP[i].iNor;
@@ -111,11 +111,11 @@ void CCollisionGraphics::DrawContactPoints(CArray<SContactPoint> * CPs)
 		trans.MTranslation(pCP[i].iPos + 2.f*fHalfNormalLen * dir);
 		world = (trans*rot*scale);
 		SMaterial _mat = mat;
-		if (pCP[i].dwFaceIndex[0] == 1) {
+		if (pCP[i].uiFaceIndex[0] == 1) {
 			_mat.amb = D3DXCOLOR(.5f, .3f, .3f, 1.f);
 			_mat.dif = D3DXCOLOR(1.f, .6f, .6f, 1.f);
 		}
-		else if (pCP[i].dwFaceIndex[0] == 2) {
+		else if (pCP[i].uiFaceIndex[0] == 2) {
 			_mat.amb = D3DXCOLOR(.3f, .3f, .5f, 1.f);
 			_mat.dif = D3DXCOLOR(.6f, .6f, 1.f, 1.f);
 		}

@@ -12,12 +12,12 @@ namespace DxUt {
 class CTimer {
 private:
 	struct STimeInfo {
-		STimeInfo():bTimerInUse(0), elapsedTime(0), totalTime(0), dwTotalCount(0), dwCountSinceLastPresentation(0), str(0) {}
+		STimeInfo():bTimerInUse(0), elapsedTime(0), totalTime(0), uiTotalCount(0), uiCountSinceLastPresentation(0), str(0) {}
 		
 		bool bTimerInUse;
 		__int64 liCountNum;
-		DWORD dwTotalCount;
-		DWORD dwCountSinceLastPresentation;
+		UINT uiTotalCount;
+		UINT uiCountSinceLastPresentation;
 		double elapsedTime;
 		double totalTime;
 		char * str;
@@ -35,40 +35,40 @@ private:
 public:
 
 	/* Do not nest start and end calls */
-	void StartTimer(DWORD dwTimer) {
-		assert(dwTimer < MAX_TIMERS);
-		assert(!m_Timers[dwTimer].bTimerInUse);
+	void StartTimer(UINT uiTimer) {
+		assert(uiTimer < MAX_TIMERS);
+		assert(!m_Timers[uiTimer].bTimerInUse);
 
-		QueryPerformanceCounter((LARGE_INTEGER*)&m_Timers[dwTimer].liCountNum);
-		m_Timers[dwTimer].elapsedTime = 0;
-		m_Timers[dwTimer].bTimerInUse = 1;
+		QueryPerformanceCounter((LARGE_INTEGER*)&m_Timers[uiTimer].liCountNum);
+		m_Timers[uiTimer].elapsedTime = 0;
+		m_Timers[uiTimer].bTimerInUse = 1;
 	}
-	void EndTimer(DWORD dwTimer, char * str) {
-		assert(dwTimer < MAX_TIMERS);
-		assert(m_Timers[dwTimer].bTimerInUse);
+	void EndTimer(UINT uiTimer, char * str) {
+		assert(uiTimer < MAX_TIMERS);
+		assert(m_Timers[uiTimer].bTimerInUse);
 
 		__int64 liCountNum; 
 		QueryPerformanceCounter((LARGE_INTEGER*)&liCountNum);
-		__int64 deltaCount = liCountNum - m_Timers[dwTimer].liCountNum;
-		m_Timers[dwTimer].elapsedTime += (double)deltaCount;
-		m_Timers[dwTimer].totalTime += (double)deltaCount;
-		m_Timers[dwTimer].dwTotalCount++;
-		m_Timers[dwTimer].dwCountSinceLastPresentation++;
-		m_Timers[dwTimer].str = str;
-		m_Timers[dwTimer].bTimerInUse = 0;
+		__int64 deltaCount = liCountNum - m_Timers[uiTimer].liCountNum;
+		m_Timers[uiTimer].elapsedTime += (double)deltaCount;
+		m_Timers[uiTimer].totalTime += (double)deltaCount;
+		m_Timers[uiTimer].uiTotalCount++;
+		m_Timers[uiTimer].uiCountSinceLastPresentation++;
+		m_Timers[uiTimer].str = str;
+		m_Timers[uiTimer].bTimerInUse = 0;
 	}
 
-	void PresentTimers(DWORD dwPresentationInterval, bool bPresentAvg);
+	void PresentTimers(UINT uiPresentationInterval, bool bPresentAvg);
 
-	double GetElapsedTime(DWORD dwTimer) {
-		assert(dwTimer < MAX_TIMERS);
-		assert(!m_Timers[dwTimer].bTimerInUse);
-		return m_Timers[dwTimer].elapsedTime/m_liCountsPerSecond; 
+	double GetElapsedTime(UINT uiTimer) {
+		assert(uiTimer < MAX_TIMERS);
+		assert(!m_Timers[uiTimer].bTimerInUse);
+		return m_Timers[uiTimer].elapsedTime/m_liCountsPerSecond; 
 	}
-	double GetTotalTime(DWORD dwTimer) {
-		assert(dwTimer < MAX_TIMERS);
-		assert(!m_Timers[dwTimer].bTimerInUse);
-		return m_Timers[dwTimer].totalTime/m_liCountsPerSecond;
+	double GetTotalTime(UINT uiTimer) {
+		assert(uiTimer < MAX_TIMERS);
+		assert(!m_Timers[uiTimer].bTimerInUse);
+		return m_Timers[uiTimer].totalTime/m_liCountsPerSecond;
 	}
 
 	static CTimer Get() {static CTimer c; return c; }

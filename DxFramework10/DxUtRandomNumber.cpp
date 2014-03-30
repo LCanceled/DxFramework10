@@ -26,8 +26,8 @@ namespace DxUt {
    Turbo-Pascal(3.0, 5.0), Basic and Ada) to get exactly the same test
    results compared with the original FORTRAN version.
    April 1989
-   Karl-L. Noell <NOELL@DWIFH1.BITNET>
-      and  Helmut  Weber <WEBER@DWIFH1.BITNET>
+   Karl-L. Noell <NOELL@uiIFH1.BITNET>
+      and  Helmut  Weber <WEBER@uiIFH1.BITNET>
 
    This random number generator originally appeared in "Toward a Universal
    Random Number Generator" by George Marsaglia and Arif Zaman.

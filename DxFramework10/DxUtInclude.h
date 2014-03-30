@@ -2,6 +2,8 @@
 #ifndef DXUTINCLUDE_H
 #define DXUTINCLUDE_H
 
+#if defined(WIN32) | defined(_WINDOWS_) | defined(_WINDOWS)
+
 #if defined(DEBUG) | defined(_DEBUG)
 #ifndef D3D_DEBUG_INFO
 #define D3D_DEBUG_INFO
@@ -31,8 +33,31 @@
 #include <dinput.h>
 #include <crtdbg.h>
 #include <stdio.h>
-#include <time.h>
 #include <wchar.h>
+
+
+#ifndef ReleaseX
+#define ReleaseX(resource)				\
+{										\
+	if (resource) resource->Release();	\
+	resource = NULL;					\
+}
+#endif
+
+
+#else 
+typedef unsigned int UINT;
+
+struct DIMOUSESTATE {
+    long    lX;
+    long    lY;
+    long    lZ;
+    unsigned char rgbButtons[4];
+};
+
+#endif
+
+#include <time.h>
 #include "DxUtError.h"
 #include "DxUtVector.h"
 #include "DxUtMatrix.h"
@@ -49,14 +74,6 @@ inline void Swap(T & x, T & y)
 	y = tmp;
 }
 
-#ifndef ReleaseX
-#define ReleaseX(resource)				\
-{										\
-	if (resource) resource->Release();	\
-	resource = NULL;					\
-}
-#endif
-
 namespace DxUt {
 
 //It is a requirement that g_D3DApp be declared and initialized
@@ -68,7 +85,7 @@ extern CHAR				g_szFileDir[MAX_PATH];
 
 //The window
 extern HWND				g_hWnd;
-extern	UINT			g_uiWndWidth;
+extern	UINT			g_uiWnuiIdth;
 extern	UINT			g_uiWndHeight;
 
 //The time in s since the start of the program and the fps
@@ -79,18 +96,15 @@ extern	float			g_SPFrame;
 extern CHAR				g_KeysState[256];
 extern DIMOUSESTATE		g_MouseState;
 
+#if defined(WIN32) | defined(_WINDOWS_) | defined(_WINDOWS)
+
 //Direct3D10 resources
 extern IDXGISwapChain *				g_pSwapChain;		
 extern ID3D10Device *				g_pD3DDevice;
 extern ID3D10RenderTargetView *		g_pRenderTargetView;
 extern ID3D10DepthStencilView *		g_pDepthStencilView;
 
-//szDir and szFile in this order will be concatenated into szPath of size MAX_PATH
-//void InsertDirectory(CHAR * szDir, CHAR * szFile, CHAR * szPath);
-
-//szDir and szFile in this order will be concatenated into szPath of size MAX_PATH if
-//the first character of szFile is a '/' otherwise szPath will be szFile
-//void InsertDirectoryEx(CHAR * szDir, CHAR * szFile, CHAR * szPath);
+#endif
 
 void ChangeExtension(char * szStr, char * szExt, char * szNewStr);
 

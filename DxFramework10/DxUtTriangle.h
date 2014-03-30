@@ -9,14 +9,14 @@
 namespace DxUt {
 
 struct STriangleF {
-	STriangleF():dwTriangle(0) {}
-	STriangleF(Vector3F & v1, Vector3F & v2, Vector3F & v3):dwTriangle(0) {
+	STriangleF():uiTriangle(0) {}
+	STriangleF(Vector3F & v1, Vector3F & v2, Vector3F & v3):uiTriangle(0) {
 		vPosW[0] = v1; vPosW[1] = v2; vPosW[2] = v3; 
 	}
 	//~STriangleF() {}
 
 	Vector3F vPosW[3];
-	DWORD dwTriangle;
+	UINT uiTriangle;
 
 	//vPosW = Matrix4x4 * vPosW
 	STriangleF & Transform(Matrix4x4F & m);
@@ -75,13 +75,13 @@ bool TriRayIntersect(STriangleF & tri, Vector3F & pos, Vector3F & vec, Vector3F 
 bool TriRayIntersect(STriangleF & tri, SRay & ray, SRayIntersectData & data);
 bool TriPlannarLineIntersect(STriangleF & tri, Vector3F & e1, Vector3F & e2);
 
-/* The first 2 bits of dwType store the type of the closest feature
+/* The first 2 bits of uiType store the type of the closest feature
  * 0 = Face closest feature
  * 1 = Edge closest feature
  * 2 = Vertex closest feature
  * The next 2 store the index of the edge or vertex that is closest
 */
-Vector3F ComputeClosestPoint(STriangleF & tri, Vector3F & pt, DWORD & dwType);
+Vector3F ComputeClosestPoint(STriangleF & tri, Vector3F & pt, UINT & uiType);
 
 /* Divide a triangle into 4 subtris based upon loop subdivision */
 void SubdivideTriangle(STriangleF & tri, STriangleF * subdividedTris);
@@ -96,7 +96,7 @@ struct STriTriIntersectData {
 	 * The next 2 bits block is the edge index for iPos[0]
 	 * The next 2 bits block after that is the edge index for iPos[1]
 	 */
-	DWORD dwType;
+	UINT uiType;
 	Vector3F iPos[2];
 	Vector3F iLine;
 	/* The squared normals */
@@ -108,14 +108,14 @@ struct SContactPoint {
 	SContactPoint():dist(0) {}
 	union {
 		STriangleF * pTri[2];
-		DWORD dwFaceIndex[2];
+		UINT uiFaceIndex[2];
 	};
 	Vector3F iPos;
 	Vector3F iNor;
 	float dist;
 };
 
-/* Note the neither dwFaceIndex or pTri will be filled out by this function */
+/* Note the neither uiFaceIndex or pTri will be filled out by this function */
 bool TriTriIntersect(STriangleF & t1, STriangleF & t2,  STriTriIntersectData & triData);
 //bool TriTriIntersect(STriangleF & t1, STriangleF & t2,  SCollisionPair & cData);
 

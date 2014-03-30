@@ -22,7 +22,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 	case WM_SIZE:
 		GetClientRect(hWnd, &rect);
-		g_uiWndWidth = rect.right;
+		g_uiWnuiIdth = rect.right;
 		g_uiWndHeight = rect.bottom;
 
 		g_App->WindowResize();
@@ -54,19 +54,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 CD3DApp::CD3DApp(HINSTANCE hInst, TCHAR * szClassName, TCHAR * szTitleText,
-		WORD wWndPosX, WORD wWndPosY, WORD wWndWidth, WORD wWndHeight, void (*onResizeWindowFunction)()):
+		WORD wWndPosX, WORD wWndPosY, WORD wWnuiIdth, WORD wWndHeight, void (*onResizeWindowFunction)()):
 	m_hInst(hInst), m_wWndPosX(wWndPosX), m_wWndPosY(wWndPosY), 	
 	m_bFullscreen(0), m_pDinput(0), m_pKeyboard(0), m_pMouse(0)
 {
 	m_fpnOnResizeWindow = onResizeWindowFunction;
 	GetCurrentDirectoryA(MAX_PATH, g_szFileDir);
 
-	g_uiWndWidth = wWndWidth;
+	g_uiWnuiIdth = wWnuiIdth;
 	g_uiWndHeight = wWndHeight;
 
 	//////////////////////////////
 	//Window initialization
-	DWORD len = wcslen(szClassName);
+	UINT len = wcslen(szClassName);
 	m_szWndClassName = new TCHAR[len+1];
 	wcscpy(m_szWndClassName, szClassName);
 
@@ -88,7 +88,7 @@ CD3DApp::CD3DApp(HINSTANCE hInst, TCHAR * szClassName, TCHAR * szTitleText,
 
 	RegisterClassW(&wc);
 
-	RECT rect = {0, 0, g_uiWndWidth, g_uiWndHeight};
+	RECT rect = {0, 0, g_uiWnuiIdth, g_uiWndHeight};
 	AdjustWindowRect(&rect, WS_CAPTION | WS_SYSMENU | WS_SIZEBOX | WS_MINIMIZEBOX, TRUE);
 	g_hWnd = CreateWindow(m_szWndClassName, m_szWndTitleText, WS_CAPTION | WS_SYSMENU | WS_SIZEBOX | WS_MINIMIZEBOX,
 		m_wWndPosX, m_wWndPosY, (rect.right - rect.left), (rect.bottom - rect.top), NULL, NULL, m_hInst, NULL);
@@ -102,7 +102,7 @@ CD3DApp::CD3DApp(HINSTANCE hInst, TCHAR * szClassName, TCHAR * szTitleText,
 	//Direct3D10 initialization
 		DXGI_SWAP_CHAIN_DESC desc;
 	desc.BufferCount = 1;
-	desc.BufferDesc.Width = g_uiWndWidth;
+	desc.BufferDesc.Width = g_uiWnuiIdth;
 	desc.BufferDesc.Height = g_uiWndHeight;
 	desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	desc.BufferDesc.RefreshRate.Denominator = 60;
@@ -203,7 +203,7 @@ void CD3DApp::WindowResize()
 	ReleaseX(g_pDepthStencilView);
 	//ReleaseX(g_pDepthSetncilBuffer);
 
-	if (FAILED(g_pSwapChain->ResizeBuffers(1, g_uiWndWidth, g_uiWndHeight, DXGI_FORMAT_R8G8B8A8_UNORM, 0))) {
+	if (FAILED(g_pSwapChain->ResizeBuffers(1, g_uiWnuiIdth, g_uiWndHeight, DXGI_FORMAT_R8G8B8A8_UNORM, 0))) {
 		DxUtSendError("Window could not be resized.");
 	}
 	ID3D10Texture2D* pBackBuffer;
@@ -214,7 +214,7 @@ void CD3DApp::WindowResize()
 	ReleaseX(pBackBuffer);
 
 	D3D10_TEXTURE2D_DESC depthStencilDesc;
-	depthStencilDesc.Width				= g_uiWndWidth;
+	depthStencilDesc.Width				= g_uiWnuiIdth;
 	depthStencilDesc.Height				= g_uiWndHeight;
 	depthStencilDesc.MipLevels			= 1;
 	depthStencilDesc.ArraySize			= 1;
@@ -238,7 +238,7 @@ void CD3DApp::WindowResize()
 	D3D10_VIEWPORT vp;
 	vp.TopLeftX = 0;
 	vp.TopLeftY = 0;
-	vp.Width    = g_uiWndWidth;
+	vp.Width    = g_uiWnuiIdth;
 	vp.Height   = g_uiWndHeight;
 	vp.MinDepth = 0.0f;
 	vp.MaxDepth = 1.0f;
@@ -251,7 +251,7 @@ void CD3DApp::WindowFullScreen()
 	/*if (!m_bFullscreen) {
 		INT width = GetSystemMetrics(SM_CXSCREEN);
 		INT height = GetSystemMetrics(SM_CYSCREEN);
-		g_uiWndWidth = width;
+		g_uiWnuiIdth = width;
 		g_uiWndHeight = height;
 		m_bFullscreen = TRUE;
 
@@ -262,10 +262,10 @@ void CD3DApp::WindowFullScreen()
 		WindowResize();
 	}
 	else {
-		RECT rect = {0, 0, g_uiWndWidth, g_uiWndHeight};
+		RECT rect = {0, 0, g_uiWnuiIdth, g_uiWndHeight};
 		AdjustWindowRect(&rect, WS_CAPTION | WS_SYSMENU | WS_SIZEBOX | WS_MINIMIZEBOX, 0);
 		rect.right -= rect.left; rect.bottom -= rect.top;
-		//g_PreParam.BackBufferWidth = g_uiWndWidth;
+		//g_PreParam.BackBufferWidth = g_uiWnuiIdth;
 		//g_PreParam.BackBufferHeight = g_uiWndHeight;
 		//g_PreParam.Windowed = true;
 		m_bFullscreen = TRUE;
@@ -303,7 +303,7 @@ void CD3DApp::ResetRenderTargetAndView()
 	D3D10_VIEWPORT vp;
 	vp.TopLeftX = 0;
 	vp.TopLeftY = 0;
-	vp.Width    = g_uiWndWidth;
+	vp.Width    = g_uiWnuiIdth;
 	vp.Height   = g_uiWndHeight;
 	vp.MinDepth = 0.0f;
 	vp.MaxDepth = 1.0f;
@@ -312,14 +312,14 @@ void CD3DApp::ResetRenderTargetAndView()
 }
 
 void CD3DApp::ExtractPixelsFromImageFile(CHAR * szImageFile, void ** ppData,
-	DWORD dwStride, DWORD * pdwImageWidth, DWORD * pdwImageHeight)
+	UINT uiStride, UINT * puiImageWidth, UINT * puiImageHeight)
 {
 	D3DX10_IMAGE_INFO imageInfo;
 	D3DX10GetImageInfoFromFileA(szImageFile, 0, &imageInfo, 0);
-	DWORD width = imageInfo.Width; 
-	if (pdwImageWidth) *pdwImageWidth = width;
-	DWORD height = imageInfo.Height;
-	if (pdwImageHeight) *pdwImageHeight = height;
+	UINT width = imageInfo.Width; 
+	if (puiImageWidth) *puiImageWidth = width;
+	UINT height = imageInfo.Height;
+	if (puiImageHeight) *puiImageHeight = height;
 
 	D3DX10_IMAGE_LOAD_INFO loadInfo;
 	loadInfo.Width  = width;
@@ -341,14 +341,14 @@ void CD3DApp::ExtractPixelsFromImageFile(CHAR * szImageFile, void ** ppData,
 		DxUtSendErrorEx("ExtractValuesFromImageFile could not load the image file.", szImageFile);
 	}
 
-	*ppData = new CHAR[dwStride*width*height];
+	*ppData = new CHAR[uiStride*width*height];
 	D3D10_MAPPED_TEXTURE2D map;
 	tex->Map(0, D3D10_MAP_READ, 0, &map);
 	BYTE * ar = (BYTE*)map.pData;
-	for (DWORD i=0; i<height; i++) {
-		DWORD rowStart1 = i*dwStride*width;
-		DWORD rowStart2 = i*dwStride*map.RowPitch/4;
-		for (DWORD j=0; j<dwStride*width; j++) {
+	for (UINT i=0; i<height; i++) {
+		UINT rowStart1 = i*uiStride*width;
+		UINT rowStart2 = i*uiStride*map.RowPitch/4;
+		for (UINT j=0; j<uiStride*width; j++) {
 			((BYTE*)(*ppData))[rowStart1 + j] = ar[rowStart2 + j];
 		}
 	}
@@ -358,7 +358,7 @@ void CD3DApp::ExtractPixelsFromImageFile(CHAR * szImageFile, void ** ppData,
 
 void CD3DApp::Destroy()
 {
-	g_uiWndWidth = 0;
+	g_uiWnuiIdth = 0;
 	g_uiWndHeight = 0;
 	m_wWndPosX = 0;
 	m_wWndPosY = 0;
@@ -367,7 +367,7 @@ void CD3DApp::Destroy()
 
 	m_hInst = 0; 
 	g_hWnd = 0;
-	g_uiWndWidth = 0;
+	g_uiWnuiIdth = 0;
 	g_uiWndHeight = 0;
 
 	/* Free pools */

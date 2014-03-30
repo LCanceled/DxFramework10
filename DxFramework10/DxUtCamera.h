@@ -86,7 +86,7 @@ public:
 	float GetTanYZ() {return m_TanYZ;}
 
 	virtual void OnSize() {
-		CreateCameraLH(m_Fov, g_uiWndWidth, g_uiWndHeight, m_NearField, m_FarField); }
+		CreateCameraLH(m_Fov, g_uiWnuiIdth, g_uiWndHeight, m_NearField, m_FarField); }
 
 	virtual CCamera operator=(CCamera & ref);
 };

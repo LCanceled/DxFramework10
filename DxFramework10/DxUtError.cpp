@@ -33,12 +33,12 @@ void _DestroyProcess()
 	ExitProcess(exitCode);	
 }
 
-void _SendError(CHAR * szFunction, CHAR * szError, CHAR * szFile, DWORD dwLine)
+void _SendError(CHAR * szFunction, CHAR * szError, CHAR * szFile, UINT uiLine)
 {
-	DWORD dwLen = strlen(szFunction)+strlen(szError)+strlen(szFile)+100;
-	char * text = new char[dwLen];
+	UINT uiLen = strlen(szFunction)+strlen(szError)+strlen(szFile)+100;
+	char * text = new char[uiLen];
 
-	sprintf_s(text, dwLen, "%s:\nError: %s\nFile: %s\nLine: %d", szFunction, szError, szFile, dwLine);
+	sprintf_s(text, uiLen, "%s:\nError: %s\nFile: %s\nLine: %d", szFunction, szError, szFile, uiLine);
 	MessageBoxA(0, text, 0, 0);	
 
 #if defined (DEBUG) | defined (_DEBUG)
@@ -50,13 +50,13 @@ void _SendError(CHAR * szFunction, CHAR * szError, CHAR * szFile, DWORD dwLine)
 	delete text;
 }
 
-void _SendErrorEx(CHAR * szFunction, CHAR * szError1, CHAR * szError2, CHAR * szFile, DWORD dwLine)
+void _SendErrorEx(CHAR * szFunction, CHAR * szError1, CHAR * szError2, CHAR * szFile, UINT uiLine)
 {
-	WORD dwLen = strlen(szFunction)+strlen(szError1)+strlen(szError2)+strlen(szFile)+100;
-	char * text = new char[dwLen];
+	WORD uiLen = strlen(szFunction)+strlen(szError1)+strlen(szError2)+strlen(szFile)+100;
+	char * text = new char[uiLen];
 
-	sprintf_s(text, dwLen, "%s:\nError: %s,\n       %s\nFile: %s\nLine: %d",
-		szFunction, szError1, szError2, szFile, dwLine);
+	sprintf_s(text, uiLen, "%s:\nError: %s,\n       %s\nFile: %s\nLine: %d",
+		szFunction, szError1, szError2, szFile, uiLine);
 	MessageBoxA(0, text, 0, 0);	
 
 #if defined (DEBUG) | defined (_DEBUG)

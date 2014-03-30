@@ -108,7 +108,7 @@ bool SSegment3F::Intersect(SSegment3F & l, Vector3F & intersection, double t)
    return 1;
 }
 /*
-SPolygon3F::SPolygon3F(STriangleF & tri, DWORD triIndex, DWORD e0Index, DWORD e1Index, DWORD e2Index) 
+SPolygon3F::SPolygon3F(STriangleF & tri, UINT triIndex, UINT e0Index, UINT e1Index, UINT e2Index) 
 {
 	edges.push_back(SPolygonEdge<SSegment3F>(SSegment3F(tri.vPosW[0], tri.vPosW[1]), e0Index));
 	edges.push_back(SPolygonEdge<SSegment3F>(SSegment3F(tri.vPosW[1], tri.vPosW[2]), e1Index));
@@ -122,12 +122,12 @@ bool SPolygon3F::ConvexClipAgainstLine(SSegment3F & l, bool bCW)
 {
 	EdgeIterator iter = edges.begin();
 	EdgeIterator firstEdge, secondEdge;
-	DWORD nEdges = edges.size(), dwFirst=1;
+	UINT nEdges = edges.size(), dwFirst=1;
 
 	SSegment3F localL(Vector3F(0,0,0), l.e2 - l.e1);
 	PlaneF localPlane; localPlane.ComputePlane(localL.e2, localL.e1, normal+localL.e1);
 	
-	for (DWORD i=0; i<nEdges; i++, iter++) {
+	for (UINT i=0; i<nEdges; i++, iter++) {
 		Vector3F localE0(iter->edge.e1 - l.e1);
 		Vector3F localE1(iter->edge.e2 - l.e1);
 
@@ -182,15 +182,15 @@ bool SPolygon3F::ConvexClipAgainstLine(SSegment3F & l, bool bCW)
 	return 1;
 }*/
 /*
-void SPolygon3F::Join(STriangleF & tri, DWORD e0Index, DWORD e1Index, DWORD e2Index)
+void SPolygon3F::Join(STriangleF & tri, UINT e0Index, UINT e1Index, UINT e2Index)
 {
 	Vector3F e1(tri.vPosW[1] - tri.vPosW[0]);
 	Vector3F e2(tri.vPosW[2] - tri.vPosW[1]);
 	Vector3F e3(tri.vPosW[0] - tri.vPosW[2]);
 
 	EdgeIterator iter = edges.begin();
-	DWORD nEdges = edges.size();
-	for (DWORD i=0; i<nEdges; i++) {
+	UINT nEdges = edges.size();
+	for (UINT i=0; i<nEdges; i++) {
 
 	}
 }

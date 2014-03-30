@@ -57,6 +57,6 @@ int tri_tri_overlap_test_2d(double p1[2], double q1[2], double r1[2],
 
 
 int tri_tri_intersection_test_3d(double p1[3], double q1[3], double r1[3], double p2[3], double q2[3], double r2[3], 
-	int * coplanar, double source[3], double target[3], double pl1[4], double pl2[4], unsigned long & dwType, double iLine[3]);
+	int * coplanar, double source[3], double target[3], double pl1[4], double pl2[4], unsigned int & uiType, double iLine[3]);
 
 #endif

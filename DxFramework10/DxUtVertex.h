@@ -24,7 +24,7 @@ struct SVertexPN  {
 
 struct SVertexPNC  {
 	SVertexPNC() {}
-	SVertexPNC(float x, float y, float z, float nx, float ny, float nz, DWORD _color):
+	SVertexPNC(float x, float y, float z, float nx, float ny, float nz, UINT _color):
 		pos(Vector3F(x, y, z)), nor(Vector3F(nx, ny, nz)), color(_color) {}
 
 	Vector3F pos;

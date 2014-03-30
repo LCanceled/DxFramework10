@@ -14,13 +14,13 @@ namespace DxUt {
 BVTree::BVTree():m_pTree(0), m_nBranchNodes(0), m_nLeafNodes(0), m_BVs(0), m_Tris(0), m_TransformedTris(0), m_pAdj(0), m_Trans(0.f, 0.f, 0.f),
 	m_Scale(1.f), m_pCollideBVTree(0), m_CPs(0), m_nBVBVTests(0), m_nTriTriTests(0) /*Fix*/
 {
-	dwCounter = 0;
+	uiCounter = 0;
 	m_TriTransform.MIdenity();
 	m_Rot.MIdenity();
 	m_InvRot.MIdenity();
 }
 
-void AverageNormals(Vector3F & nextNor, Vector3F & preNor, Vector3F & avgNor, DWORD & nNor)
+void AverageNormals(Vector3F & nextNor, Vector3F & preNor, Vector3F & avgNor, UINT & nNor)
 {
 	/* Do not average normals that share the same normal */
 	if (DotXYZ(nextNor, preNor) < .99f) {
@@ -29,63 +29,63 @@ void AverageNormals(Vector3F & nextNor, Vector3F & preNor, Vector3F & avgNor, DW
 	}
 }
 
-Vector3F ComputeConeNormal(DWORD dwInitialTri, DWORD dwInitialEdge, STriangleF * tris, DWORD * pAdj, float & fTheta)
+Vector3F ComputeConeNormal(UINT uiInitialTri, UINT uiInitialEdge, STriangleF * tris, UINT * pAdj, float & fTheta)
 {
-	DWORD nNor = 0;
+	UINT nNor = 0;
 	Vector3F avgNor(0,0,0);
-	DWORD dwNextEdge = dwInitialEdge;
-	DWORD dwNextTri = dwInitialTri;
-	Vector3F preNor(tris[dwInitialTri].Normal());
-	Vector3F nextNor(tris[dwInitialTri].Normal());
-	//STriangleF & preTri = tris[dwInitialTri];
+	UINT uiNextEdge = uiInitialEdge;
+	UINT uiNextTri = uiInitialTri;
+	Vector3F preNor(tris[uiInitialTri].Normal());
+	Vector3F nextNor(tris[uiInitialTri].Normal());
+	//STriangleF & preTri = tris[uiInitialTri];
 	do {
-		nextNor = tris[dwNextTri].Normal();
+		nextNor = tris[uiNextTri].Normal();
 		AverageNormals(nextNor, preNor, avgNor, nNor);
 
-		DWORD dwPreTri = dwNextTri;
-		dwNextTri = pAdj[3*dwNextTri + dwNextEdge];
+		UINT uiPreTri = uiNextTri;
+		uiNextTri = pAdj[3*uiNextTri + uiNextEdge];
 
 		/* Check the three edges */
-		dwNextEdge = 0;
-		while (pAdj[3*dwNextTri+dwNextEdge] != dwPreTri) dwNextEdge++;
-		dwNextEdge = (dwNextEdge + 1) % 3;
+		uiNextEdge = 0;
+		while (pAdj[3*uiNextTri+uiNextEdge] != uiPreTri) uiNextEdge++;
+		uiNextEdge = (uiNextEdge + 1) % 3;
 		
-		if (dwNextTri == dwInitialTri) {
-			nextNor = nextNor = tris[dwNextTri].Normal();
+		if (uiNextTri == uiInitialTri) {
+			nextNor = nextNor = tris[uiNextTri].Normal();
 			break;
 		}
 		preNor = nextNor;
-	} while (dwNextTri !=dwInitialTri);
+	} while (uiNextTri !=uiInitialTri);
 	AverageNormals(nextNor, preNor, avgNor, nNor);
 	avgNor = avgNor.Normalize();
 
 	/* Compute the maximum divergence (fTheta) among the avgNor and the polygon normals */
 	fTheta = 1.;
-	dwNextTri = dwInitialTri;
-	dwNextEdge = dwInitialEdge;
+	uiNextTri = uiInitialTri;
+	uiNextEdge = uiInitialEdge;
 	do {
 		/* Find the maximum of theta */
-		Vector3F & n = tris[dwNextTri].Normal();
+		Vector3F & n = tris[uiNextTri].Normal();
 		float d = DotXYZ(n, avgNor);
 		fTheta = min(fTheta, d);
 
-		DWORD dwPreTri = dwNextTri;
-		dwNextTri = pAdj[3*dwNextTri + dwNextEdge];
+		UINT uiPreTri = uiNextTri;
+		uiNextTri = pAdj[3*uiNextTri + uiNextEdge];
 
 		/* Check the three edges */
-		dwNextEdge = 0;
-		while (pAdj[3*dwNextTri+dwNextEdge] != dwPreTri) dwNextEdge++;
-		dwNextEdge = (dwNextEdge + 1) % 3;
+		uiNextEdge = 0;
+		while (pAdj[3*uiNextTri+uiNextEdge] != uiPreTri) uiNextEdge++;
+		uiNextEdge = (uiNextEdge + 1) % 3;
 
-	} while (dwNextTri !=dwInitialTri);
+	} while (uiNextTri !=uiInitialTri);
 
 	return avgNor;
 }
 /*
-void ComputePolygons(CArray<CContactRegions::SPolygon3FEx> & rgPolygon, DWORD nTri, STriangleF * tris, DWORD * pAdj)
+void ComputePolygons(CArray<CContactRegions::SPolygon3FEx> & rgPolygon, UINT nTri, STriangleF * tris, UINT * pAdj)
 {
 	rgPolygon.Reserve(nTri);
-	for (DWORD i=0; i<nTri; i++) {
+	for (UINT i=0; i<nTri; i++) {
 		float fTheta0; Vector3F nor0(ComputeConeNormal(i, 0, tris, pAdj, fTheta0));
 		float fTheta1; Vector3F nor1(ComputeConeNormal(i, 1, tris, pAdj, fTheta1));
 		float fTheta2; Vector3F nor2(ComputeConeNormal(i, 2, tris, pAdj, fTheta2));
@@ -103,11 +103,11 @@ void BVTree::CreateBVTree(CMesh * pMesh)
 {
 	Assert(!m_pTree, "BVTree::CreateBVTree tree must be destroyed before creating a new one.");
 	
-	DWORD nTri = pMesh->GetNumTriangles();
-	DWORD nVert = 3*pMesh->GetNumTriangles();
+	UINT nTri = pMesh->GetNumTriangles();
+	UINT nVert = 3*pMesh->GetNumTriangles();
 	Vector3F * verts = pMesh->GetNewVertexTriangleList();
-	m_pAdj = new DWORD[3*nTri];
-	memcpy(m_pAdj, pMesh->GetAdjancey(), 3*nTri*sizeof(DWORD));
+	m_pAdj = new UINT[3*nTri];
+	memcpy(m_pAdj, pMesh->GetAdjancey(), 3*nTri*sizeof(UINT));
 	
 	m_pTree = new BranchNode;
 	m_BVs = new COBBox[2*nTri];
@@ -116,10 +116,10 @@ void BVTree::CreateBVTree(CMesh * pMesh)
 	m_TransformedTris = new STriangleF[nTri];
 	m_nTri = nTri;
 
-	DWORD * faceIndices = new DWORD[nVert/3];
-	for (DWORD i=0; i<nTri; i++) faceIndices[i] = i;
+	UINT * uiFaceIndices = new UINT[nVert/3];
+	for (UINT i=0; i<nTri; i++) uiFaceIndices[i] = i;
 
-	BuildBVTree(m_pTree, verts, faceIndices, nVert, 0);
+	BuildBVTree(m_pTree, verts, uiFaceIndices, nVert, 0);
 
 	Matrix4x4F rot;
 	m_BVs[0].RotationW(rot);
@@ -129,21 +129,21 @@ void BVTree::CreateBVTree(CMesh * pMesh)
 
 	delete[] verts;
 	verts = NULL;
-	delete[] faceIndices;
-	faceIndices = NULL;
+	delete[] uiFaceIndices;
+	uiFaceIndices = NULL;
 
 	m_TopLevelOBBoxW = *m_pTree->pOBB;
 }
 
-void BVTree::CreateBVTree(STriangleF * tris, DWORD nTri, DWORD * adj)
+void BVTree::CreateBVTree(STriangleF * tris, UINT nTri, UINT * adj)
 {
 	Assert(!m_pTree, "BVTree::CreateBVTree tree must be destroyed before creating a new one.");
 
-	DWORD nVert = 3*nTri;
+	UINT nVert = 3*nTri;
 	Vector3F * verts = new Vector3F[nVert];
 	for (int i=0; i<nVert; i++) verts[i] = tris[i/3].vPosW[i%3]; 
-	DWORD * faceIndices = new DWORD[nVert/3];
-	for (DWORD i=0; i<nTri; i++) faceIndices[i] = i;
+	UINT * uiFaceIndices = new UINT[nVert/3];
+	for (UINT i=0; i<nTri; i++) uiFaceIndices[i] = i;
 
 	m_pTree = new BranchNode;
 	m_BVs = new COBBox[2*nTri];
@@ -152,7 +152,7 @@ void BVTree::CreateBVTree(STriangleF * tris, DWORD nTri, DWORD * adj)
 	m_TransformedTris = new STriangleF[nTri];
 	m_nTri = nTri;
 
-	BuildBVTree(m_pTree, verts, faceIndices, nVert, 0);
+	BuildBVTree(m_pTree, verts, uiFaceIndices, nVert, 0);
 
 	Matrix4x4F rot;
 	m_BVs[0].RotationW(rot);
@@ -162,8 +162,8 @@ void BVTree::CreateBVTree(STriangleF * tris, DWORD nTri, DWORD * adj)
 
 	delete[] verts;
 	verts = NULL;
-	delete[] faceIndices;
-	faceIndices = NULL;
+	delete[] uiFaceIndices;
+	uiFaceIndices = NULL;
 
 	m_TopLevelOBBoxW = *m_pTree->pOBB;
 }
@@ -220,7 +220,7 @@ void BVTree::SetTransform(Matrix4x4F & rot, Vector3F & trans, float scl)
 
 void BVTree::TransformTriangles()
 {
-	for (DWORD i=0; i<m_nTri; i++) {
+	for (UINT i=0; i<m_nTri; i++) {
 		m_TransformedTris[i] = m_Tris[i];
 		m_TransformedTris[i].Transform(m_TriTransform);
 	}
@@ -228,7 +228,7 @@ void BVTree::TransformTriangles()
 
 //rgCPs should have some memory reserved as a guess at the total number of contact points
 //Returns 0 when there are no collision; otherwise, it returns the number of collision pairs
-DWORD BVTree::BVCollision(BVTree & collideBVTree, CArray<SContactPoint> * CPs)
+UINT BVTree::BVCollision(BVTree & collideBVTree, CArray<SContactPoint> * CPs)
 {
 	m_pCollideBVTree = &collideBVTree;
 	m_CPs = CPs;
@@ -252,7 +252,7 @@ DWORD BVTree::BVCollision(BVTree & collideBVTree, CArray<SContactPoint> * CPs)
 	//m_RelativeScale = collideBVTree.m_Scale/m_Scale;
 	float fSclR = collideBVTree.m_Scale/m_Scale;
 
-	DWORD oldSize = m_CPs->GetSize();
+	UINT oldSize = m_CPs->GetSize();
 	FindBVCollisions(m_pTree, collideBVTree.m_pTree, rotR, posR, fSclR);
 
 	return m_CPs->GetSize() - oldSize;
@@ -260,7 +260,7 @@ DWORD BVTree::BVCollision(BVTree & collideBVTree, CArray<SContactPoint> * CPs)
 
 static int stillGo = 1;
 
-DWORD BVTree::BVCollisionConvex(BVTree & collideBVTree, CArray<SContactPoint> * CPs)
+UINT BVTree::BVCollisionConvex(BVTree & collideBVTree, CArray<SContactPoint> * CPs)
 {
 	m_pCollideBVTree = &collideBVTree;
 	m_CPs = CPs;
@@ -284,7 +284,7 @@ DWORD BVTree::BVCollisionConvex(BVTree & collideBVTree, CArray<SContactPoint> * 
 	//m_RelativeScale = collideBVTree.m_Scale/m_Scale;
 	float fSclR = collideBVTree.m_Scale/m_Scale;
 
-	DWORD oldSize = m_CPs->GetSize();
+	UINT oldSize = m_CPs->GetSize();
 	if (FindBVCollisionsConvex(m_pTree, collideBVTree.m_pTree, rotR, posR, fSclR)) {
 		int a=0;
 	} 
@@ -293,24 +293,24 @@ DWORD BVTree::BVCollisionConvex(BVTree & collideBVTree, CArray<SContactPoint> * 
 	return m_CPs->GetSize() - oldSize;
 }
 
-void BVTree::BuildBVTree(BranchNode * pNode, Vector3F * verts, DWORD * faceIndices, DWORD nVert, DWORD dwLevel)
+void BVTree::BuildBVTree(BranchNode * pNode, Vector3F * verts, UINT * uiFaceIndices, UINT nVert, UINT uiLevel)
 {
 	if (nVert > 3) {
 		m_nBranchNodes++;
 
 		float mean = 0;
 		Vector3F axis;
-		ComputeOBB(verts, nVert, m_BVs[m_nBV], mean, axis, dwLevel);
+		ComputeOBB(verts, nVert, m_BVs[m_nBV], mean, axis, uiLevel);
 
-		DWORD dwSplitIndex = 0;
-		PartitionVert(verts, faceIndices, nVert, axis, mean, dwSplitIndex);
+		UINT uiuiSplitIndex = 0;
+		PartitionVert(verts, uiFaceIndices, nVert, axis, mean, uiuiSplitIndex);
 		pNode->pOBB = &m_BVs[m_nBV++];
 
 		pNode->pChildA = new BranchNode;
-		BuildBVTree(pNode->pChildA, verts, faceIndices, dwSplitIndex, dwLevel+1);
+		BuildBVTree(pNode->pChildA, verts, uiFaceIndices, uiuiSplitIndex, uiLevel+1);
 
 		pNode->pChildB = new BranchNode;
-		BuildBVTree(pNode->pChildB, &verts[dwSplitIndex], &faceIndices[dwSplitIndex/3], nVert-dwSplitIndex, dwLevel);
+		BuildBVTree(pNode->pChildB, &verts[uiuiSplitIndex], &uiFaceIndices[uiuiSplitIndex/3], nVert-uiuiSplitIndex, uiLevel);
 
 		Matrix4x4F rotT, cRot;
 		pNode->pOBB->RotationW(rotT);
@@ -352,19 +352,19 @@ void BVTree::BuildBVTree(BranchNode * pNode, Vector3F * verts, DWORD * faceIndic
  
 		float mean;
 		Vector3F axis;
-		ComputeOBB(verts, nVert, m_BVs[m_nBV], mean, axis, dwLevel);
+		ComputeOBB(verts, nVert, m_BVs[m_nBV], mean, axis, uiLevel);
 		pNode->pOBB = &m_BVs[m_nBV++];
 		
-		STriangleF & tri = m_Tris[*faceIndices];
+		STriangleF & tri = m_Tris[*uiFaceIndices];
 		tri.vPosW[0] = verts[0];
 		tri.vPosW[1] = verts[1];
 		tri.vPosW[2] = verts[2];
-		tri.dwTriangle = *faceIndices;
+		tri.uiTriangle = *uiFaceIndices;
 		((LeafNode*)pNode)->pTri = &tri;
 	}
 }
 
-void BVTree::ComputeOBB(Vector3F * verts, DWORD nVert, COBBox & oBB, float & mean, Vector3F & axis, DWORD dwLevel)
+void BVTree::ComputeOBB(Vector3F * verts, UINT nVert, COBBox & oBB, float & mean, Vector3F & axis, UINT uiLevel)
 {
 	Vector3F rotVec[3];
 	bool bNotTri = 1;
@@ -382,15 +382,15 @@ void BVTree::ComputeOBB(Vector3F * verts, DWORD nVert, COBBox & oBB, float & mea
 		rotVec[1] = A.GetColumnVec3F(1);
 		rotVec[0] = A.GetColumnVec3F(0);
 
-		DWORD dwCol;
+		UINT uiCol;
 		if (lambda.x > lambda.y) {
 			if (lambda.x > lambda.z)
-				dwCol = 0;
-			else dwCol = 2;
+				uiCol = 0;
+			else uiCol = 2;
 		} else if (lambda.y > lambda.z) {
-			dwCol = 1;
-		} else dwCol = 2;
-		axis = A.GetColumnVec3F(dwCol);
+			uiCol = 1;
+		} else uiCol = 2;
+		axis = A.GetColumnVec3F(uiCol);
 		mean = DotXYZ(ctd, axis);
 	}
 	else {
@@ -432,7 +432,7 @@ void BVTree::ComputeOBB(Vector3F * verts, DWORD nVert, COBBox & oBB, float & mea
 	float dot = 0;
 	float dMin[3] = {FLT_MAX, FLT_MAX, FLT_MAX};
 	float dMax[3] = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
-	for (DWORD i=0; i<nVert; i++) {
+	for (UINT i=0; i<nVert; i++) {
 		dot = DotXYZ(rotVec[0], verts[i]);
 		if (dot < dMin[0]) 
 			dMin[0] = dot;
@@ -470,10 +470,10 @@ void BVTree::ComputeOBB(Vector3F * verts, DWORD nVert, COBBox & oBB, float & mea
 	oBB.m_CenterL = oBB.m_CenterW;
 }
 
-void BVTree::PartitionVert(Vector3F * verts, DWORD * faceIndices, DWORD nVert, Vector3F & axis, float mean, DWORD & splitIndex)
+void BVTree::PartitionVert(Vector3F * verts, UINT * uiFaceIndices, UINT nVert, Vector3F & axis, float mean, UINT & uiSplitIndex)
 {
-	DWORD nTri = nVert/3;
-	splitIndex=0;
+	UINT nTri = nVert/3;
+	uiSplitIndex=0;
 
 	if (nTri == 2) {
 		STriangleF tri(verts[0], verts[1], verts[2]);
@@ -488,20 +488,20 @@ void BVTree::PartitionVert(Vector3F * verts, DWORD * faceIndices, DWORD nVert, V
 			verts[4] = tri.vPosW[1];
 			verts[5] = tri.vPosW[2];
 
-			DWORD d = faceIndices[0];
-			faceIndices[0] = faceIndices[1];
-			faceIndices[1] = d;
+			UINT d = uiFaceIndices[0];
+			uiFaceIndices[0] = uiFaceIndices[1];
+			uiFaceIndices[1] = d;
 		}
-		splitIndex = 3*(1);
+		uiSplitIndex = 3*(1);
 		return;
 	}
 
-	for (DWORD i=0, m1=0, m2=0; i<nTri; i++, m1=i*3) {
+	for (UINT i=0, m1=0, m2=0; i<nTri; i++, m1=i*3) {
 		STriangleF tri(verts[m1], verts[m1+1], verts[m1+2]);
 		Vector3F ctd(tri.Centroid());
 
 		if (DotXYZ(ctd, axis) > mean) { 
-			m2 = splitIndex*3;
+			m2 = uiSplitIndex*3;
 
 			verts[m1  ] = verts[m2  ];
 			verts[m1+1] = verts[m2+1];
@@ -511,23 +511,23 @@ void BVTree::PartitionVert(Vector3F * verts, DWORD * faceIndices, DWORD nVert, V
 			verts[m2+1] = tri.vPosW[1];
 			verts[m2+2] = tri.vPosW[2];
 
-			DWORD a = m1/3, b = m2/3;
-			DWORD d = faceIndices[a];
-			faceIndices[a] = faceIndices[b];
-			faceIndices[b] = d;
+			UINT a = m1/3, b = m2/3;
+			UINT d = uiFaceIndices[a];
+			uiFaceIndices[a] = uiFaceIndices[b];
+			uiFaceIndices[b] = d;
 
-			splitIndex++;
+			uiSplitIndex++;
 		}
 	}
 	
 	static int count=0;
 	static int maxi = 0;
 	static int numi = 0;
-	if (splitIndex == 0 || splitIndex == nTri) {
+	if (uiSplitIndex == 0 || uiSplitIndex == nTri) {
 		OutputDebugStringA("\nWarning: BVTree::PartitionVert could not find an optimal splitting axias\n");
-		splitIndex = nTri/2;
+		uiSplitIndex = nTri/2;
 	}
-	splitIndex *= 3;
+	uiSplitIndex *= 3;
 }
 
 bool BVTree::FindTriTriCollision(STriangleF & t1, STriangleF & t2, STriTriIntersectData & triData)
@@ -648,8 +648,8 @@ bool BVTree::FindBVCollisionsConvex(BranchNode * pNode,
 			STriangleF t1(*((LeafNode*)pNode)->pTri);
 			STriangleF t2(*((LeafNode*)pCollideNode)->pTri);
 			if (FindTriTriCollision(t1, t2, data)) {
-				t1.dwTriangle = data.dwFaceIndex[0] = ((LeafNode*)pNode)->pTri->dwTriangle;
-				t2.dwTriangle = data.dwFaceIndex[1] = ((LeafNode*)pCollideNode)->pTri->dwTriangle;
+				t1.uiTriangle = data.uiFaceIndex[0] = ((LeafNode*)pNode)->pTri->uiTriangle;
+				t2.uiTriangle = data.uiFaceIndex[1] = ((LeafNode*)pCollideNode)->pTri->uiTriangle;
 				data.tris[0] = t1;
 				data.tris[1] = t2;
 
@@ -667,32 +667,32 @@ bool BVTree::FindBVCollisionsConvex(BranchNode * pNode,
 //
 //bool BVTree::FindContactPoints(STriTriIntersectDataEx & triData)
 //{			
-//	DWORD dwNextBodyIndex = 0;
+//	UINT uiNextBodyIndex = 0;
 //
 //	/* The adjancey information for both bodies */
-//	DWORD * rgpAdj[2] = {m_pAdj, m_pCollideBVTree->m_pAdj};
+//	UINT * rgpAdj[2] = {m_pAdj, m_pCollideBVTree->m_pAdj};
 //	
 //	/* The body to which the last triangle was found adjacent to  */
-//	DWORD dwLastBodyIndex = 0;
+//	UINT uiLastBodyIndex = 0;
 //
 //	/* The vector formed form the intersection of the last two triangle planes */
 //	Vector3F lastILine(triData.iLine.Normalize());
 //	const float eps = .0001f;
 //
 //	/* The last, and current face indices for bodies 1 and 2, respectively */
-//	DWORD rgIniFaceIndex[2] = {triData.dwFaceIndex[0], triData.dwFaceIndex[1]};
-//	DWORD rgCurFaceIndex[2] = {triData.dwFaceIndex[0], triData.dwFaceIndex[1]};
-//	DWORD rgNextFaceIndex[2] = {triData.dwFaceIndex[0], triData.dwFaceIndex[1]};
+//	UINT rgIniFaceIndex[2] = {triData.uiFaceIndex[0], triData.uiFaceIndex[1]};
+//	UINT rgCurFaceIndex[2] = {triData.uiFaceIndex[0], triData.uiFaceIndex[1]};
+//	UINT rgNextFaceIndex[2] = {triData.uiFaceIndex[0], triData.uiFaceIndex[1]};
 //
 //	/* The (squared) normals of the triangle planes */
 //	Vector3F rgLastTriNormals[2] = {triData.normals[0], triData.normals[1] };
-//	DWORD rgLastTriNormalsFlags[2] = {0, 0};
+//	UINT rgLastTriNormalsFlags[2] = {0, 0};
 //
 //	/* The number of faces in the contact region for the bodies respectively */
-//	DWORD nFacesInCTR[2] = {0, 0};
+//	UINT nFacesInCTR[2] = {0, 0};
 //
 //	/* The number of possible canidates for being coplanar*/
-//	DWORD nCoplanarFacesInCTR[2] = {0, 0};
+//	UINT nCoplanarFacesInCTR[2] = {0, 0};
 //
 //	/* Average normal for transforming the polygon surface */
 //	Vector3F avgNor[2] = {Vector3F(0, 0, 0), Vector3F(0, 0, 0) };
@@ -704,39 +704,39 @@ bool BVTree::FindBVCollisionsConvex(BranchNode * pNode,
 //	unsigned char rgFaceFlag[2] = {0, 0};
 //
 //	/* Max number of iterations that this loop can go for */
-//	DWORD dwMaxIter = 3*m_nTri;
-//	DWORD dwIter = 0;
+//	UINT uiMaxIter = 3*m_nTri;
+//	UINT uiIter = 0;
 //
-//	dwCounter++;
-//	if (dwCounter == 7517)
+//	uiCounter++;
+//	if (uiCounter == 7517)
 //		int aasdf=0;
 //
 //	int count=0;
 //	bool bNextBodySwap = 0;
-//	DWORD dwEdgeIndex = 1;
-//	if (data.dwType >> 24)
+//	UINT uiEdgeIndex = 1;
+//	if (data.uiType >> 24)
 //		dwNextBodyIndex = 1;
 //	do {
 //		//fix this later
 //		/* There is a collision, but they do not intersect deeply enough for there to be correct collision data. */  
-//		if (dwIter > dwMaxIter) {
+//		if (uiIter > dwMaxIter) {
 //			m_ContactRegion.Reset();
 //			return 0;
 //		}
-//		dwIter++;
+//		uiIter++;
 //
 //		/* The body to which the next triangle will be found  */
-//		if ((data.dwType & 0x3) == 2)
+//		if ((data.uiType & 0x3) == 2)
 //			dwNextBodyIndex = !dwNextBodyIndex;
-//		else if ((data.dwType & 0x3) == 1)
+//		else if ((data.uiType & 0x3) == 1)
 //			dwNextBodyIndex = !1;
-//		else if ((data.dwType & 0x3) == 0)
+//		else if ((data.uiType & 0x3) == 0)
 //			dwNextBodyIndex = !0;
 //
 //		Vector3F dif(data.iPos[1] - data.iPos[0]);
 //		//if (DotXYZ(dif, lastILine) < 0) {dwEdgeIndex = 1; }
 //
-//		DWORD e = (data.dwType >> (8 + 8*dwEdgeIndex)) & 0xf;
+//		UINT e = (data.uiType >> (8 + 8*dwEdgeIndex)) & 0xf;
 //		rgNextFaceIndex[dwNextBodyIndex] = rgpAdj[dwNextBodyIndex][3*rgCurFaceIndex[dwNextBodyIndex] + e];
 //		rgNextFaceIndex[!dwNextBodyIndex] = rgCurFaceIndex[!dwNextBodyIndex];
 //
@@ -812,10 +812,10 @@ bool BVTree::FindBVCollisionsConvex(BranchNode * pNode,
 //	return result;
 //}
 
-DWORD BVTree::FindBVCollisions(BranchNode * pNode, SRay & ray, SRay & worldRay, SRayIntersectData & data)
+UINT BVTree::FindBVCollisions(BranchNode * pNode, SRay & ray, SRay & worldRay, SRayIntersectData & data)
 {
 	//m_nBVBVTests++;
-	DWORD r = 0;
+	UINT r = 0;
 
 	if (pNode->pOBB->OBBoxIntersectRelativeW(ray)) {
 		if (!IsLeaf(pNode)) {
@@ -840,7 +840,7 @@ DWORD BVTree::FindBVCollisions(BranchNode * pNode, SRay & ray, SRay & worldRay, 
 		else {
 			//m_nTriTriTests++;
 
-			STriangleF & t1 = m_TransformedTris[((LeafNode*)pNode)->pTri->dwTriangle];
+			STriangleF & t1 = m_TransformedTris[((LeafNode*)pNode)->pTri->uiTriangle];
 			//STriangleF t1(*((LeafNode*)pNode)->pTri);
 			//t1.Transform(m_TriTransform);
 		
@@ -848,7 +848,7 @@ DWORD BVTree::FindBVCollisions(BranchNode * pNode, SRay & ray, SRay & worldRay, 
 			if (TriRayIntersect(t1, worldRay, tmp)) {
 				if (tmp.t < data.t) {
 					data = tmp;
-					data.dwTri = ((LeafNode*)pNode)->pTri->dwTriangle;
+					data.uiTri = ((LeafNode*)pNode)->pTri->uiTriangle;
 				}
 				return 1;
 			}
@@ -858,7 +858,7 @@ DWORD BVTree::FindBVCollisions(BranchNode * pNode, SRay & ray, SRay & worldRay, 
 					tmp.nor = -tmp.nor;
 					Swap(tmp.v, tmp.w);
 					data = tmp;
-					data.dwTri = ((LeafNode*)pNode)->pTri->dwTriangle;
+					data.uiTri = ((LeafNode*)pNode)->pTri->uiTriangle;
 				}
 				return 1;
 			}
@@ -889,9 +889,9 @@ bool BVTree::IntersectRay(SRay & ray, SRayIntersectData & data)
 	return 0;
 }
 
-void BVTree::DrawBVTreeLevel(BranchNode * pNode, Matrix4x4F & rot, Vector3F & trans, DWORD dwLevel)
+void BVTree::DrawBVTreeLevel(BranchNode * pNode, Matrix4x4F & rot, Vector3F & trans, UINT uiLevel)
 {
-	if (m_dwDrawLevel == dwLevel || IsLeaf(pNode)) {
+	if (m_uiDrawLevel == uiLevel || IsLeaf(pNode)) {
 		CCollisionGraphics::DrawBox(trans, pNode->pOBB->GetHalfWidthsW(), rot);
 		return;
 	}
@@ -905,7 +905,7 @@ void BVTree::DrawBVTreeLevel(BranchNode * pNode, Matrix4x4F & rot, Vector3F & tr
 
 	Matrix4x4F id;
 	id.MIdenity();
-	DrawBVTreeLevel(pNode->pChildA, newRot, newTrans, dwLevel+1);
+	DrawBVTreeLevel(pNode->pChildA, newRot, newTrans, uiLevel+1);
 
 	pNode->pChildB->pOBB->RotationW(rotR);
 	newRot = rot*rotR;
@@ -913,10 +913,10 @@ void BVTree::DrawBVTreeLevel(BranchNode * pNode, Matrix4x4F & rot, Vector3F & tr
 	transR = pNode->pChildB->pOBB->m_CenterW;
 	newTrans = trans + rot*transR;
 
-	DrawBVTreeLevel(pNode->pChildB, newRot, newTrans, dwLevel+1);
+	DrawBVTreeLevel(pNode->pChildB, newRot, newTrans, uiLevel+1);
 }
 
-void BVTree::DrawBVTree(DWORD dwLevel)
+void BVTree::DrawBVTree(UINT uiLevel)
 {
 	m_nBVBVTests = m_nTriTriTests = 0;
 
@@ -925,7 +925,7 @@ void BVTree::DrawBVTree(DWORD dwLevel)
 	rot = m_Rot*rot;
 	Vector3F trans((m_Rot*m_BVs[0].m_CenterW) + m_Trans);
 
-	m_dwDrawLevel = dwLevel;
+	m_uiDrawLevel = uiLevel;
 	DrawBVTreeLevel(m_pTree, rot, trans, 0);
 }
 

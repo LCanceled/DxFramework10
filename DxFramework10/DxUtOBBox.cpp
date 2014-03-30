@@ -18,7 +18,7 @@ COBBox::COBBox():m_CenterW(0, 0, 0), m_HalfWidthsW(0, 0, 0)
 
 void COBBox::ComputeOBB(CMesh * pMesh, OBBComputeMethod method)
 {
-	DWORD nVert = 0;
+	UINT nVert = 0;
 	Vector3F * verts = NULL;
 
 	nVert = 3*pMesh->GetNumTriangles();
@@ -30,7 +30,7 @@ void COBBox::ComputeOBB(CMesh * pMesh, OBBComputeMethod method)
 	verts = NULL;
 }
 
-void COBBox::ComputeOBB(Vector3F * verts, DWORD nVert, OBBComputeMethod method)
+void COBBox::ComputeOBB(Vector3F * verts, UINT nVert, OBBComputeMethod method)
 {
 	if (method == CVTriangles && (nVert%3))
 		DxUtSendError("COBBox::ComputeOBB nVert must be divisible by 3.");
@@ -52,7 +52,7 @@ void COBBox::ComputeOBB(Vector3F * verts, DWORD nVert, OBBComputeMethod method)
 	FLOAT dot = 0;
 	FLOAT dMin[3] = {FLT_MAX, FLT_MAX, FLT_MAX};
 	FLOAT dMax[3] = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
-	for (DWORD i=0; i<nVert; i++) {
+	for (UINT i=0; i<nVert; i++) {
 		Vector3F & v = verts[i];
 		dot = DotXYZ(m_RotVecW[0], v);
 		if (dot < dMin[0]) 
@@ -815,7 +815,7 @@ BOOL COBBox::OBBoxIntersectRelativeW(SRay & rayRelative, bool bSegment, SRayInte
 	float tMax = bSegment ? 1.f : FLT_MAX;
 	const float eps = 1e-4;
 
-	for (DWORD i=0; i<3; i++) {
+	for (UINT i=0; i<3; i++) {
 		if (Abs(d[i]) < eps) {
 			if (p[i] < -m_HalfWidthsW[i] || p[i] > m_HalfWidthsW[i]) return 0;
 		} else {

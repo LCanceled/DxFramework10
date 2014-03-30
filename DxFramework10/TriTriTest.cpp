@@ -254,8 +254,8 @@ int coplanar_tri_tri3d(double p1[3], double q1[3], double r1[3],
 	alpha = M3(a, b); \
 	SCALAR(v1, alpha, v2) \
 	CROSS(v2, v1, N2) \
-	dwType = 2; \
-	dwType |= (eIndex[0] << 8) | (eIndex[1] << 16); \
+	uiType = 2; \
+	uiType |= (eIndex[0] << 8) | (eIndex[1] << 16); \
 	return 1; \
       } else { \
 	SUB(v1,p2,p1) \
@@ -275,8 +275,8 @@ int coplanar_tri_tri3d(double p1[3], double q1[3], double r1[3],
 	alpha = M3(a, b); \
 	SCALAR(v1, alpha, v2) \
 	CROSS(v2, v1, N2) \
-	dwType = 0; \
-	dwType |= (eIndex[0] << 8) | (eIndex[1] << 16); \
+	uiType = 0; \
+	uiType |= (eIndex[0] << 8) | (eIndex[1] << 16); \
 	return 1; \
       } \
     } else { \
@@ -308,8 +308,8 @@ int coplanar_tri_tri3d(double p1[3], double q1[3], double r1[3],
 	alpha = M3(a, b); \
 	SCALAR(v1, alpha, v2) \
 	CROSS(v2, v1, N1) \
-	dwType = 1; \
-	dwType |= (eIndex[0] << 8) | (eIndex[1] << 16); \
+	uiType = 1; \
+	uiType |= (eIndex[0] << 8) | (eIndex[1] << 16); \
 	return 1; \
       } else { \
 	SUB(v1,p1,p2) \
@@ -329,8 +329,8 @@ int coplanar_tri_tri3d(double p1[3], double q1[3], double r1[3],
 	alpha = M3(a, b); \
 	SCALAR(v1, alpha, v2) \
 	CROSS(v2, v1, N2) \
-	dwType = 2; \
-	dwType |= (eIndex[0] << 8) | (eIndex[1] << 16); \
+	uiType = 2; \
+	uiType |= (eIndex[0] << 8) | (eIndex[1] << 16); \
 	return 1; \
       }}}}
 
@@ -356,7 +356,7 @@ int coplanar_tri_tri3d(double p1[3], double q1[3], double r1[3],
       if (dr2 > 0.0f) CONSTRUCT_INTERSECTION(p1,q1,r1,r2,p2,q2)\
       else if (dr2 < 0.0f) CONSTRUCT_INTERSECTION(p1,r1,q1,r2,p2,q2)\
       else { \
-		dwType = 3; \
+		uiType = 3; \
        	*coplanar = 1; \
 	return coplanar_tri_tri3d(p1,q1,r1,p2,q2,r2,N1,N2);\
      } \
@@ -377,7 +377,7 @@ int coplanar_tri_tri3d(double p1[3], double q1[3], double r1[3],
 }	
 
 int tri_tri_intersection_test_3d(double p1[3], double q1[3], double r1[3], double p2[3], double q2[3], double r2[3],
-	int * coplanar, double source[3], double target[3], double pl1[4], double pl2[4], unsigned long & dwType, double iLine[3])
+	int * coplanar, double source[3], double target[3], double pl1[4], double pl2[4], unsigned int & uiType, double iLine[3])
 				 
 {
   double dp1, dq1, dr1, dp2, dq2, dr2;
@@ -430,8 +430,8 @@ int tri_tri_intersection_test_3d(double p1[3], double q1[3], double r1[3], doubl
   // Permutation in a canonical form of T1's vertices
 
   CROSS(iLine, N1, N2);
-  DWORD eIndex[2] = {0};
-  DWORD ix = 0;
+  UINT eIndex[2] = {0};
+  UINT ix = 0;
   double coeps = 0;//1e-5;
   int a=0, b=0;
   if (dp1 > 0.0f) {
@@ -458,7 +458,7 @@ int tri_tri_intersection_test_3d(double p1[3], double q1[3], double r1[3], doubl
 	// triangles are co-planar
 
 	*coplanar = 1;
-	dwType = 3;
+	uiType = 3;
 	return coplanar_tri_tri3d(p1,q1,r1,p2,q2,r2,N1,N2);
       }
     }

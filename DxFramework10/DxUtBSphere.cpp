@@ -23,11 +23,11 @@ void CBSphere::ComputeBSphere(CMesh * pMesh)
 	delete[] verts;
 }
 
-void CBSphere::ComputeBSphere(Vector3F * verts, DWORD nVert)
+void CBSphere::ComputeBSphere(Vector3F * verts, UINT nVert)
 {
 	//See Christer, Ericson, Real Time Collision Detection, page 89
-	DWORD minX=0, maxX=0, minY=0, maxY=0, minZ=0, maxZ=0;
-	for (DWORD i=1; i<nVert; i++) {
+	UINT minX=0, maxX=0, minY=0, maxY=0, minZ=0, maxZ=0;
+	for (UINT i=1; i<nVert; i++) {
 		if (verts[i].x < verts[minX].x) minX = i;
 		if (verts[i].x > verts[maxX].x) maxX = i;
 		if (verts[i].y < verts[minY].y) minY = i;
@@ -60,7 +60,7 @@ void CBSphere::ComputeBSphere(Vector3F * verts, DWORD nVert)
 	m_RadiusW = (m_PosW - maxD).Length();
 	
 	float len = 0;
-	for (DWORD i=0; i<nVert; i++) {
+	for (UINT i=0; i<nVert; i++) {
 		Vector3F vec(verts[i] - m_PosW);
 		if ((len = vec.LengthSq()) > m_RadiusW*m_RadiusW) {
 			float dist = (float)sqrt((double)len);

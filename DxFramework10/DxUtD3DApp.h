@@ -40,7 +40,7 @@ private:
 	friend LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 public:
 	CD3DApp(HINSTANCE hInst, TCHAR * szClassName, TCHAR * szTitleText,
-		WORD wWndPosX, WORD wWndPosY, WORD wWndWidth, WORD wWndHeight, void (*onResizeWindowFunction)());
+		WORD wWndPosX, WORD wWndPosY, WORD wWnuiIdth, WORD wWndHeight, void (*onResizeWindowFunction)());
 	CD3DApp(CD3DApp & cpy); /* Copy constructor should never be called */
 	~CD3DApp() {}
 
@@ -65,8 +65,8 @@ public:
 		sprintf(buf, "%u%s\0", val, str); Print(buf); 
 	}
 	void Print(char * str) {
-		DWORD written; 
-		WriteConsoleA(m_hConsleOutput, str, strlen(str), &written, 0); 
+		DWORD dwWritten; 
+		WriteConsoleA(m_hConsleOutput, str, strlen(str), &dwWritten, 0); 
 	}
 	
 	/* Misc utility functions */
@@ -75,7 +75,7 @@ public:
 	void ResetRenderTargetAndView();
 
 	void ExtractPixelsFromImageFile(CHAR * szImageFile, void ** ppData,
-		DWORD dwStride, DWORD * pdwImageWidth=0, DWORD * pdwImageHeight=0);
+		UINT uiStride, UINT * puiImageWidth=0, UINT * puiImageHeight=0);
 
 	void Destroy();
 };

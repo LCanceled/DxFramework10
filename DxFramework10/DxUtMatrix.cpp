@@ -325,15 +325,15 @@ Matrix4x4F & Matrix4x4F::MRotationAxisLH(Vector3F & v, float fTheta)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Finds the covariance and the mean of a list of vertices in R^3
-void CovarianceVertices3x3F(Vector3F * pVert, DWORD nVert, Matrix4x4F & cov, Vector3F & mean)
+void CovarianceVertices3x3F(Vector3F * pVert, UINT nVert, Matrix4x4F & cov, Vector3F & mean)
 {
 	Vector3F avg(0, 0, 0);
-	for (DWORD i=0; i<nVert; i++)
+	for (UINT i=0; i<nVert; i++)
 		avg += pVert[i];
 	mean = (avg /= (float)nVert);
 
 	float m02=0, m01=0, m12=0, m00=0, m11=0, m22=0;
-	for (DWORD i=0; i<nVert; i++) {
+	for (UINT i=0; i<nVert; i++) {
 		Vector3F pos(pVert[i] - avg);
 
 		m02 = pos.z*pos.x;
@@ -355,15 +355,15 @@ void CovarianceVertices3x3F(Vector3F * pVert, DWORD nVert, Matrix4x4F & cov, Vec
 }
 
 //Finds the covariance and the mean of a list of triangles in R^3 specified by their vertices
-void CovarianceTriangles3x3F(Vector3F * pVert, DWORD nVert, Matrix4x4F & cov, Vector3F & mean)
+void CovarianceTriangles3x3F(Vector3F * pVert, UINT nVert, Matrix4x4F & cov, Vector3F & mean)
 {
 	if (nVert % 3) DxUtSendError("Covariance3x3F nVert must be divisible by 3.");
 
-	DWORD nTri = nVert/3;
+	UINT nTri = nVert/3;
 	double sArea = 0;								//Surface area of all the triangles
 	Vector3F tCtd(0, 0, 0);							//Triangle centroid or mean of the triangles
 	double m02=0, m01=0, m12=0, m00=0, m11=0, m22=0;
-	for (DWORD i=0; i<nTri; i++) {
+	for (UINT i=0; i<nTri; i++) {
 		STriangleF tri(pVert[3*i+0],  pVert[3*i+1],  pVert[3*i+2]);
 
 		float area = tri.Area();		sArea += area;
@@ -414,12 +414,12 @@ void CovarianceTriangles3x3F(Vector3F * pVert, DWORD nVert, Matrix4x4F & cov, Ve
 }
 
 //Finds the covariance and the mean of a list of triangles in R^3
-void CovarianceTriangles3x3F(STriangleF * pTri, DWORD nTri, Matrix4x4F & cov, Vector3F & mean)
+void CovarianceTriangles3x3F(STriangleF * pTri, UINT nTri, Matrix4x4F & cov, Vector3F & mean)
 {
 	float sArea = 0;								//Surface area of all the triangles
 	Vector3F tCtd(0, 0, 0);							//Triangle centroid or mean of the triangles
 	float m02=0, m01=0, m12=0, m00=0, m11=0, m22=0;
-	for (DWORD i=0, j=0; i<nTri; i++) {
+	for (UINT i=0, j=0; i<nTri; i++) {
 		float area = pTri[i].Area();		sArea += area;
 		Vector3F ctd(pTri[i].Centroid());	tCtd += area*ctd;
 
@@ -485,7 +485,7 @@ void JacobiRotation3x3F(Matrix4x4F & A, WORD p, WORD q, DOUBLE & c, DOUBLE & s)
     }
 }
 
-void JacobiTransformation3x3F(Matrix4x4F & A, Matrix4x4F & eiM, Vector3F & eiVal, DWORD maxIter)
+void JacobiTransformation3x3F(Matrix4x4F & A, Matrix4x4F & eiM, Vector3F & eiVal, UINT maxIter)
 {
 	Matrix4x4F J, _A(A);
 	eiM.MIdenity();
@@ -538,7 +538,7 @@ void MaxEigenVectors3x3F(Matrix4x4F & eiM, Vector3F & eiVal, Vector3F & eiVec)
 /////////////////////////////////////       MatrixNxNF     ///////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MatrixNxNF::CreateMatrix(DWORD nRows)
+void MatrixNxNF::CreateMatrix(UINT nRows)
 {
 	Assert(!c, "MatrixNxNF::CreateMatrix must destroy the matrix before creating a new one.");
 
@@ -548,9 +548,9 @@ void MatrixNxNF::CreateMatrix(DWORD nRows)
 
 MatrixNxNF & MatrixNxNF::MIdenity()
 {
-	for (DWORD i=0; i<m_nRows; i++) {
-		DWORD col = i*m_nRows;
-		for (DWORD j=0; j<m_nRows; j++) {
+	for (UINT i=0; i<m_nRows; i++) {
+		UINT col = i*m_nRows;
+		for (UINT j=0; j<m_nRows; j++) {
 			c[col+j] = i==j;
 		}
 	}
@@ -569,9 +569,9 @@ MatrixNxNF & MatrixNxNF::operator+=(MatrixNxNF & A)
 {
 	Assert(m_nRows == A.m_nRows, "MatrixNxNF::operator+= can not add matrices of different sizes.");
 
-	for (DWORD i=0; i<m_nRows; i++) {
-		DWORD col = i*m_nRows;
-		for (DWORD j=0; j<m_nRows; j++) {
+	for (UINT i=0; i<m_nRows; i++) {
+		UINT col = i*m_nRows;
+		for (UINT j=0; j<m_nRows; j++) {
 			c[col+j] += A.c[col+j];
 		}
 	}
@@ -582,9 +582,9 @@ MatrixNxNF & MatrixNxNF::operator-=(MatrixNxNF & A)
 {
 	Assert(m_nRows == A.m_nRows, "MatrixNxNF::operator-= can not subtract matrices of different sizes.");
 
-	for (DWORD i=0; i<m_nRows; i++) {
-		DWORD col = i*m_nRows;
-		for (DWORD j=0; j<m_nRows; j++) {
+	for (UINT i=0; i<m_nRows; i++) {
+		UINT col = i*m_nRows;
+		for (UINT j=0; j<m_nRows; j++) {
 			c[col+j] -= A.c[col+j];
 		}
 	}
@@ -594,9 +594,9 @@ MatrixNxNF & MatrixNxNF::operator-=(MatrixNxNF & A)
 MatrixNxNF & MatrixNxNF::operator*=(float flt)
 {
 	float mul = flt;
-	for (DWORD i=0; i<m_nRows; i++) {
-		DWORD col = i*m_nRows;
-		for (DWORD j=0; j<m_nRows; j++) {
+	for (UINT i=0; i<m_nRows; i++) {
+		UINT col = i*m_nRows;
+		for (UINT j=0; j<m_nRows; j++) {
 			c[col+j] *= mul;
 		}
 	}

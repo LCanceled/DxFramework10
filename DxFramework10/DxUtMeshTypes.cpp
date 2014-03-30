@@ -3,7 +3,7 @@
 
 namespace DxUt {
 
-void CMeshParallaxMapped::TextureCreationHook(char * szTexFile, DWORD i)
+void CMeshParallaxMapped::TextureCreationHook(char * szTexFile, UINT i)
 {
 	char szTexFileNH[MAX_PATH];
 	strcpy(szTexFileNH, szTexFile);
@@ -17,10 +17,10 @@ void CMeshParallaxMapped::TextureCreationHook(char * szTexFile, DWORD i)
 		pExtNH[j+2] = pExt[j];
 	pExtNH[j+2] = '\0';
 
-	if (!m_rgSRViewNH) {
-		m_rgSRViewNH = new ID3D10ShaderResourceView*[m_nSubsets];
+	if (!m_SRViewsNH) {
+		m_SRViewsNH = new ID3D10ShaderResourceView*[m_nSubsets];
 	}
-	if (FAILED(D3DX10CreateShaderResourceViewFromFileA(g_pD3DDevice, szTexFileNH, 0, 0, &m_rgSRViewNH[i], 0))) {
+	if (FAILED(D3DX10CreateShaderResourceViewFromFileA(g_pD3DDevice, szTexFileNH, 0, 0, &m_SRViewsNH[i], 0))) {
 		DxUtSendErrorEx("LoadMeshFromFile could not load mesh HN texture.", szTexFile);
 	}
 }
@@ -28,9 +28,9 @@ void CMeshParallaxMapped::TextureCreationHook(char * szTexFile, DWORD i)
 //Loads a PNT mesh from a txt file. It is required that for each texture
 //of the mesh there is a corresponding normal/height texture with the ending
 //NH before the extension. Also, Note that the shader creates the TBN frame.
-void CMeshParallaxMapped::LoadMeshFromFile(char * szMeshFile, DWORD dwOptions)
+void CMeshParallaxMapped::LoadMeshFromFile(char * szMeshFile, UINT uiOptions)
 {
-	CMesh::LoadMeshFromFile(szMeshFile, dwOptions, Vector3F(1.f));
+	CMesh::LoadMeshFromFile(szMeshFile, uiOptions, Vector3F(1.f));
 
 	m_Effect.CreateEffect("PNT_Phong.fx");
 	m_Effect.eTech		= m_Effect->GetTechniqueByIndex(0);
@@ -45,14 +45,14 @@ void CMeshParallaxMapped::LoadMeshFromFile(char * szMeshFile, DWORD dwOptions)
 	m_Effect.eHeightScale = m_Effect->GetVariableByName("g_HeightScale")->AsScalar();
 
 	//Input layout
-	DxUt::CreateInputLayout(m_Effect.eTech, DxUt::GetVertexElementDescPNT(), 3, 0, m_Effect.eVertexLayout);
+	//DxUt::CreateInputLayout(m_Effect.eTech, DxUt::GetVertexElementDescPNT(), 3, 0, m_Effect.eVertexLayout);
 }
 
-void CMeshParallaxMapped::SetShaderVariablesPerScene(SLightDir & light, float fTexTile, float fHeightScale)
+void CMeshParallaxMapped::SetShaderVariablesPerScene(SLightDir & light, float texTile, float heightScale)
 {
 	m_Effect.eLight->SetRawValue(&light, 0, sizeof(DxUt::SLightDir));
-	m_Effect.eTextureTile->SetFloat(fTexTile);
-	m_Effect.eHeightScale->SetFloat(fHeightScale);
+	m_Effect.eTextureTile->SetFloat(texTile);
+	m_Effect.eHeightScale->SetFloat(heightScale);
 }
 
 void CMeshParallaxMapped::Draw(Matrix4x4F & world, Matrix4x4F & worldViewProj, Vector3F & camPos)
@@ -67,10 +67,10 @@ void CMeshParallaxMapped::Draw(Matrix4x4F & world, Matrix4x4F & worldViewProj, V
 	m_Effect.eWVP->SetMatrix((float*)&(worldViewProj));
 	m_Effect.eWorld->SetMatrix((float*)&world);
 
-	for (DWORD i=0; i<m_nSubsets; i++) {
+	for (UINT i=0; i<m_nSubsets; i++) {
 		m_Effect.eMaterial->SetRawValue(&m_Materials[i], 0, sizeof(SMaterial));
 		m_Effect.eTexture->SetResource(m_SRViews[i]);
-		m_Effect.eNHTexture->SetResource(m_rgSRViewNH[i]);
+		m_Effect.eNHTexture->SetResource(m_SRViewsNH[i]);
 
 		m_Effect.eTech->GetPassByIndex(0)->Apply(0);
 
@@ -82,8 +82,8 @@ void CMeshParallaxMapped::DestroyMesh()
 {
 	CMesh::Destroy();
 
-	if (m_rgSRViewNH) {
-		for (DWORD i=0; i<m_nSubsets; i++) ReleaseX(m_SRViews[i]);
+	if (m_SRViewsNH) {
+		for (UINT i=0; i<m_nSubsets; i++) ReleaseX(m_SRViews[i]);
 		delete[] m_SRViews;
 		m_SRViews = NULL;
 	}

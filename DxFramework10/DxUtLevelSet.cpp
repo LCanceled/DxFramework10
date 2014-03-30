@@ -23,113 +23,113 @@ CLevelSet::CLevelSet(): m_bUseFaceSampling(0), m_bDrawTris(0)
 	m_ValidParticleDistance = 1e-4;
 }
 
-int CLevelSet::ComputeAdmissibleZone(DWORD dwInitialTri, DWORD dwInitialEdge,
-	Vector3F * verts, DWORD * pAdj, Vector3F & angleWeightedNor, Vector3F & edgeNor, float & coneCosAngle, CArray<Vector3F> * adjFaceNormals)
+int CLevelSet::ComputeAdmissibleZone(UINT uiInitialTri, UINT uiInitialEdge,
+	Vector3F * verts, UINT * pAdj, Vector3F & angleWeightedNor, Vector3F & edgeNor, float & coneCosAngle, CArray<Vector3F> * adjFaceNormals)
 {
-	DWORD nNor = 0;
+	UINT nNor = 0;
 	angleWeightedNor = Vector3F(0,0,0);
-	DWORD dwNextEdge = dwInitialEdge;
-	DWORD dwNextTri = dwInitialTri;
+	UINT uiNextEdge = uiInitialEdge;
+	UINT uiNextTri = uiInitialTri;
 	do {
 		/* Compute the angle weighted normal */
-		Vector3F & n = GET_TRIANGLE_NORMAL(verts, dwNextTri);
-		int iPreEdge = (int)dwNextEdge-1 < 0 ? 2 : (int)dwNextEdge-1;
-		Vector3F e1(Vector3F(verts[3*dwNextTri + iPreEdge]			- verts[3*dwNextTri + dwNextEdge]).Normalize());
-		Vector3F e2(Vector3F(verts[3*dwNextTri + (dwNextEdge+1)%3] - verts[3*dwNextTri + dwNextEdge]).Normalize());
+		Vector3F & n = GET_TRIANGLE_NORMAL(verts, uiNextTri);
+		int iPreEdge = (int)uiNextEdge-1 < 0 ? 2 : (int)uiNextEdge-1;
+		Vector3F e1(Vector3F(verts[3*uiNextTri + iPreEdge]			- verts[3*uiNextTri + uiNextEdge]).Normalize());
+		Vector3F e2(Vector3F(verts[3*uiNextTri + (uiNextEdge+1)%3] - verts[3*uiNextTri + uiNextEdge]).Normalize());
 		float fAngle = acosf(DotXYZ(e1, e2));
 		angleWeightedNor += fAngle*n;
 
-		DWORD dwPreTri = dwNextTri;
-		dwNextTri = pAdj[3*dwNextTri + dwNextEdge];
-		if (dwNextTri == -1)
+		UINT uiPreTri = uiNextTri;
+		uiNextTri = pAdj[3*uiNextTri + uiNextEdge];
+		if (uiNextTri == -1)
 			return -1;
 
 		/* Check the three edges */
-		dwNextEdge = 0;
-		while (pAdj[3*dwNextTri+dwNextEdge] != dwPreTri) {
-			dwNextEdge++;
-			if (3*dwNextTri+dwNextEdge == -1) return -1;//goto errorCase;
-			if (dwNextEdge > 2) {
-				dwNextTri = dwInitialTri;
+		uiNextEdge = 0;
+		while (pAdj[3*uiNextTri+uiNextEdge] != uiPreTri) {
+			uiNextEdge++;
+			if (3*uiNextTri+uiNextEdge == -1) return -1;//goto errorCase;
+			if (uiNextEdge > 2) {
+				uiNextTri = uiInitialTri;
 				return -1;
 			}
 		}
-		dwNextEdge = (dwNextEdge + 1) % 3;
+		uiNextEdge = (uiNextEdge + 1) % 3;
 
 		nNor++;
-	} while (dwNextTri != dwInitialTri);
+	} while (uiNextTri != uiInitialTri);
 	angleWeightedNor = angleWeightedNor.Normalize();
 	
 	/* Compute the edge normal */ {
-		Vector3F n1 = GET_TRIANGLE_NORMAL(verts, dwInitialTri);
-		DWORD dwAdjacentTri = pAdj[3*dwInitialTri + dwInitialEdge];
-		if (3*dwInitialTri + dwInitialEdge == -1) return -1;
-		Vector3F n2 = GET_TRIANGLE_NORMAL(verts, dwAdjacentTri);
+		Vector3F n1 = GET_TRIANGLE_NORMAL(verts, uiInitialTri);
+		UINT uiAdjacentTri = pAdj[3*uiInitialTri + uiInitialEdge];
+		if (3*uiInitialTri + uiInitialEdge == -1) return -1;
+		Vector3F n2 = GET_TRIANGLE_NORMAL(verts, uiAdjacentTri);
 		edgeNor = (n1 + n2).Normalize();
 	}
 
 	/* Compute the minimum cos angle (coneCosAngle) between the angleWeightedNor and the polygon normals */
 	coneCosAngle = 1.;
-	dwNextTri = dwInitialTri;
-	dwNextEdge = dwInitialEdge;
+	uiNextTri = uiInitialTri;
+	uiNextEdge = uiInitialEdge;
 	do {
 		/* Find the max of the angle */
-		Vector3F & n = GET_TRIANGLE_NORMAL(verts, dwNextTri);
+		Vector3F & n = GET_TRIANGLE_NORMAL(verts, uiNextTri);
 		if (adjFaceNormals) adjFaceNormals->PushBack(n);
 		float d = DotXYZ(n, angleWeightedNor);
 		coneCosAngle = min(coneCosAngle, d);
 
-		DWORD dwPreTri = dwNextTri;
-		dwNextTri = pAdj[3*dwNextTri + dwNextEdge];
-		if (dwNextTri == -1)
+		UINT uiPreTri = uiNextTri;
+		uiNextTri = pAdj[3*uiNextTri + uiNextEdge];
+		if (uiNextTri == -1)
 			return -1;
 
 		/* Check the three edges */
-		dwNextEdge = 0;
-		while (pAdj[3*dwNextTri+dwNextEdge] != dwPreTri) {
-			dwNextEdge++;
-			if (3*dwNextTri+dwNextEdge == -1) return -1;
-			if (dwNextEdge > 2) {
-				dwNextTri = dwInitialTri;
+		uiNextEdge = 0;
+		while (pAdj[3*uiNextTri+uiNextEdge] != uiPreTri) {
+			uiNextEdge++;
+			if (3*uiNextTri+uiNextEdge == -1) return -1;
+			if (uiNextEdge > 2) {
+				uiNextTri = uiInitialTri;
 				return -1;
 			}
 		}
-		dwNextEdge = (dwNextEdge + 1) % 3;
+		uiNextEdge = (uiNextEdge + 1) % 3;
 		nNor++;
-	} while (dwNextTri != dwInitialTri);
+	} while (uiNextTri != uiInitialTri);
 
 	return nNor;
 }
 
-void CLevelSet::ComputeNondegenerateVertices(DWORD nVert, DWORD nTri, Vector3F * verts, DWORD * pAdj, CFinitePointGrid3F<DWORD> & vertToIndex)
+void CLevelSet::ComputeNondegenerateVertices(UINT nVert, UINT nTri, Vector3F * verts, UINT * pAdj, CFinitePointGrid3F<UINT> & vertToIndex)
 {
 	m_VertexParticles.Reserve(nVert);
 	SVertexParticle * pVP = m_VertexParticles.GetData();
-	for (DWORD i=0; i<nVert; i++) {
+	for (UINT i=0; i<nVert; i++) {
 		CArray<Vector3F> adjFaceNormals;
 		SVertexParticle vp = {verts[i], Vector3F(0,0,0), 0.f };
-		DWORD dwEntry = 0, dwIndex = 0;
-		if (!m_VertexParticles.FindIfEquals(vp, dwEntry)) {
+		UINT uiEntry = 0, uiIndex = 0;
+		if (!m_VertexParticles.FindIfEquals(vp, uiEntry)) {
 			Vector3F dummy;
 			if (ComputeAdmissibleZone(i / 3, i % 3, verts, pAdj, vp.coneDir, dummy, vp.coneCosAngle, &adjFaceNormals) > 0) {
-				dwIndex = m_VertexParticles.GetSize();
-				vertToIndex.AddPoint(vp.v, dwIndex);
+				uiIndex = m_VertexParticles.GetSize();
+				vertToIndex.AddPoint(vp.v, uiIndex);
 				
 				vp.bIntersected = 0;
 				vp.bAdmissible = 0;
 				m_VertexParticles.PushBack(vp);
 				m_VertexParticles.GetBack().adjFaceNormals.Copy(adjFaceNormals);
 			}
-			else if (!vertToIndex.PointInGrid(vp.v, &dwIndex)) {
-				dwIndex = -1;
-				vertToIndex.AddPoint(vp.v, dwIndex);
+			else if (!vertToIndex.PointInGrid(vp.v, &uiIndex)) {
+				uiIndex = -1;
+				vertToIndex.AddPoint(vp.v, uiIndex);
 			}
 		}
 	}
 }
 
 void CLevelSet::AddEdgeVertices(Vector3F & v1, Vector3F & v2,
-	CFinitePointGrid3F<DWORD> & vertToIndex, Vector3F & normal, Vector3F * adjTriVerts, DWORD & dwIndex)
+	CFinitePointGrid3F<UINT> & vertToIndex, Vector3F & normal, Vector3F * adjTriVerts, UINT & uiIndex)
 {
 	Vector3F & tV1 = adjTriVerts[1] - adjTriVerts[0];
 	Vector3F & tV2 = adjTriVerts[2] - adjTriVerts[0];
@@ -137,38 +137,38 @@ void CLevelSet::AddEdgeVertices(Vector3F & v1, Vector3F & v2,
 	// Do not add interior edges of coplanar triangles
 	if (m_bUseFaceSampling) {
 		if (DotXYZ(normal, tNor) > .99f) {
-			dwIndex = -1; return;
+			uiIndex = -1; return;
 		}
 	}
 
 	SEdgeParticle edge;
-	dwIndex = -1;
+	uiIndex = -1;
 	// The admissible zones of some particles could not computed correctly
-	if (!vertToIndex.PointInGrid(v1, &dwIndex)) {
+	if (!vertToIndex.PointInGrid(v1, &uiIndex)) {
 		DebugBreak();
-		dwIndex = -1; return; 
+		uiIndex = -1; return; 
 	} 
-	if (dwIndex == -1) return;
-	edge.pVP1 = &m_VertexParticles[dwIndex];
-	if (!vertToIndex.PointInGrid(v2, &dwIndex)) {
+	if (uiIndex == -1) return;
+	edge.pVP1 = &m_VertexParticles[uiIndex];
+	if (!vertToIndex.PointInGrid(v2, &uiIndex)) {
 		DebugBreak();
-		dwIndex = -1; return; 
+		uiIndex = -1; return; 
 	}
-	if (dwIndex == -1) return;
-	edge.pVP2 = &m_VertexParticles[dwIndex];
+	if (uiIndex == -1) return;
+	edge.pVP2 = &m_VertexParticles[uiIndex];
 	edge.coneDir = (normal + tNor).Normalize();
 	edge.coneCosAngle = DotXYZ(normal, edge.coneDir);
 	edge.edgeLength = (edge.pVP1->v - edge.pVP2->v).Length();
 	edge.adjFaceNormals[0] = normal;
 	edge.adjFaceNormals[1] = tNor;
 	if (edge.edgeLength > m_CellSize) {
-		dwIndex = m_EdgeParticles.GetSize();
+		uiIndex = m_EdgeParticles.GetSize();
 		m_EdgeParticles.PushBack(edge);
-	} else dwIndex = -1;
+	} else uiIndex = -1;
 }
 
 
-/*void CLevelSet::ComputeInsetVertices(Vector3F & nor, CFinitePointGrid3F<DWORD> & vertToIndex, CArray<SSegment3F> & edgeDisordereds)
+/*void CLevelSet::ComputeInsetVertices(Vector3F & nor, CFinitePointGrid3F<UINT> & vertToIndex, CArray<SSegment3F> & edgeDisordereds)
 {
 	SPolygon3F poly;
 	CArray<SSegment3F> rgEdgeOrdered;
@@ -178,7 +178,7 @@ void CLevelSet::AddEdgeVertices(Vector3F & v1, Vector3F & v2,
 	Vector3F o(0,0,0), B1(0), B2(0);
 	//Compute2DPlaneBasis(nor, B1, B2);
 	CArray<SFaceParticle::SFaceVertex> & interiorVertices = m_FaceParticles.GetBack().interiorVertices;
-	for (DWORD i=0, end=edges.GetSize(); i<end; i++) {
+	for (UINT i=0, end=edges.GetSize(); i<end; i++) {
 		SSegment3F & edge1 = edges[i];
 		SSegment3F & edge2 = edges[(i+1)%end];
 		Vector3F & v1 = (edge1.e1 - edge1.e2).Normalize();
@@ -188,19 +188,19 @@ void CLevelSet::AddEdgeVertices(Vector3F & v1, Vector3F & v2,
 		float dist = .125;//m_fMaxFacePenetrationDepth/CrossXYZ(v, v1).Length();
 		Vector3F & pt = edge1.e2 + abs(dist)*v;
 
-		DWORD dwIndex = 0;
-		if (!vertToIndex.PointInGrid(edge1.e2, &dwIndex))
+		UINT uiIndex = 0;
+		if (!vertToIndex.PointInGrid(edge1.e2, &uiIndex))
 			DebugBreak();
-		m_VertexParticles[dwIndex].rgInsetV.PushBack(SFaceVertex(pt, nor, (edge1.e2 - pt).Length()));
+		m_VertexParticles[uiIndex].rgInsetV.PushBack(SFaceVertex(pt, nor, (edge1.e2 - pt).Length()));
 		//interiorVertices.PushBack(SFaceParticle::SFaceVertex(ProjectPointTo2DPlaneBasis(pt, o, B1, B2), pt, NULL));
 		interiorVertices.PushBack(SFaceParticle::SFaceVertex(Vector2F(0), pt, NULL));
 	}
 }
 
-void CLevelSet::ComputeFaceVertices(DWORD dwTri, SVisitedTriangle * tris, DWORD * pAdj,
-	CFinitePointGrid3F<DWORD> & vertToIndex, CFinitePointGrid3F<DWORD> & bVisitedEdges, CArray<SSegment3F> & edges)
+void CLevelSet::ComputeFaceVertices(UINT uiTri, SVisitedTriangle * tris, UINT * pAdj,
+	CFinitePointGrid3F<UINT> & vertToIndex, CFinitePointGrid3F<UINT> & bVisitedEdges, CArray<SSegment3F> & edges)
 {
-	SVisitedTriangle * pVTri = &tris[dwTri];
+	SVisitedTriangle * pVTri = &tris[uiTri];
 	pVTri->bVisited = 1;	
 	Vector3F & nor = m_FaceParticles.GetBack().nor;
 	//PlaneF plane(pVTri->tri.vPosW[0], pVTri->tri.vPosW[1], pVTri->tri.vPosW[2]);
@@ -208,8 +208,8 @@ void CLevelSet::ComputeFaceVertices(DWORD dwTri, SVisitedTriangle * tris, DWORD 
 	//Compute2DPlaneBasis(nor, B1, B2);
 
 	/* Add the exterior edges 
-	for (DWORD j=0; j<3; j++) {
-		SVisitedTriangle * nextVTri = &tris[pAdj[3*dwTri + j]];
+	for (UINT j=0; j<3; j++) {
+		SVisitedTriangle * nextVTri = &tris[pAdj[3*uiTri + j]];
 		Vector3F nextNor(nextVTri->tri.Normal());
 		//if (DotXYZ(nor, nextNor) < .999f) {
 			edges.PushBack(SSegment3F(pVTri->tri.vPosW[j], pVTri->tri.vPosW[(j+1)%3]));
@@ -217,47 +217,47 @@ void CLevelSet::ComputeFaceVertices(DWORD dwTri, SVisitedTriangle * tris, DWORD 
 	}
 
 	
-	for (DWORD i=0; i<3; i++) {
-		DWORD dwIndex, dwDummy;
-		SVisitedTriangle * nextVTri = &tris[pAdj[3*dwTri + i]];
+	for (UINT i=0; i<3; i++) {
+		UINT uiIndex, dwDummy;
+		SVisitedTriangle * nextVTri = &tris[pAdj[3*uiTri + i]];
 		Vector3F nextNor(nextVTri->tri.Normal());
 		//if (DotXYZ(nor, nextNor) < .999f) {
 			Vector3F & pt = pVTri->tri.vPosW[i];
-			vertToIndex.PointInGrid(pt, &dwIndex);
+			vertToIndex.PointInGrid(pt, &uiIndex);
 
 			SFaceParticle & f = m_FaceParticles.GetBack();
 			//f.boundaryVertices.PushBack(SFaceParticle::SFaceVertex(ProjectPointTo2DPlaneBasis(
-			//	m_VertexParticles[dwIndex].v, o, B1, B2), m_VertexParticles[dwIndex].v, &m_VertexParticles[dwIndex]));
-			f.boundaryVertices.PushBack(SFaceParticle::SFaceVertex(Vector2F(0), pt, &m_VertexParticles[dwIndex]));
-			m_VertexParticles[dwIndex].rgFace.PushBack(&f);
+			//	m_VertexParticles[uiIndex].v, o, B1, B2), m_VertexParticles[uiIndex].v, &m_VertexParticles[uiIndex]));
+			f.boundaryVertices.PushBack(SFaceParticle::SFaceVertex(Vector2F(0), pt, &m_VertexParticles[uiIndex]));
+			m_VertexParticles[uiIndex].rgFace.PushBack(&f);
 			f.v += pt;
 			f.dwFace = m_FaceParticles.GetSize()-1;
-		//} else if (!tris[pAdj[3*dwTri + i]].bVisited) 
-		//	ComputeFaceVertices(pAdj[3*dwTri + i], tris, pAdj, vertToIndex, bVisitedEdges, edges);
+		//} else if (!tris[pAdj[3*uiTri + i]].bVisited) 
+		//	ComputeFaceVertices(pAdj[3*uiTri + i], tris, pAdj, vertToIndex, bVisitedEdges, edges);
 	}
 }*/
 
-void CLevelSet::ComputeMeshParticles(DWORD nVert, DWORD nTri, Vector3F * verts, DWORD * pAdj, char * szLevelSetFile)
+void CLevelSet::ComputeMeshParticles(UINT nVert, UINT nTri, Vector3F * verts, UINT * pAdj, char * szLevelSetFile)
 {
 	CAABBox aabb;
 	aabb.ComputeAABBox(verts, nVert);
 
 	/* Compute the vertex particles */
 	const float eps = 1e-3;
-	CFinitePointGrid3F<DWORD> vertToIndex;
+	CFinitePointGrid3F<UINT> vertToIndex;
 	Vector3F gridMinP = m_GridMin;
 	vertToIndex.CreateGrid(m_nCellsX, m_nCellsY, m_nCellsZ, m_CellSize, gridMinP);
 	ComputeNondegenerateVertices(nVert, nTri, verts, pAdj, vertToIndex);
 	
 	/* Compute the edge particles */
-	CFinitePointGrid3F<DWORD> edgeToIndex;
+	CFinitePointGrid3F<UINT> edgeToIndex;
 	edgeToIndex.CreateGrid(m_nCellsX, m_nCellsY, m_nCellsZ, m_CellSize, gridMinP);
 
 	/* V + F - E = 2 approximately */
-	DWORD nEdges = (m_VertexParticles.GetSize() + nTri - 2);
+	UINT nEdges = (m_VertexParticles.GetSize() + nTri - 2);
 	//m_EdgeParticle.Reserve(nVertPerEdge*nEdges);
 	m_EdgeParticles.Reserve(nEdges);  
-	for (DWORD i=0, dwSize=nTri*3; i<dwSize; i+=3) {
+	for (UINT i=0, dwSize=nTri*3; i<dwSize; i+=3) {
 		Vector3F e1Avg(.5f*(verts[i+0]+verts[i+1]));
 		Vector3F e2Avg(.5f*(verts[i+1]+verts[i+2]));
 		Vector3F e3Avg(.5f*(verts[i+2]+verts[i+0]));
@@ -265,33 +265,33 @@ void CLevelSet::ComputeMeshParticles(DWORD nVert, DWORD nTri, Vector3F * verts, 
 		Vector3F v2(verts[i+2] - verts[i+0]);
 		Vector3F normal(CrossXYZ(v1, v2).Normalize());
 
-		DWORD dwTmp = 0, dwIndex = 0;
-		if (!edgeToIndex.PointInGrid(e1Avg, &dwTmp)) {
+		UINT uiTmp = 0, uiIndex = 0;
+		if (!edgeToIndex.PointInGrid(e1Avg, &uiTmp)) {
 			if (pAdj[i+0] != -1) {
-				AddEdgeVertices(verts[i+0], verts[i+1], vertToIndex, normal, &verts[3*pAdj[i+0]], dwIndex);
-			} else dwIndex = -1;
-			edgeToIndex.AddPoint(e1Avg, dwIndex);
+				AddEdgeVertices(verts[i+0], verts[i+1], vertToIndex, normal, &verts[3*pAdj[i+0]], uiIndex);
+			} else uiIndex = -1;
+			edgeToIndex.AddPoint(e1Avg, uiIndex);
 		}
 
-		if (!edgeToIndex.PointInGrid(e2Avg, &dwTmp)) {
+		if (!edgeToIndex.PointInGrid(e2Avg, &uiTmp)) {
 			if (pAdj[i+1] != -1) {
-				AddEdgeVertices(verts[i+1], verts[i+2], vertToIndex, normal, &verts[3*pAdj[i+1]], dwIndex);
-			} else dwIndex = -1;
-			edgeToIndex.AddPoint(e2Avg, dwIndex);
+				AddEdgeVertices(verts[i+1], verts[i+2], vertToIndex, normal, &verts[3*pAdj[i+1]], uiIndex);
+			} else uiIndex = -1;
+			edgeToIndex.AddPoint(e2Avg, uiIndex);
 		}
 		
-		if (!edgeToIndex.PointInGrid(e3Avg, &dwTmp)) {
+		if (!edgeToIndex.PointInGrid(e3Avg, &uiTmp)) {
 			if (pAdj[i+2] != -1) {
-				AddEdgeVertices(verts[i+2], verts[i+0], vertToIndex, normal, &verts[3*pAdj[i+2]], dwIndex);
-			} else dwIndex = -1;
-			edgeToIndex.AddPoint(e3Avg, dwIndex); 
+				AddEdgeVertices(verts[i+2], verts[i+0], vertToIndex, normal, &verts[3*pAdj[i+2]], uiIndex);
+			} else uiIndex = -1;
+			edgeToIndex.AddPoint(e3Avg, uiIndex); 
 		}
 	}
 
 	/* Compute the face vertices  */
 	if (m_bUseFaceSampling) {
 		m_FaceParticles.Resize(nTri);
-		for (DWORD i=0; i<nTri; i++) {
+		for (UINT i=0; i<nTri; i++) {
 			m_FaceParticles[i].boundaryVertices[0] = verts[3*i+0];
 			m_FaceParticles[i].boundaryVertices[1] = verts[3*i+1];
 			m_FaceParticles[i].boundaryVertices[2] = verts[3*i+2];
@@ -301,7 +301,7 @@ void CLevelSet::ComputeMeshParticles(DWORD nVert, DWORD nTri, Vector3F * verts, 
 	/*m_FaceParticles.Reserve(nTri);
 	CArray<Vector3F> rgFaceVert;
 	CArray<SSegment3F> edges;
-	for (DWORD i=0; i<nTri; i++) {
+	for (UINT i=0; i<nTri; i++) {
 		if (!tris[i].bVisited) {
 			m_FaceParticles.PushBack();
 			Vector3F & nor = tris[i].tri.Normal();
@@ -316,7 +316,7 @@ void CLevelSet::ComputeMeshParticles(DWORD nVert, DWORD nTri, Vector3F * verts, 
 
 			//m_FaceParticles.GetBack().v /= m_FaceParticles.GetBack().rgVP.GetSize();
 			/*rgFaceVert.Resize(m_FaceParticles.GetBack().interiorVertices.GetSize());
-			for (DWORD j=0, end=rgFaceVert.GetSize(); j<end; j++)
+			for (UINT j=0, end=rgFaceVert.GetSize(); j<end; j++)
 				rgFaceVert[j] = m_FaceParticles.GetBack().interiorVertices[j].v;
 			m_FaceParticles.GetBack().oBB.ComputeOBB(rgFaceVert.GetData(), rgFaceVert.GetSize(), COBBox::CVVertices);
 		}
@@ -325,7 +325,7 @@ void CLevelSet::ComputeMeshParticles(DWORD nVert, DWORD nTri, Vector3F * verts, 
 	rgFaceVert.Clear();
 
 	m_IsFaceProcessed.Resize(m_FaceParticles.GetSize());
-	for (DWORD i=0, end=m_IsFaceProcessed.GetSize(); i<end; i++) {
+	for (UINT i=0, end=m_IsFaceProcessed.GetSize(); i<end; i++) {
 		m_IsFaceProcessed[i] = 0;
 	}
 	m_ToProcessFaceParticles.Reserve(m_IsFaceProcessed.GetSize());
@@ -348,20 +348,20 @@ void CLevelSet::ComputeMeshParticles(DWORD nVert, DWORD nTri, Vector3F * verts, 
 
 	/* Collision indices */
 	m_DefaultVertexParticleIndices.Resize(m_VertexParticles.GetSize());
-	for (DWORD i=0, end=m_VertexParticles.GetSize(); i<end; i++) m_DefaultVertexParticleIndices[i] = i;
+	for (UINT i=0, end=m_VertexParticles.GetSize(); i<end; i++) m_DefaultVertexParticleIndices[i] = i;
 	m_pVertexParticleIndex = &m_DefaultVertexParticleIndices;
 	
 	m_DefaultEdgeIndices.Resize(m_EdgeParticles.GetSize());
-	for (DWORD i=0, end=m_EdgeParticles.GetSize(); i<end; i++) m_DefaultEdgeIndices[i] = i;
+	for (UINT i=0, end=m_EdgeParticles.GetSize(); i<end; i++) m_DefaultEdgeIndices[i] = i;
 	m_pEdgeIndex = &m_DefaultEdgeIndices;
 }
 
-void CLevelSet::ComputeSDF(Vector3F * verts, DWORD nVert, DWORD * pAdj)
+void CLevelSet::ComputeSDF(Vector3F * verts, UINT nVert, UINT * pAdj)
 {
 	/* Compute the triangles */
 	STriangleFEx * tris = new STriangleFEx[nVert/3];
 	int counter =0;
-	for (DWORD i=0, end=nVert/3; i<end; i++) {
+	for (UINT i=0, end=nVert/3; i<end; i++) {
 		float fDummy = 0;
 		tris[i].vPosW[0] = verts[3*i + 0];
 		tris[i].vPosW[1] = verts[3*i + 1];
@@ -404,15 +404,15 @@ void CLevelSet::ComputeSDF(Vector3F * verts, DWORD nVert, DWORD * pAdj)
 	delete[] tris;
 }
 
-float CLevelSet::ComputeSignedDistance(Vector3F & pt, Vector3F * verts, DWORD nVert, STriangleFEx * tris)
+float CLevelSet::ComputeSignedDistance(Vector3F & pt, Vector3F * verts, UINT nVert, STriangleFEx * tris)
 {
 	static const float eps = 1e-4;
 	float fBestDist = FLT_MAX;
-	DWORD dwIndex = 0;
-	DWORD dwType = 0;
+	UINT uiIndex = 0;
+	UINT uiType = 0;
 	Vector3F closestPt;
-	for (DWORD i=0, end=nVert/3; i<end; i++) {
-		DWORD type = 0;
+	for (UINT i=0, end=nVert/3; i<end; i++) {
+		UINT type = 0;
 		Vector3F cPt = ComputeClosestPoint(tris[i], pt, type);
 		if (tris[i].bBadTriangle) type = 0x3;
 		Vector3F v(pt - cPt);
@@ -420,22 +420,22 @@ float CLevelSet::ComputeSignedDistance(Vector3F & pt, Vector3F * verts, DWORD nV
 
 		if (dist < fBestDist) {
 			fBestDist = dist;
-			dwIndex = i;
-			dwType = type;
+			uiIndex = i;
+			uiType = type;
 			closestPt = cPt;
 		}
 	}
 
-	STriangleFEx & tri = tris[dwIndex];
+	STriangleFEx & tri = tris[uiIndex];
 	Vector3F closestFeatureNor;
 	Vector3F triNormal = tri.Normal();
 	float area = tri.Area();
 	/* Face closest feature */
-	if ((dwType & 0x3) == 0)		closestFeatureNor = tri.nor;
+	if ((uiType & 0x3) == 0)		closestFeatureNor = tri.nor;
 	/* Edge closest feature */
-	else if ((dwType & 0x3) == 1)	closestFeatureNor = tri.edgeNor[dwType >> 2];
+	else if ((uiType & 0x3) == 1)	closestFeatureNor = tri.edgeNor[uiType >> 2];
 	/* Vertex closest feature */
-	else							closestFeatureNor = tri.vertNor[dwType >> 2];
+	else							closestFeatureNor = tri.vertNor[uiType >> 2];
 
 	Vector3F dir(pt - closestPt);
 	return DotXYZ(dir, closestFeatureNor) > 0 ? fBestDist : -fBestDist;
@@ -443,16 +443,16 @@ float CLevelSet::ComputeSignedDistance(Vector3F & pt, Vector3F * verts, DWORD nV
 
 void CLevelSet::CreateLevelSet(CMesh * pMesh, char * szLevelSetFile, bool bLoadFromFile, float cellSize)
 {
-	DWORD nVert = 3*pMesh->GetNumTriangles();
+	UINT nVert = 3*pMesh->GetNumTriangles();
 	STriangleF * tris = pMesh->GetTriangles();
-	DWORD * pAdj = pMesh->GetAdjancey();
+	UINT * pAdj = pMesh->GetAdjancey();
 
 	CreateLevelSet(tris, nVert, pAdj, szLevelSetFile, bLoadFromFile, cellSize);
 }
 
-void CLevelSet::CreateLevelSet(STriangleF * tris, DWORD nTri, DWORD * pAdj, char * szLevelSetFile, bool bLoadFromFile, float cellSize)
+void CLevelSet::CreateLevelSet(STriangleF * tris, UINT nTri, UINT * pAdj, char * szLevelSetFile, bool bLoadFromFile, float cellSize)
 {
-	DWORD nVert = 3*nTri;
+	UINT nVert = 3*nTri;
 	Vector3F * verts = new Vector3F[nVert];
 	for (int i=0; i<3*nTri; i++) {verts[i] = tris[i/3].vPosW[i%3]; }
 	if (bLoadFromFile) {
@@ -478,9 +478,9 @@ bool CLevelSet::LoadLevelSet(char * szFile)
 	if (!stream) return 0;
 	//Assert(stream, "CLevelSet::_LoadLevelSet invalid lvset file specified."); 
 
-	stream.read((char*)&m_nLSVertsX, sizeof(DWORD));
-	stream.read((char*)&m_nLSVertsY, sizeof(DWORD));
-	stream.read((char*)&m_nLSVertsZ, sizeof(DWORD));
+	stream.read((char*)&m_nLSVertsX, sizeof(UINT));
+	stream.read((char*)&m_nLSVertsY, sizeof(UINT));
+	stream.read((char*)&m_nLSVertsZ, sizeof(UINT));
 	m_nCellsX = m_nLSVertsX-1;
 	m_nCellsY = m_nLSVertsY-1;
 	m_nCellsZ = m_nLSVertsZ-1;
@@ -520,9 +520,9 @@ void CLevelSet::WriteLevelSet(char * szFile)
 	std::ofstream stream(file, std::ios::out | std::ios::binary); stream.close();
 	stream.open(file, std::ios::out | std::ios::binary);
 
-	stream.write((char*)&m_nLSVertsX, sizeof(DWORD));
-	stream.write((char*)&m_nLSVertsY, sizeof(DWORD));
-	stream.write((char*)&m_nLSVertsZ, sizeof(DWORD));
+	stream.write((char*)&m_nLSVertsX, sizeof(UINT));
+	stream.write((char*)&m_nLSVertsY, sizeof(UINT));
+	stream.write((char*)&m_nLSVertsZ, sizeof(UINT));
 	m_nCellsX = m_nLSVertsX-1;
 	m_nCellsY = m_nLSVertsY-1;
 	m_nCellsZ = m_nLSVertsZ-1;
@@ -550,7 +550,7 @@ void CLevelSet::WriteLevelSet(char * szFile)
 
 //#define PRINT
 
-DWORD CLevelSet::LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactPoint> * CPs)
+UINT CLevelSet::LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactPoint> * CPs)
 {
 	if (!m_OBBox.OBBoxIntersectW(collideLevelSet.m_OBBox)) {
 		return 0;
@@ -560,13 +560,13 @@ DWORD CLevelSet::LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactP
 #ifdef PRINT
 	CTimer::Get().StartTimer(0);
 #endif
-	DWORD oldSize = CPs->GetSize();
+	UINT oldSize = CPs->GetSize();
 
 	/* Vertex containment */
 	/* Body 1 */
 	SContactPoint cp;
 	Matrix4x4F T1 = collideLevelSet.m_TransformWorldToObj*m_TransformObjToWorld;
-	for (DWORD i=0, end=m_pVertexParticleIndex->GetSize(); i<end; i++) {
+	for (UINT i=0, end=m_pVertexParticleIndex->GetSize(); i<end; i++) {
 		SVertexParticle & vP = m_VertexParticles[(*m_pVertexParticleIndex)[i]];
 		Vector3F wVP = m_TransformObjToWorld*vP.v;
 		if (collideLevelSet.ParticleInLevelSet(wVP, vP.closestDist)) {
@@ -589,7 +589,7 @@ DWORD CLevelSet::LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactP
 	
 	/* Body 2 */
 	Matrix4x4F T2 = m_TransformWorldToObj*collideLevelSet.m_TransformObjToWorld;
-	for (DWORD i=0, end=collideLevelSet.m_pVertexParticleIndex->GetSize(); i<end; i++) {
+	for (UINT i=0, end=collideLevelSet.m_pVertexParticleIndex->GetSize(); i<end; i++) {
 		SVertexParticle & vP = collideLevelSet.m_VertexParticles[(*collideLevelSet.m_pVertexParticleIndex)[i]];
 		Vector3F wVP = collideLevelSet.m_TransformObjToWorld*vP.v;
 		if (ParticleInLevelSet(wVP, vP.closestDist)) {
@@ -620,7 +620,7 @@ DWORD CLevelSet::LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactP
 #endif
 	/* Edge-vertex containment */
 	/* Compute the minimum penetration distance */
-	for (DWORD i=0, end=m_pEdgeIndex->GetSize(); i<end; i++) {
+	for (UINT i=0, end=m_pEdgeIndex->GetSize(); i<end; i++) {
 		if ((*m_pEdgeIndex)[i] > m_EdgeParticles.GetSize())
 			DebugBreak();
 
@@ -635,7 +635,7 @@ DWORD CLevelSet::LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactP
 		}
 	}
 
-	for (DWORD i=0, end=collideLevelSet.m_pEdgeIndex->GetSize(); i<end; i++) {
+	for (UINT i=0, end=collideLevelSet.m_pEdgeIndex->GetSize(); i<end; i++) {
 		if ((*collideLevelSet.m_pEdgeIndex)[i] > collideLevelSet.m_EdgeParticles.GetSize())
 			DebugBreak();
 
@@ -659,7 +659,7 @@ DWORD CLevelSet::LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactP
 	/*
 	float dist;
 	// Body 1 
-	for (DWORD i=0, end=m_pVertexParticleIndex->GetSize(); i<end; i++) {
+	for (UINT i=0, end=m_pVertexParticleIndex->GetSize(); i<end; i++) {
 		SVertexParticle & vP = m_VertexParticles[(*m_pVertexParticleIndex)[i]];
 		//if (!vP.bIntersected) {
 			SVertexParticle wVP = {
@@ -668,7 +668,7 @@ DWORD CLevelSet::LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactP
 				0
 			};
 			
-			for (DWORD j=0, end2=vP.rgInsetV.GetSize(); j<end2; j++) {
+			for (UINT j=0, end2=vP.rgInsetV.GetSize(); j<end2; j++) {
 				//if (vP.rgInsetV[j].vertDist < vP.closestDist)
 				//	continue; 
 
@@ -684,7 +684,7 @@ DWORD CLevelSet::LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactP
 	}
 	
 	// Body 2 
-	for (DWORD i=0, end=collideLevelSet.m_pVertexParticleIndex->GetSize(); i<end; i++) {
+	for (UINT i=0, end=collideLevelSet.m_pVertexParticleIndex->GetSize(); i<end; i++) {
 		SVertexParticle & vP = collideLevelSet.m_VertexParticles[(*collideLevelSet.m_pVertexParticleIndex)[i]];
 		//if (!vP.bIntersected) {
 			SVertexParticle wVP = {
@@ -693,7 +693,7 @@ DWORD CLevelSet::LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactP
 				0
 			};
 
-			for (DWORD j=0, end2=vP.rgInsetV.GetSize(); j<end2; j++) {
+			for (UINT j=0, end2=vP.rgInsetV.GetSize(); j<end2; j++) {
 				//if (vP.rgInsetV[j].vertDist < vP.closestDist)
 				//	continue; 
 
@@ -710,7 +710,7 @@ DWORD CLevelSet::LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactP
 
 	// Body 1 
 	if (m_bDrawTris) CCollisionGraphics::SetupTriangleDraw(Vector3F(0, 1.f, 0));
-	for (DWORD i=0, end=m_FaceParticles.GetSize(); i<end; i++) {
+	for (UINT i=0, end=m_FaceParticles.GetSize(); i<end; i++) {
 		SFaceParticle & face = m_FaceParticles[i];
 
 		HandleFace(collideLevelSet, STriangleF(m_TransformObjToWorld*face.boundaryVertices[0],
@@ -718,7 +718,7 @@ DWORD CLevelSet::LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactP
 	}
 
 	// Body 2 
-	for (DWORD i=0, end=collideLevelSet.m_FaceParticles.GetSize(); i<end; i++) {
+	for (UINT i=0, end=collideLevelSet.m_FaceParticles.GetSize(); i<end; i++) {
 		SFaceParticle & face = collideLevelSet.m_FaceParticles[i];
 		
 		collideLevelSet.HandleFace(*this, STriangleF(collideLevelSet.m_TransformObjToWorld*face.boundaryVertices[0],
@@ -727,12 +727,12 @@ DWORD CLevelSet::LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactP
 
 
 	/* Reset all the intersected vertices */ //optimize in future
-	for (DWORD i=0, end=m_pVertexParticleIndex->GetSize(); i<end; i++) {
+	for (UINT i=0, end=m_pVertexParticleIndex->GetSize(); i<end; i++) {
 		SVertexParticle & vP = m_VertexParticles[(*m_pVertexParticleIndex)[i]];
 		vP.bIntersected = 0;
 		vP.bAdmissible = 0;
 	}
-	for (DWORD i=0, end=collideLevelSet.m_pVertexParticleIndex->GetSize(); i<end; i++) {
+	for (UINT i=0, end=collideLevelSet.m_pVertexParticleIndex->GetSize(); i<end; i++) {
 		SVertexParticle & vP = collideLevelSet.m_VertexParticles[(*collideLevelSet.m_pVertexParticleIndex)[i]];
 		vP.bIntersected = 0;
 		vP.bAdmissible = 0;
@@ -740,12 +740,12 @@ DWORD CLevelSet::LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactP
 
 	/* Reset all processed faces */
 	bool * rgProcessedFace = m_IsFaceProcessed.GetData();
-	for (DWORD i=0, end=m_IsFaceProcessed.GetSize(); i<end; i++) {
+	for (UINT i=0, end=m_IsFaceProcessed.GetSize(); i<end; i++) {
 		rgProcessedFace[i] = 0;
 	}
 	m_ToProcessFaceParticles.Resize(0);
 	rgProcessedFace = collideLevelSet.m_IsFaceProcessed.GetData();
-	for (DWORD i=0, end=collideLevelSet.m_IsFaceProcessed.GetSize(); i<end; i++) {
+	for (UINT i=0, end=collideLevelSet.m_IsFaceProcessed.GetSize(); i<end; i++) {
 		rgProcessedFace[i] = 0;
 	}
 	collideLevelSet.m_ToProcessFaceParticles.Resize(0);
@@ -758,7 +758,7 @@ DWORD CLevelSet::LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactP
 }
 
 bool CLevelSet::HandleEdgeEdgeCollision(SEdgeParticle & edge, Matrix4x4F & T, CArray<SContactPoint> * CPs, 
-	DWORD dwType, float norFlip, CLevelSet & collideLevelSet)
+	UINT uiType, float norFlip, CLevelSet & collideLevelSet)
 {
 	/* If both vertices are admissible, then there is no reason to consider the rest of the edge */
 	if ((edge.pVP1->closestDist >= 0 && edge.pVP2->closestDist >= 0 && (edge.pVP1->closestDist + edge.pVP2->closestDist) > edge.edgeLength) ||
@@ -801,7 +801,7 @@ bool CLevelSet::HandleEdgeEdgeCollision(SEdgeParticle & edge, Matrix4x4F & T, CA
 	/*SContactPoint cp;
 	cp.iNor = Vector3F(0,1,0);
 
-	cp.dwFaceIndex[0] = 2;
+	cp.uiFaceIndex[0] = 2;
 
 	cp.iPos = .5f*(v1+v2);
 	collideLevelSet.ParticleInLevelSet(cp.iPos, cp.dist);
@@ -835,7 +835,7 @@ bool CLevelSet::ComputeEdgeEdgeIntersection(CLevelSet & collideLevelSet, Vector3
 		cp.iNor = norFlip*avgNor;
 		if (cp.iNor.LengthSq() < .5) return 0;
 
-		cp.dwFaceIndex[0] = 1;
+		cp.uiFaceIndex[0] = 1;
 
 		cp.iPos = v1;
 		collideLevelSet.ParticleInLevelSet(cp.iPos, cp.dist);
@@ -860,7 +860,7 @@ bool CLevelSet::ComputeEdgeEdgeIntersection(CLevelSet & collideLevelSet, Vector3
 		cp.iPos = v2;
 		CPs->PushBack(cp);*/
 
-		cp.dwFaceIndex[0] = 2;
+		cp.uiFaceIndex[0] = 2;
 
 		cp.iPos = .5f*(v1+v2);
 		collideLevelSet.ParticleInLevelSet(cp.iPos, cp.dist);
@@ -874,18 +874,18 @@ bool CLevelSet::ComputeEdgeEdgeIntersection(CLevelSet & collideLevelSet, Vector3
 bool CLevelSet::MarchExteriorEdgeVertex(CLevelSet & collideLevelSet,
 	float edgeLength, Vector3F & v1, Vector3F & edgeDir, Vector3F coneDir, float coneCosAngle,  float & closestDist, Vector3F & finalPt)
 {
-	DWORD nVertPerEdge = ceilf_ASM(edgeLength/(.5f*collideLevelSet.m_CellSize));
+	UINT nVertPerEdge = ceilf_ASM(edgeLength/(.5f*collideLevelSet.m_CellSize));
 	float stepSize = edgeLength/(nVertPerEdge);
-	DWORD dwIncr = 0;
+	UINT uiIncr = 0;
 	bool b1;
 	do {
 		int iAdvance = (int)floorf_ASM(Abs(closestDist)/stepSize);
-		dwIncr += max(iAdvance, 1);
-		if (dwIncr >= nVertPerEdge+1) {
+		uiIncr += max(iAdvance, 1);
+		if (uiIncr >= nVertPerEdge+1) {
 			return 0;
 		}
 
-		finalPt = v1 + (stepSize/edgeLength * (float)dwIncr) * edgeDir;
+		finalPt = v1 + (stepSize/edgeLength * (float)uiIncr) * edgeDir;
 		b1 = collideLevelSet.ParticleInLevelSet(finalPt, closestDist);
 	} while (!b1 || 
 		!IsNormalAdmissible(coneDir, coneCosAngle, collideLevelSet.ComputeGradient(finalPt)));
@@ -1053,7 +1053,7 @@ void CLevelSet::DrawLevelset()
 void CLevelSet::DrawAdmissibleZones()
 {
 	SVertexParticle * pParticles = m_VertexParticles.GetData();
-	for (DWORD i=0, end=m_VertexParticles.GetSize(); i<end; i++) {
+	for (UINT i=0, end=m_VertexParticles.GetSize(); i<end; i++) {
 		CCollisionGraphics::DrawNormal(m_TransformObjToWorld*pParticles[i].v, m_TransformNormalGridToWorld*pParticles[i].coneDir, .02, .2, Vector3F(1.f));
 	}
 }

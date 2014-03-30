@@ -13,7 +13,7 @@ namespace DxUt {
 struct SSegment2F {
 	Vector2F e1;
 	Vector2F e2;
-	DWORD dwEdge;
+	UINT uiEdge;
 
 	SSegment2F() {}
 	SSegment2F(const Vector2F & _e1, const Vector2F & _e2):SSegment2F(_e1,_e2) {}
@@ -23,7 +23,7 @@ struct SSegment2F {
 struct SSegment3F {
 	Vector3F e1;
 	Vector3F e2;
-	DWORD dwEdge;
+	UINT uiEdge;
 
 	SSegment3F() {}
 	SSegment3F(const Vector3F & _e1, const Vector3F & _e2):e1(_e1), e2(_e2) {}
@@ -37,10 +37,10 @@ public:
 	Vector3F normal;
 
 	CArray<SSegment3F> edges;
-	DWORD dwPoly;
+	UINT uiPoly;
 public:
 	SPolygon3F() {}
-	SPolygon3F(Vector3F & _normal, DWORD _dwPoly):normal(_normal),dwPoly(_dwPoly) {}
+	SPolygon3F(Vector3F & _normal, UINT _uiPoly):normal(_normal),uiPoly(_uiPoly) {}
 	~SPolygon3F() {edges.Clear(); }
 
 
@@ -90,7 +90,7 @@ public:
 	/* Compute a polygon based upon a list of disorded edges */
 	/* The first edge in edgeDisordereds will determine the direction of successive edges */
 	void ComputePolygon(CArray<SSegment3F> & edgeDisordereds) {
-		DWORD nEdges = edgeDisordereds.GetSize();
+		UINT nEdges = edgeDisordereds.GetSize();
 		bool * usedEdges = new bool[nEdges];
 		memset(usedEdges, 0, sizeof(bool)*nEdges);
 	
@@ -100,9 +100,9 @@ public:
 		edges.PushBack(pEdgesDisordered[0]);
 		usedEdges[0] = 1;
 		// TODO: Optimize 
-		for (DWORD i=0; i<nEdges; i++) {
+		for (UINT i=0; i<nEdges; i++) {
 			SSegment3F & connection = edges.GetBack();
-			for (DWORD j=0; j<nEdges; j++) {
+			for (UINT j=0; j<nEdges; j++) {
 				if (!usedEdges[j]) {
 					if (pEdgesDisordered[j].e1 == connection.e2) {
 						usedEdges[j] = 1;

@@ -17,10 +17,10 @@ class CMesh {
 protected:
 	std::string m_Name;
 	ID3DX10Mesh * m_pMesh;
-	DWORD m_dwStride;
-	DWORD m_nSubsets; 
-	DWORD m_nVertices;
-	DWORD m_nFaces;
+	UINT m_uiStride;
+	UINT m_nSubsets; 
+	UINT m_nVertices;
+	UINT m_nFaces;
 
 	SMaterial * m_Materials; 
 	// TODO: Add a Texture class on
@@ -29,40 +29,40 @@ protected:
 	/* Note that some of these vertices may be degenerate */
 	Vector3F * m_Vertices;
 	STriangleF * m_Tris;
-	DWORD * m_Adj;
+	UINT * m_Adj;
 
-	virtual void TextureCreationHook(char * szTexFile, DWORD i) {}
+	virtual void TextureCreationHook(char * szTexFile, UINT i) {}
 public:
 	CMesh();
 	virtual ~CMesh() {}
 
-	//void CMesh::CreateMesh(DWORD nTri, DWORD nVert, DWORD dwOptions, 
-	//	const D3D10_INPUT_ELEMENT_DESC * aDesc, DWORD cDesc, DWORD nSubsets, char * szName);
+	//void CMesh::CreateMesh(UINT nTri, UINT nVert, UINT uiOptions, 
+	//	const D3D10_INPUT_ELEMENT_DESC * aDesc, UINT cDesc, UINT nSubsets, char * szName);
 
 	/* Loads a PNT mesh from a txt file scaled by scale */
-	virtual void LoadMeshFromFile(char * szMeshFile, DWORD dwOptions, Vector3F & scale);
+	virtual void LoadMeshFromFile(char * szMeshFile, UINT uiOptions, Vector3F & scale);
 
 	virtual void SetupDraw(CCamera * pCam, SLightDir & light) {}
-	virtual void DrawAllSubsets(CCamera * pCam, Matrix4x4F & world, DWORD dwShaderPass, SMaterial * pOverrideMaterial=NULL) {}
+	virtual void DrawAllSubsets(CCamera * pCam, Matrix4x4F & world, UINT uiShaderPass, SMaterial * pOverrideMaterial=NULL) {}
 
 	/*//Sets the SMaterial and sRV of a subset to effect handels
 	virtual void SetMatEffectHandels(ID3D10EffectVariable *& eMat,
-		ID3D10EffectShaderResourceVariable *& eSRV, DWORD dwSubset);
+		ID3D10EffectShaderResourceVariable *& eSRV, UINT uiSubset);
 
 	//For each subset sets the SMaterial and sRV to effect handels,
-	//commits the changes on dwShaderPass , and draws that subset
+	//commits the changes on uiShaderPass , and draws that subset
 	virtual void DrawAllSubsets(ID3D10EffectTechnique *& eTech, ID3D10EffectVariable *& eMat, 
-		ID3D10EffectShaderResourceVariable *& eSRV, DWORD dwShaderPass);
+		ID3D10EffectShaderResourceVariable *& eSRV, UINT uiShaderPass);
 	*/
 
 	ID3DX10Mesh * GetMesh() {return m_pMesh;}
-	DWORD GetNumTriangles() {return m_nFaces;}
-	DWORD GetNumVertices() {return m_nVertices;}
-	DWORD GetStride() {return m_dwStride; }
+	UINT GetNumTriangles() {return m_nFaces;}
+	UINT GetNumVertices() {return m_nVertices;}
+	UINT GetStride() {return m_uiStride; }
 
 	Vector3F * GetVertices() const {return m_Vertices;}
 	STriangleF * GetTriangles() const {return m_Tris;}
-	DWORD * GetAdjancey() const {return m_Adj;}
+	UINT * GetAdjancey() const {return m_Adj;}
 
 	Vector3F * GetNewVertexTriangleList() {
 		Vector3F * vert = new Vector3F[3*m_nFaces];
@@ -70,10 +70,10 @@ public:
 		return vert;
 	}
 
-	DWORD & GetNumSubsets() {return m_nSubsets;}
-	DWORD GetNumMaterial() {return m_nSubsets;}
-	SMaterial & GetMaterial(DWORD dwIndex);
-	ID3D10ShaderResourceView * GetSHView(DWORD dwIndex); 
+	UINT & GetNumSubsets() {return m_nSubsets;}
+	UINT GetNumMaterial() {return m_nSubsets;}
+	SMaterial & GetMaterial(UINT uiIndex);
+	ID3D10ShaderResourceView * GetSHView(UINT uiIndex); 
 
 	//ID3DX10Mesh *& operator->() {
 	//	return m_pMesh; }
@@ -83,18 +83,18 @@ public:
 	virtual void Destroy();
 };
 
-inline SMaterial & CMesh::GetMaterial(DWORD dwIndex)
+inline SMaterial & CMesh::GetMaterial(UINT uiIndex)
 {
-	Assert(dwIndex < m_nSubsets, "CMesh::GetMaterial the material index is out of range.");
+	Assert(uiIndex < m_nSubsets, "CMesh::GetMaterial the material index is out of range.");
 
-	return m_Materials[dwIndex];
+	return m_Materials[uiIndex];
 }
 
-inline ID3D10ShaderResourceView * CMesh::GetSHView(DWORD dwIndex)
+inline ID3D10ShaderResourceView * CMesh::GetSHView(UINT uiIndex)
 {
-	Assert(dwIndex < m_nSubsets, "CMesh::GetSHView the SHView index is out of range.");
+	Assert(uiIndex < m_nSubsets, "CMesh::GetSHView the SHView index is out of range.");
 
-	return m_SRViews[dwIndex];
+	return m_SRViews[uiIndex];
 }
 
 
