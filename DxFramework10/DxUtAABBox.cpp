@@ -16,14 +16,10 @@ CAABBox::CAABBox(Vector3F & minP, Vector3F & maxP): m_MinPL(minP), m_MaxPL(maxP)
 {
 }
 
-void ExtractVerticesFromMesh(ID3DX10Mesh * pMesh, Vector3F * verts, DWORD dwStride);
-
-
-void CAABBox::ComputeAABBox(ID3DX10Mesh * pMesh, DWORD dwStride)
+void CAABBox::ComputeAABBox(CMesh * pMesh)
 {
-	UINT nVert = pMesh->GetVertexCount();
-	Vector3F * verts = new Vector3F[nVert];
-	ExtractVerticesFromMesh(pMesh, verts, dwStride);
+	UINT nVert = 3*pMesh->GetNumTriangles();
+	Vector3F * verts = pMesh->GetNewVertexTriangleList();
 
 	ComputeAABBox(verts, nVert);
 	delete[] verts;

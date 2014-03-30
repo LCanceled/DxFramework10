@@ -25,10 +25,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		g_uiWndWidth = rect.right;
 		g_uiWndHeight = rect.bottom;
 
-		g_D3DApp->WindowResize();
-		g_D3DApp->m_fpnOnResizeWindow();
+		g_App->WindowResize();
+		g_App->m_fpnOnResizeWindow();
 
-		g_D3DApp->SetPaused(FALSE);
+		g_App->SetPaused(FALSE);
 
 		return 0;
 
@@ -36,8 +36,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		return 0;
 
 	case WM_KEYUP:
-		if (wParam == VK_F2 && !g_D3DApp->IsFullscreen()) 
-			g_D3DApp->WindowFullScreen();
+		if (wParam == VK_F2 && !g_App->IsFullscreen()) 
+			g_App->WindowFullScreen();
 		else if (wParam == VK_ESCAPE)
 			PostQuitMessage(0);
 
@@ -56,8 +56,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 CD3DApp::CD3DApp(HINSTANCE hInst, TCHAR * szClassName, TCHAR * szTitleText,
 		WORD wWndPosX, WORD wWndPosY, WORD wWndWidth, WORD wWndHeight, void (*onResizeWindowFunction)()):
 	m_hInst(hInst), m_wWndPosX(wWndPosX), m_wWndPosY(wWndPosY), 	
-	m_bFullscreen(0), m_bPaused(0), m_pDinput(0), m_pKeyboard(0), m_pMouse(0), m_fpnOnResizeWindow(onResizeWindowFunction)
+	m_bFullscreen(0), m_pDinput(0), m_pKeyboard(0), m_pMouse(0)
 {
+	m_fpnOnResizeWindow = onResizeWindowFunction;
 	GetCurrentDirectoryA(MAX_PATH, g_szFileDir);
 
 	g_uiWndWidth = wWndWidth;
@@ -151,8 +152,6 @@ CD3DApp::CD3DApp(HINSTANCE hInst, TCHAR * szClassName, TCHAR * szTitleText,
 	m_pCollisionGraphics = new CCollisionGraphics;
 	m_pCollisionGraphics->CreateGraphics();
 
-	QueryPerformanceCounter((LARGE_INTEGER*)&m_liCountNum);
-
 	AllocConsole();
 	m_hConsleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
 
@@ -166,8 +165,6 @@ CD3DApp::CD3DApp(CD3DApp & cpy)
 
 void CD3DApp::Loop(void (*loopFunction)())
 {
-	QueryPerformanceCounter((LARGE_INTEGER*)&m_liLastCountNum);
-
 	MSG msg;
 	ZeroMemory(&msg, sizeof(msg));
 	while (msg.message != WM_QUIT) {
@@ -179,17 +176,18 @@ void CD3DApp::Loop(void (*loopFunction)())
 				Sleep(80);
 			}
 			else {
-				static int frameCount = 0; frameCount++;
-				double time = g_TimeElapsed;
-				__int64 oldCountNum = m_liLastCountNum;
-				CalculateTime(); 
+				CTimer::Get().StartTimer(MAX_TIMERS-1);
 				PollKeyboard();
 				PollMouse();
 
 				loopFunction();
 
-				double delta = 1e-6*(m_liCountNum - oldCountNum);
+				CTimer::Get().EndTimer(MAX_TIMERS-1, "");
+				g_TimeElapsed += CTimer::Get().GetElapsedTime(MAX_TIMERS-1);
+				g_SPFrame = CTimer::Get().GetElapsedTime(MAX_TIMERS-1);
+				
 				double sPFrame = .03;
+				double delta = CTimer::Get().GetElapsedTime(MAX_TIMERS-1);
 				if (sPFrame - delta > 0) Sleep(1000*(sPFrame - delta));
 			}
 		}
@@ -280,20 +278,6 @@ void CD3DApp::WindowFullScreen()
 	}*/
 }
 
-void CD3DApp::CalculateTime()
-{
-	__int64 countsPer_s;
-	QueryPerformanceFrequency((LARGE_INTEGER*)&countsPer_s);
-	QueryPerformanceCounter((LARGE_INTEGER*)&m_liCountNum);
-	__int64 deltaCount = m_liCountNum-m_liLastCountNum;
-	float sPerFrame = (float)(deltaCount)/(float)countsPer_s;
-	if (sPerFrame > 1.f) sPerFrame = .001f;
-	m_liLastCountNum = m_liCountNum;
-
-	g_TimeElapsed += sPerFrame;
-	g_SPFrame = sPerFrame;
-}
-
 void CD3DApp::PollKeyboard()
 {
 	if (FAILED(m_pKeyboard->GetDeviceState(sizeof(g_KeysState), (void**)&g_KeysState))) {
@@ -372,15 +356,13 @@ void CD3DApp::ExtractPixelsFromImageFile(CHAR * szImageFile, void ** ppData,
 	ReleaseX(tex);
 }
 
-void CD3DApp::DestroyD3DApp()
+void CD3DApp::Destroy()
 {
 	g_uiWndWidth = 0;
 	g_uiWndHeight = 0;
 	m_wWndPosX = 0;
 	m_wWndPosY = 0;
 	m_bFullscreen = 0;
-	m_liCountNum = 0;
-	m_liLastCountNum = 0;
 	m_bPaused = 1;
 
 	m_hInst = 0; 

@@ -5,6 +5,7 @@
 #include "DxUtInclude.h"
 #include "DxUtTriangle.h"
 #include "DxUtRay.h"
+#include "DxUtMesh.h"
 #include <vector> 
 
 namespace DxUt {
@@ -39,9 +40,9 @@ public:
 	//~COBBox() {}
 
 	//pMesh must have adjancey
-	void ComputeOBB(ID3DX10Mesh * pMesh, DWORD dwStride, OBBComputeMethod method);
+	void ComputeOBB(CMesh * pMesh, OBBComputeMethod method);
 
-	//verts must be a triangle list 
+	// For OBBComputeMethod::CVTriangles the verts must be in triangle list order
 	void ComputeOBB(Vector3F * verts, DWORD nVert, OBBComputeMethod method);
 
 	BOOL PointInOBBW(Vector3F & pt);

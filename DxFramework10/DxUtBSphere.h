@@ -3,6 +3,7 @@
 #define DXUTBSPHERE_H
 
 #include "DxUtInclude.h"
+#include "DxUtMesh.h"
 
 namespace DxUt {
 
@@ -30,7 +31,7 @@ public:
 	//in the first 12 bytes of a vertex's data sturcture.
 	//Furthermore, the CAABBox will be computed with the
 	//vertex buffer before it has been commited to a device.
-	void ComputeBSphere(ID3DX10Mesh * pMesh, DWORD dwStride);
+	void ComputeBSphere(CMesh * pMesh);
 	void ComputeBSphere(Vector3F * verts, DWORD nVert);
 
 	bool PointInBSphereW(Vector3F & pt);

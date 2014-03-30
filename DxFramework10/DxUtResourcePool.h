@@ -51,6 +51,18 @@ public:
 		}
 	}
 
+	static bool GetResource(char * szName, T * pResource) {
+		DWORD dwIndex = 0;
+		SResourceElement el;
+		UM::iterator got = m_Elements.find(szName);
+		if (got != m_Elements.end()) {
+			pResource->ShallowCopy(got->second.pResource);
+			return 1;
+		}  else {
+			return 0;
+		}
+	}
+
 	static void PutResource(char * szName, T * pResource) {
 		SResourceElement el;
 		el.pResource = pResource;

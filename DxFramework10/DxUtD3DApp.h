@@ -2,7 +2,7 @@
 #ifndef DXUTD3DAPP_H
 #define DXUTD3DAPP_H
 
-#include "DxUtInclude.h"
+#include "DxUtApp.h"
 
 namespace DxUt {
 
@@ -10,23 +10,18 @@ class CEffectPool;
 class CMeshPool;
 class CCollisionGraphics;
 
-class CD3DApp {
+class CD3DApp : public CApp {
 private:
 	HINSTANCE m_hInst;
 	TCHAR * m_szWndClassName;
 	TCHAR * m_szWndTitleText;
 	WNDPROC m_WndProc;
 	WORD m_wWndPosX, m_wWndPosY;
-	BOOL m_bFullscreen;
-	__int64 m_liCountNum;
-	__int64 m_liLastCountNum; 
-	BOOL m_bPaused;
+	BOOL m_bFullscreen; 
 
 	LPDIRECTINPUT8 m_pDinput;
 	LPDIRECTINPUTDEVICE8 m_pKeyboard;
 	LPDIRECTINPUTDEVICE8 m_pMouse;
-
-	void (*m_fpnOnResizeWindow)();
 
 	/* Pools initialization */
 	CEffectPool * m_pEffectPool;
@@ -54,9 +49,6 @@ public:
 	BOOL GetPaused() {return m_bPaused; }
 	void SetPaused(BOOL pause) {m_bPaused = pause; }
 
-	BOOL IsFullscreen() {return m_bFullscreen; }
-	void ToggleFullscreen(BOOL f) {m_bFullscreen = f; }
-
 	void Print(float val, char * str="\n") {
 		char buf[256]; 
 		sprintf(buf, "%f%s\0", val, str); Print(buf); 
@@ -69,10 +61,6 @@ public:
 		sprintf(buf, "%i%s\0", val, str); Print(buf); 
 	}
 	void Print(UINT val, char * str="\n") {
-		char buf[256]; 
-		sprintf(buf, "%u%s\0", val, str); Print(buf); 
-	}
-	void Print(DWORD val, char * str="\n") {
 		char buf[256]; 
 		sprintf(buf, "%u%s\0", val, str); Print(buf); 
 	}
@@ -89,7 +77,7 @@ public:
 	void ExtractPixelsFromImageFile(CHAR * szImageFile, void ** ppData,
 		DWORD dwStride, DWORD * pdwImageWidth=0, DWORD * pdwImageHeight=0);
 
-	void DestroyD3DApp();
+	void Destroy();
 };
 
 

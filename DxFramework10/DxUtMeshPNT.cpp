@@ -48,13 +48,13 @@ void CMeshPNT::DrawAllSubsets(CCamera * pCam, Matrix4x4F & world, DWORD dwShader
 	m_Effect->eWVP->SetMatrix((float*)&(wT*pCam->GetView()*pCam->GetProjection()));
 	m_Effect->eWorld->SetMatrix((float*)&wT); //Not correct under translations
 
-	m_Effect->eTexture->SetResource(m_rgSRView[0]);
+	m_Effect->eTexture->SetResource(m_SRViews[0]);
 
 	for (DWORD i=0; i<m_nSubsets; i++) {
 		if (pOverrideMaterial) {
 			m_Effect->eMaterial->SetRawValue(pOverrideMaterial, 0, sizeof(SMaterial));
 		} else {
-			m_Effect->eMaterial->SetRawValue(&m_rgMat[i], 0, sizeof(SMaterial));
+			m_Effect->eMaterial->SetRawValue(&m_Materials[i], 0, sizeof(SMaterial));
 		}
 
 		m_Effect->eTech->GetPassByIndex(dwShaderPass)->Apply(0);

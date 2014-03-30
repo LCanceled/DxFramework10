@@ -72,7 +72,7 @@ public:
 	//~CRigidBody() {}
 
 	/* Mass < 0 represents an infinitely heavy object */
-	void CreateRigidBody(CMesh * pMesh, DWORD dwStride, float scale, float mass, Vector3F & gravity, float timeStepSize, float maxVel,
+	void CreateRigidBody(CMesh * pMesh, float scale, float mass, Vector3F & gravity, float timeStepSize, float maxVel,
 		char * szLevelSet, DWORD dwTriPerOct, bool bUseHierarchicalLevelSet, GeometryType type=GT_TRIANGLE_MESH, SMaterial * pOverrideMaterial=NULL);
 
 	void IntegratePos(float dt);

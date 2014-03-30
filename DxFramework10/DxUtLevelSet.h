@@ -11,6 +11,7 @@
 #include "DxUtOBBox.h"
 #include "DxUtAABBox.h"
 #include "DxUtPolygon.h"
+#include "DxUtMesh.h"
 
 namespace DxUt {
 
@@ -184,9 +185,8 @@ public:
 	CLevelSet();
 	~CLevelSet() {}
 
-	virtual void CreateLevelSet(ID3DX10Mesh * pMesh, DWORD dwStride, char * szLevelSetFile, bool bLoadFromFile=1, float cellSize=.1f);
+	virtual void CreateLevelSet(CMesh * pMesh, char * szLevelSetFile, bool bLoadFromFile=1, float cellSize=.1f);
 	virtual void CreateLevelSet(STriangleF * tris, DWORD nTri, DWORD * pAdj, char * szLevelSetFile, bool bLoadFromFile=1, float cellSize=.1f);
-	virtual void CreateLevelSet(Vector3F * verts, DWORD nVert, DWORD * pAdj, char * szLevelSetFile, bool bLoadFromFile=1, float cellSize=.1f);
 
 	/*void SetTransform(Matrix4x4F & rT) {
 		m_TransformObjToWorld = rT;

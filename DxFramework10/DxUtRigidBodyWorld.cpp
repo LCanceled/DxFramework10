@@ -25,7 +25,7 @@ void CRigidBodyWorld::CreateRigidBodyWorld(DWORD nHintRBs, DWORD nHintContacts, 
 	m_bUseHierarchicalLevelSet = bUseHierarchicalLevelSet;
 }
 
-DWORD CRigidBodyWorld::AddRigidBody(CMesh * pMesh, DWORD dwStride, float scale, float mass, Vector3F & pos,
+DWORD CRigidBodyWorld::AddRigidBody(CMesh * pMesh, float scale, float mass, Vector3F & pos,
 	Matrix4x4F & rot, Vector3F & linVel, Vector3F & angVel, float elasticity, float mu, Vector3F & force,
 	Vector3F & torque, char * szLevelSet, DWORD dwTriPerOct, CRigidBody::GeometryType type, SMaterial * pOverrideMaterial)
 {
@@ -34,7 +34,7 @@ DWORD CRigidBodyWorld::AddRigidBody(CMesh * pMesh, DWORD dwStride, float scale, 
 	rbo.bActive = 1;
 	rbo.bDenter = 0;
 	CRigidBody & r = rbo.rB;
-	r.CreateRigidBody(pMesh, dwStride, scale, mass, m_Gravity, m_TimeStepSize, m_MaxVelocity, szLevelSet, dwTriPerOct, m_bUseHierarchicalLevelSet, type, pOverrideMaterial);
+	r.CreateRigidBody(pMesh, scale, mass, m_Gravity, m_TimeStepSize, m_MaxVelocity, szLevelSet, dwTriPerOct, m_bUseHierarchicalLevelSet, type, pOverrideMaterial);
 	r.m_Pos = pos;
 	r.m_Rot = rot;
 	r.m_LinVel = linVel;

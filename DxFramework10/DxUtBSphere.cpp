@@ -14,11 +14,10 @@ CBSphere::CBSphere(Vector3F & posL, float RadiusL):
 {
 }
 
-void CBSphere::ComputeBSphere(ID3DX10Mesh * pMesh, DWORD dwStride)
+void CBSphere::ComputeBSphere(CMesh * pMesh)
 {
-	UINT nVert = pMesh->GetVertexCount();
-	Vector3F * verts = new Vector3F[nVert];
-	ExtractVerticesFromMesh(pMesh, verts, dwStride);
+	UINT nVert = 3*pMesh->GetNumTriangles();
+	Vector3F * verts = pMesh->GetNewVertexTriangleList();
 
 	ComputeBSphere(verts, nVert);
 	delete[] verts;

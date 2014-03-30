@@ -13,22 +13,18 @@ CRigidBody::CRigidBody():m_bNotStatic(1),m_pOverrideMaterial(0)
 {
 }
 
-void CRigidBody::CreateRigidBody(CMesh * pMesh, DWORD dwStride, float scale, float mass, Vector3F & gravity, float timeStepSize,
+void CRigidBody::CreateRigidBody(CMesh * pMesh, float scale, float mass, Vector3F & gravity, float timeStepSize,
 	float fMaxVelocity, char * szLevelSet, DWORD dwTriPerOct, bool bUseHierarchicalLevelSet, GeometryType type, SMaterial * pOverideMaterial)
 {
 	m_pMesh = pMesh;
-	ID3DX10Mesh * pRawMesh = pMesh->GetMesh();
 	
-	DWORD nVert = 3*pRawMesh->GetFaceCount();
-	Vector3F * verts = new Vector3F[nVert];
-	ExtractVertexTriangleListFromMesh(pRawMesh, verts, dwStride);
-
+	DWORD nVert = 3*pMesh->GetNumTriangles();
+	Vector3F * verts = pMesh->GetNewVertexTriangleList();
+	
 	double density = 0;
 	if (mass < 0) {m_IBody.MZero(); m_CenterOfMass = Vector3F(0); }
 	else ComputeInertiaTensor(verts, nVert, mass, m_IBody, m_CenterOfMass, density);
-
-	DWORD * pAdj = new DWORD[3*nVert];
-	ExtractAdjanceyFromMesh(pRawMesh, pAdj);
+	delete[] verts;
 
 	/* Center the mass at the center of mass */
 	/*for (DWORD i=0; i<nVert; i++) {
@@ -43,7 +39,7 @@ void CRigidBody::CreateRigidBody(CMesh * pMesh, DWORD dwStride, float scale, flo
 	//if (bUseHierarchicalLevelSet)
 	//	((COctreeLevelSet*)m_pLevelSet)->CreateParticleRepresentation(verts, nVert, pAdj, 1, dwTriPerOct, szLevelSet);
 	//else 
-	m_pLevelSet->CreateLevelSet(verts, nVert, pAdj, szLevelSet);
+	m_pLevelSet->CreateLevelSet(m_pMesh, szLevelSet);
 
 	m_InvMass = 1.f/mass;
 	m_Density = (float)density;
@@ -57,11 +53,6 @@ void CRigidBody::CreateRigidBody(CMesh * pMesh, DWORD dwStride, float scale, flo
 	}
 	m_Scale = scale;
 	
-	delete[] verts;
-	verts = NULL;
-	delete[] pAdj;
-	pAdj = NULL;
-
 	m_RBType = type;
 
 	if (pOverideMaterial) {
@@ -311,7 +302,7 @@ void ComputeVolume(STriangleF * tris, DWORD nTri, double & vol)
 	// volume of polyhedron
 	vol = intg/6.0;
 }
-
+/*
 //The vertices must be in a triangle list order
 void ComputeVolume(Vector3F * verts, DWORD nVert, double & vol)
 {
@@ -319,7 +310,7 @@ void ComputeVolume(Vector3F * verts, DWORD nVert, double & vol)
 	DWORD nTri = nVert/3;
 
 	ComputeVolume((STriangleF*)verts, nTri, vol);
-}
+}*/
 
 #define Subexpressions(w0,w1,w2,f1,f2,f3,g0,g1,g2,temp0,temp1,temp2)		\
 {																			\

@@ -441,28 +441,20 @@ float CLevelSet::ComputeSignedDistance(Vector3F & pt, Vector3F * verts, DWORD nV
 	return DotXYZ(dir, closestFeatureNor) > 0 ? fBestDist : -fBestDist;
 }
 
-void CLevelSet::CreateLevelSet(ID3DX10Mesh * pMesh, DWORD dwStride, char * szLevelSetFile, bool bLoadFromFile, float cellSize)
+void CLevelSet::CreateLevelSet(CMesh * pMesh, char * szLevelSetFile, bool bLoadFromFile, float cellSize)
 {
-	DWORD nVert = 3*pMesh->GetFaceCount();
-	Vector3F * verts = new Vector3F[nVert];
-	ExtractVertexTriangleListFromMesh(pMesh, verts, dwStride);
+	DWORD nVert = 3*pMesh->GetNumTriangles();
+	STriangleF * tris = pMesh->GetTriangles();
+	DWORD * pAdj = pMesh->GetAdjancey();
 
-	DWORD * pAdj = new DWORD[3*nVert];
-	ExtractAdjanceyFromMesh(pMesh, pAdj);
-
-	CreateLevelSet(verts, nVert, pAdj, szLevelSetFile, bLoadFromFile, cellSize);
-
-	delete[] verts;
-	delete[] pAdj;
+	CreateLevelSet(tris, nVert, pAdj, szLevelSetFile, bLoadFromFile, cellSize);
 }
 
 void CLevelSet::CreateLevelSet(STriangleF * tris, DWORD nTri, DWORD * pAdj, char * szLevelSetFile, bool bLoadFromFile, float cellSize)
 {
-	Assert(0, "CLevelSet::ComputeSDF function not implemented.");
-}
-
-void CLevelSet::CreateLevelSet(Vector3F * verts, DWORD nVert, DWORD * pAdj, char * szLevelSetFile, bool bLoadFromFile, float cellSize)
-{
+	DWORD nVert = 3*nTri;
+	Vector3F * verts = new Vector3F[nVert];
+	for (int i=0; i<3*nTri; i++) {verts[i] = tris[i/3].vPosW[i%3]; }
 	if (bLoadFromFile) {
 		if (!LoadLevelSet(szLevelSetFile))
 			DxUtSendError("CLevelSet::CreateLevelSet level set could not be loaded.");
@@ -473,6 +465,8 @@ void CLevelSet::CreateLevelSet(Vector3F * verts, DWORD nVert, DWORD * pAdj, char
 	}
 
 	ComputeMeshParticles(nVert, nVert/3, verts, pAdj, szLevelSetFile);
+
+	delete[] verts;
 }
 
 bool CLevelSet::LoadLevelSet(char * szFile)

@@ -275,5 +275,11 @@
     <ClInclude Include="DxUtConvexHull.h">
       <Filter>Header Files\Collisions</Filter>
     </ClInclude>
+    <ClInclude Include="DxUtApp.h">
+      <Filter>Header Files\App</Filter>
+    </ClInclude>
+    <ClInclude Include="DxUtGLApp.h">
+      <Filter>Header Files\App</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

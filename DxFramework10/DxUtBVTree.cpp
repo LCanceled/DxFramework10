@@ -99,17 +99,15 @@ void ComputePolygons(CArray<CContactRegions::SPolygon3FEx> & rgPolygon, DWORD nT
 	}
 }*/
 
-void BVTree::CreateBVTree(ID3DX10Mesh * pMesh, DWORD dwStride)
+void BVTree::CreateBVTree(CMesh * pMesh)
 {
 	Assert(!m_pTree, "BVTree::CreateBVTree tree must be destroyed before creating a new one.");
 	
-	DWORD nTri = pMesh->GetFaceCount();
-	DWORD nVert = 3*pMesh->GetFaceCount();
-	Vector3F * verts = new Vector3F[nVert];
-	ExtractVertexTriangleListFromMesh(pMesh, verts, dwStride);
-
-	m_pAdj = new DWORD[3*nVert];
-	ExtractAdjanceyFromMesh(pMesh, m_pAdj);
+	DWORD nTri = pMesh->GetNumTriangles();
+	DWORD nVert = 3*pMesh->GetNumTriangles();
+	Vector3F * verts = pMesh->GetNewVertexTriangleList();
+	m_pAdj = new DWORD[3*nTri];
+	memcpy(m_pAdj, pMesh->GetAdjancey(), 3*nTri*sizeof(DWORD));
 	
 	m_pTree = new BranchNode;
 	m_BVs = new COBBox[2*nTri];
@@ -118,10 +116,10 @@ void BVTree::CreateBVTree(ID3DX10Mesh * pMesh, DWORD dwStride)
 	m_TransformedTris = new STriangleF[nTri];
 	m_nTri = nTri;
 
-	DWORD * rgFaceIndex = new DWORD[nVert/3];
-	for (DWORD i=0; i<nTri; i++) rgFaceIndex[i] = i;
+	DWORD * faceIndices = new DWORD[nVert/3];
+	for (DWORD i=0; i<nTri; i++) faceIndices[i] = i;
 
-	BuildBVTree(m_pTree, verts, rgFaceIndex, nVert, 0);
+	BuildBVTree(m_pTree, verts, faceIndices, nVert, 0);
 
 	Matrix4x4F rot;
 	m_BVs[0].RotationW(rot);
@@ -131,46 +129,10 @@ void BVTree::CreateBVTree(ID3DX10Mesh * pMesh, DWORD dwStride)
 
 	delete[] verts;
 	verts = NULL;
-	delete[] rgFaceIndex;
-	rgFaceIndex = NULL;
+	delete[] faceIndices;
+	faceIndices = NULL;
 
 	m_TopLevelOBBoxW = *m_pTree->pOBB;
-
-	/*UINT nVert = 3*pMesh->GetFaceCount();
-	UINT nTri = pMesh->GetFaceCount();
-
-	Vector3F * verts = new Vector3F[nVert];
-	m_pAdj = new DWORD[3*nTri];
-
-	ExtractVertexTriangleListFromMesh(pMesh, verts, dwStride);
-	ExtractAdjanceyFromMesh(pMesh, m_pAdj);
-
-	DWORD * rgFaceIndex = new DWORD[nVert/3];
-	for (DWORD i=0; i<nTri; i++) rgFaceIndex[i] = i;
-
-	m_pTree = new BranchNode;
-	m_BVs = new COBBox[2*nTri];
-	m_nBV = 0;
-	m_Tris = new STriangleF[nTri];
-	m_TransformedTris = new STriangleF[nTri];
-	m_nTri = nTri;
-
-	BuildBVTree(m_pTree, verts, rgFaceIndex, nVert);
-
-	Matrix4x4F rot;
-	m_BVs[0].RotationW(rot);
-	m_BVs[0].m_RotVecW[0] = rot.GetColumnVec3F(0);
-	m_BVs[0].m_RotVecW[1] = rot.GetColumnVec3F(1);
-	m_BVs[0].m_RotVecW[2] = rot.GetColumnVec3F(2);
-
-	delete[] verts;
-	verts = NULL;
-	delete[] rgFaceIndex;
-	rgFaceIndex = NULL;
-
-	ComputePolygons(m_rgPolygon, m_nTri, m_Tris, m_pAdj);
-	
-	m_TopLevelOBBoxW = *m_pTree->pOBB;*/
 }
 
 void BVTree::CreateBVTree(STriangleF * tris, DWORD nTri, DWORD * adj)
@@ -178,8 +140,10 @@ void BVTree::CreateBVTree(STriangleF * tris, DWORD nTri, DWORD * adj)
 	Assert(!m_pTree, "BVTree::CreateBVTree tree must be destroyed before creating a new one.");
 
 	DWORD nVert = 3*nTri;
-	DWORD * rgFaceIndex = new DWORD[nVert/3];
-	for (DWORD i=0; i<nTri; i++) rgFaceIndex[i] = i;
+	Vector3F * verts = new Vector3F[nVert];
+	for (int i=0; i<nVert; i++) verts[i] = tris[i/3].vPosW[i%3]; 
+	DWORD * faceIndices = new DWORD[nVert/3];
+	for (DWORD i=0; i<nTri; i++) faceIndices[i] = i;
 
 	m_pTree = new BranchNode;
 	m_BVs = new COBBox[2*nTri];
@@ -188,9 +152,7 @@ void BVTree::CreateBVTree(STriangleF * tris, DWORD nTri, DWORD * adj)
 	m_TransformedTris = new STriangleF[nTri];
 	m_nTri = nTri;
 
-	__debugbreak();
-	// This code does not work because tris != Vector3F array
-	BuildBVTree(m_pTree, (Vector3F*)tris, rgFaceIndex, nVert, 0);
+	BuildBVTree(m_pTree, verts, faceIndices, nVert, 0);
 
 	Matrix4x4F rot;
 	m_BVs[0].RotationW(rot);
@@ -198,50 +160,11 @@ void BVTree::CreateBVTree(STriangleF * tris, DWORD nTri, DWORD * adj)
 	m_BVs[0].m_RotVecW[1] = rot.GetColumnVec3F(1);
 	m_BVs[0].m_RotVecW[2] = rot.GetColumnVec3F(2);
 
-	delete[] rgFaceIndex;
-	rgFaceIndex = NULL;
+	delete[] verts;
+	verts = NULL;
+	delete[] faceIndices;
+	faceIndices = NULL;
 
-	//ComputePolygons(m_rgPolygon, m_nTri, m_Tris, m_pAdj);
-	
-	m_TopLevelOBBoxW = *m_pTree->pOBB;
-}
-
-//The vertices must be in a triangle list order
-//When the function returns, the vertices will
-//not be in a triangle list order
-void BVTree::CreateBVTree(Vector3F * verts, DWORD nVert, DWORD * adj)
-{
-	Assert(!m_pTree, "BVTree::CreateBVTree tree must be destroyed before creating a new one.");
-
-	if (nVert % 3) {DxUtSendError("The nVert must be divisible by 3."); }
-	DWORD nTri = nVert/3;
-
-	m_pAdj = new DWORD[3*nTri];
-	memcpy(m_pAdj, adj, sizeof(DWORD)*3*nTri);
-
-	DWORD * rgFaceIndex = new DWORD[nVert/3];
-	for (DWORD i=0; i<nTri; i++) rgFaceIndex[i] = i;
-
-	m_pTree = new BranchNode;
-	m_BVs = new COBBox[2*nTri];
-	m_nBV = 0;
-	m_Tris = new STriangleF[nTri];
-	m_TransformedTris = new STriangleF[nTri];
-	m_nTri = nTri;
-
-	BuildBVTree(m_pTree, verts, rgFaceIndex, nVert, 0);
-
-	Matrix4x4F rot;
-	m_BVs[0].RotationW(rot);
-	m_BVs[0].m_RotVecW[0] = rot.GetColumnVec3F(0);
-	m_BVs[0].m_RotVecW[1] = rot.GetColumnVec3F(1);
-	m_BVs[0].m_RotVecW[2] = rot.GetColumnVec3F(2);
-
-	delete[] rgFaceIndex;
-	rgFaceIndex = NULL;
-
-	//ComputePolygons(m_rgPolygon, m_nTri, m_Tris, m_pAdj);
-	
 	m_TopLevelOBBoxW = *m_pTree->pOBB;
 }
 
@@ -370,7 +293,7 @@ DWORD BVTree::BVCollisionConvex(BVTree & collideBVTree, CArray<SContactPoint> * 
 	return m_CPs->GetSize() - oldSize;
 }
 
-void BVTree::BuildBVTree(BranchNode * pNode, Vector3F * verts, DWORD * rgFaceIndex, DWORD nVert, DWORD dwLevel)
+void BVTree::BuildBVTree(BranchNode * pNode, Vector3F * verts, DWORD * faceIndices, DWORD nVert, DWORD dwLevel)
 {
 	if (nVert > 3) {
 		m_nBranchNodes++;
@@ -380,14 +303,14 @@ void BVTree::BuildBVTree(BranchNode * pNode, Vector3F * verts, DWORD * rgFaceInd
 		ComputeOBB(verts, nVert, m_BVs[m_nBV], mean, axis, dwLevel);
 
 		DWORD dwSplitIndex = 0;
-		PartitionVert(verts, rgFaceIndex, nVert, axis, mean, dwSplitIndex);
+		PartitionVert(verts, faceIndices, nVert, axis, mean, dwSplitIndex);
 		pNode->pOBB = &m_BVs[m_nBV++];
 
 		pNode->pChildA = new BranchNode;
-		BuildBVTree(pNode->pChildA, verts, rgFaceIndex, dwSplitIndex, dwLevel+1);
+		BuildBVTree(pNode->pChildA, verts, faceIndices, dwSplitIndex, dwLevel+1);
 
 		pNode->pChildB = new BranchNode;
-		BuildBVTree(pNode->pChildB, &verts[dwSplitIndex], &rgFaceIndex[dwSplitIndex/3], nVert-dwSplitIndex, dwLevel);
+		BuildBVTree(pNode->pChildB, &verts[dwSplitIndex], &faceIndices[dwSplitIndex/3], nVert-dwSplitIndex, dwLevel);
 
 		Matrix4x4F rotT, cRot;
 		pNode->pOBB->RotationW(rotT);
@@ -432,11 +355,11 @@ void BVTree::BuildBVTree(BranchNode * pNode, Vector3F * verts, DWORD * rgFaceInd
 		ComputeOBB(verts, nVert, m_BVs[m_nBV], mean, axis, dwLevel);
 		pNode->pOBB = &m_BVs[m_nBV++];
 		
-		STriangleF & tri = m_Tris[*rgFaceIndex];
+		STriangleF & tri = m_Tris[*faceIndices];
 		tri.vPosW[0] = verts[0];
 		tri.vPosW[1] = verts[1];
 		tri.vPosW[2] = verts[2];
-		tri.dwTriangle = *rgFaceIndex;
+		tri.dwTriangle = *faceIndices;
 		((LeafNode*)pNode)->pTri = &tri;
 	}
 }
@@ -547,7 +470,7 @@ void BVTree::ComputeOBB(Vector3F * verts, DWORD nVert, COBBox & oBB, float & mea
 	oBB.m_CenterL = oBB.m_CenterW;
 }
 
-void BVTree::PartitionVert(Vector3F * verts, DWORD * rgFaceIndex, DWORD nVert, Vector3F & axis, float mean, DWORD & splitIndex)
+void BVTree::PartitionVert(Vector3F * verts, DWORD * faceIndices, DWORD nVert, Vector3F & axis, float mean, DWORD & splitIndex)
 {
 	DWORD nTri = nVert/3;
 	splitIndex=0;
@@ -565,9 +488,9 @@ void BVTree::PartitionVert(Vector3F * verts, DWORD * rgFaceIndex, DWORD nVert, V
 			verts[4] = tri.vPosW[1];
 			verts[5] = tri.vPosW[2];
 
-			DWORD d = rgFaceIndex[0];
-			rgFaceIndex[0] = rgFaceIndex[1];
-			rgFaceIndex[1] = d;
+			DWORD d = faceIndices[0];
+			faceIndices[0] = faceIndices[1];
+			faceIndices[1] = d;
 		}
 		splitIndex = 3*(1);
 		return;
@@ -589,9 +512,9 @@ void BVTree::PartitionVert(Vector3F * verts, DWORD * rgFaceIndex, DWORD nVert, V
 			verts[m2+2] = tri.vPosW[2];
 
 			DWORD a = m1/3, b = m2/3;
-			DWORD d = rgFaceIndex[a];
-			rgFaceIndex[a] = rgFaceIndex[b];
-			rgFaceIndex[b] = d;
+			DWORD d = faceIndices[a];
+			faceIndices[a] = faceIndices[b];
+			faceIndices[b] = d;
 
 			splitIndex++;
 		}

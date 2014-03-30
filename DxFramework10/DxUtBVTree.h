@@ -8,7 +8,7 @@
 //#include "DxUtContactRegions.h"
 #include "DxUtCollisionGraphics.h"
 #include "DxUtRay.h"
-#include <vector>
+#include "DxUtMesh.h"
 
 namespace DxUt {
 
@@ -72,6 +72,8 @@ protected:
 
 	DWORD m_dwDrawLevel;
 
+	//The vertices must be in a triangle list order
+	void CreateBVTree(Vector3F * verts, DWORD nVert, DWORD * pAdj);
 	void BuildBVTree(BranchNode * pNode, Vector3F * verts, DWORD * rgFaceIndex, DWORD nVert, DWORD dwLevel);
 	void ComputeOBB(Vector3F * verts, DWORD nVert, COBBox & oBB, float & mean, Vector3F & axis, DWORD dwLevel);
 	void PartitionVert(Vector3F * verts, DWORD * rgFaceIndex, DWORD nVert, Vector3F & axis, float mean, DWORD & splitIndex);
@@ -90,11 +92,8 @@ public:
 	~BVTree() {}
 
 	//It is assumed that adjancey information is contained in the mesh
-	void CreateBVTree(ID3DX10Mesh * pMesh, DWORD dwStride);
+	void CreateBVTree(CMesh * pMesh);
 	void CreateBVTree(STriangleF * tris, DWORD nTri, DWORD * pAdj);
-
-	//The vertices must be in a triangle list order
-	void CreateBVTree(Vector3F * verts, DWORD nVert, DWORD * pAdj);
 
 	//void LoadBVFromFile(char * file);
 	//void SaveBVToFile(char * file);

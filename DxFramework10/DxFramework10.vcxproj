@@ -42,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DxUtAABBox.h" />
+    <ClInclude Include="DxUtApp.h" />
     <ClInclude Include="DxUtArray.h" />
     <ClInclude Include="DxUtBSphere.h" />
     <ClInclude Include="DxUtBVTree.h" />
@@ -49,6 +50,7 @@
     <ClInclude Include="DxUtCollisionGraphics.h" />
     <ClInclude Include="DxUtConvexHull.h" />
     <ClInclude Include="DxUtD3DApp.h" />
+    <ClInclude Include="DxUtGLApp.h" />
     <ClInclude Include="DxUtMeshPool.h" />
     <ClInclude Include="DxUtEffect.h" />
     <ClInclude Include="DxUtEffectPool.h" />

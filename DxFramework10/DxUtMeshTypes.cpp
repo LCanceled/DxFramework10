@@ -68,8 +68,8 @@ void CMeshParallaxMapped::Draw(Matrix4x4F & world, Matrix4x4F & worldViewProj, V
 	m_Effect.eWorld->SetMatrix((float*)&world);
 
 	for (DWORD i=0; i<m_nSubsets; i++) {
-		m_Effect.eMaterial->SetRawValue(&m_rgMat[i], 0, sizeof(SMaterial));
-		m_Effect.eTexture->SetResource(m_rgSRView[i]);
+		m_Effect.eMaterial->SetRawValue(&m_Materials[i], 0, sizeof(SMaterial));
+		m_Effect.eTexture->SetResource(m_SRViews[i]);
 		m_Effect.eNHTexture->SetResource(m_rgSRViewNH[i]);
 
 		m_Effect.eTech->GetPassByIndex(0)->Apply(0);
@@ -80,12 +80,12 @@ void CMeshParallaxMapped::Draw(Matrix4x4F & world, Matrix4x4F & worldViewProj, V
 
 void CMeshParallaxMapped::DestroyMesh()
 {
-	CMesh::DestroyMesh();
+	CMesh::Destroy();
 
 	if (m_rgSRViewNH) {
-		for (DWORD i=0; i<m_nSubsets; i++) ReleaseX(m_rgSRView[i]);
-		delete[] m_rgSRView;
-		m_rgSRView = NULL;
+		for (DWORD i=0; i<m_nSubsets; i++) ReleaseX(m_SRViews[i]);
+		delete[] m_SRViews;
+		m_SRViews = NULL;
 	}
 }
 

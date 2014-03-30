@@ -205,8 +205,8 @@ void CCollisionGraphics::DrawTriangle(Vector3F v1, Vector3F v2, Vector3F v3, Vec
 
 void CCollisionGraphics::DestroyGraphics()
 {
-	m_Box.DestroyMesh();
-	m_Sphere.DestroyMesh();
+	m_Box.Destroy();
+	m_Sphere.Destroy();
 	ReleaseX(m_pTriVertex);
 }
 

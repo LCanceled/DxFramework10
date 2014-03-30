@@ -16,23 +16,13 @@ COBBox::COBBox():m_CenterW(0, 0, 0), m_HalfWidthsW(0, 0, 0)
 	ZeroMemory(&m_RotVecW[2], sizeof(Vector3F));
 }
 
-void COBBox::ComputeOBB(ID3DX10Mesh * pMesh, DWORD dwStride, OBBComputeMethod method)
+void COBBox::ComputeOBB(CMesh * pMesh, OBBComputeMethod method)
 {
 	DWORD nVert = 0;
 	Vector3F * verts = NULL;
 
-	if (method == CVTriangles) {
-		nVert = 3*pMesh->GetFaceCount();
-		verts = new Vector3F[nVert];
-
-		ExtractVertexTriangleListFromMesh(pMesh, verts, dwStride);
-	}
-	else {
-		nVert = pMesh->GetVertexCount();
-		verts = new Vector3F[nVert];
-
-		ExtractVerticesFromMesh(pMesh, verts, dwStride);
-	}
+	nVert = 3*pMesh->GetNumTriangles();
+	verts = pMesh->GetNewVertexTriangleList();
 
 	ComputeOBB(verts, nVert, method);
 

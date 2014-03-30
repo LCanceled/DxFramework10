@@ -8,15 +8,11 @@
 
 namespace DxUt {
 
-struct ID3DX10MeshEx : public ID3DX10Mesh {
-	void Destroy() {Release(); }
-};
+class CMeshPool : public CResourcePool<CMesh> {
+private:
 
-class CMeshPool : public CResourcePool<ID3DX10MeshEx> {
 	CMeshPool() {}
 	//~CMeshPool() {}
-
-	void Destroy();
 
 	friend class CD3DApp;
 public:

@@ -36,6 +36,7 @@
 #include "DxUtError.h"
 #include "DxUtVector.h"
 #include "DxUtMatrix.h"
+#include "DxUtTimer.h"
 
 #define Abs(x) (((x) < 0) ? (-x) : (x))
 #define Min(x, y) (((x) < (y)) ? (x) : (y))
@@ -60,7 +61,7 @@ namespace DxUt {
 
 //It is a requirement that g_D3DApp be declared and initialized
 //as it will initialize and maintain the global variables below
-extern class CD3DApp * g_D3DApp;
+extern class CApp * g_App;
 
 //The file directory for the program
 extern CHAR				g_szFileDir[MAX_PATH];

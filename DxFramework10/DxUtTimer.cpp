@@ -17,13 +17,13 @@ void CTimer::PresentTimers(DWORD dwPresentationInterval, bool bPresentAvg)
 			} else {
 				sprintf(buf, "\n%s: %f.4", m_Timers[i].str, (m_Timers[i].elapsedTime)/(double)m_liCountsPerSecond);
 			}
-			g_D3DApp->Print(buf);
+			g_App->Print(buf);
 			m_Timers[i].dwCountSinceLastPresentation = 0;
 			bPresented++;
 		}
 	}
 	if (bPresented) {
-		g_D3DApp->Print("\n\n");
+		g_App->Print("\n\n");
 	}
 }
 

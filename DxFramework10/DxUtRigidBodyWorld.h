@@ -85,7 +85,7 @@ public:
 	/* The funciton returns the id for this rigidbody */
 	/* Any future changes to a body's characteristics can be changed by way of calling */
 	/* GetRigidBody on that id to obtain the CRigidBody and using its getters and setters */
-	DWORD AddRigidBody(CMesh * pMesh, DWORD dwStride, float scale, float mass, Vector3F & pos, Matrix4x4F & rot, Vector3F & linVel, Vector3F & angVel,
+	DWORD AddRigidBody(CMesh * pMesh, float scale, float mass, Vector3F & pos, Matrix4x4F & rot, Vector3F & linVel, Vector3F & angVel,
 		float elasticity, float mu, Vector3F & force, Vector3F & torque, char * szLevelSet, DWORD dwTriPerOct,
 		CRigidBody::GeometryType type=CRigidBody::GT_TRIANGLE_MESH, SMaterial * pOverrideMaterial=NULL);
 	void DisableRigidBody(DWORD dwId);
