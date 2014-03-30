@@ -10,7 +10,6 @@ namespace DxUt {
 
 class CMeshPool : public CResourcePool<CMesh> {
 private:
-
 	CMeshPool() {}
 	//~CMeshPool() {}
 
