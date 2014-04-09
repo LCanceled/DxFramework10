@@ -165,6 +165,8 @@ CD3DApp::CD3DApp(CD3DApp & cpy)
 
 void CD3DApp::Loop(void (*loopFunction)())
 {
+	CTimer::Get().StartTimer(MAX_TIMERS-1);
+	
 	MSG msg;
 	ZeroMemory(&msg, sizeof(msg));
 	while (msg.message != WM_QUIT) {
@@ -176,19 +178,33 @@ void CD3DApp::Loop(void (*loopFunction)())
 				Sleep(80);
 			}
 			else {
+				CTimer::Get().EndTimer(MAX_TIMERS-1, "");
+				double delta = CTimer::Get().GetElapsedTime(MAX_TIMERS-1);
 				CTimer::Get().StartTimer(MAX_TIMERS-1);
+				
 				PollKeyboard();
 				PollMouse();
 
 				loopFunction();
 
-				CTimer::Get().EndTimer(MAX_TIMERS-1, "");
-				g_TimeElapsed += CTimer::Get().GetElapsedTime(MAX_TIMERS-1);
-				g_SPFrame = CTimer::Get().GetElapsedTime(MAX_TIMERS-1);
+				g_TimeElapsed += delta;
+				g_SPFrame = delta;
 				
 				double sPFrame = .03;
-				double delta = CTimer::Get().GetElapsedTime(MAX_TIMERS-1);
 				if (sPFrame - delta > 0) Sleep(1000*(sPFrame - delta));
+
+				/*static int frameCount = 0; frameCount++;
+				double time = g_TimeElapsed;
+				__int64 oldCountNum = m_liLastCountNum;
+				CalculateTime(); 
+				PollKeyboard();
+				PollMouse();
+
+				loopFunction();
+
+				double delta = (m_liCountNum - oldCountNum)/countsPer_s;
+				double sPFrame = .03;
+				if (sPFrame - delta > 0) Sleep(1000*(sPFrame - delta));*/
 			}
 		}
 	}

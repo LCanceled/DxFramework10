@@ -9,11 +9,12 @@
 #include "DxUtCamera.h"
 #include "DxUtTriangle.h"
 #include "DxUtArray.h"
+#include "DxUtResourcePool.h"
 #include <string>
 
 namespace DxUt {
 
-class CMesh {
+class CMesh : public CPooledResource<CMesh> {
 protected:
 	std::string m_Name;
 	ID3DX10Mesh * m_pMesh;
@@ -78,7 +79,7 @@ public:
 	//ID3DX10Mesh *& operator->() {
 	//	return m_pMesh; }
 
-	virtual void ShallowCopy(CMesh * pMesh);
+	virtual void ShallowCopy(CMesh & rhs);
 
 	virtual void Destroy();
 };

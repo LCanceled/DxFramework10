@@ -28,13 +28,13 @@
     <ClCompile Include="DxUtMesh.cpp" />
     <ClCompile Include="DxUtMeshPNT.cpp" />
     <ClCompile Include="DxUtMeshPool.cpp" />
-    <ClCompile Include="DxUtMeshTypes.cpp" />
     <ClCompile Include="DxUtOBBox.cpp" />
     <ClCompile Include="DxUtPolygon.cpp" />
     <ClCompile Include="DxUtRandomNumber.cpp" />
     <ClCompile Include="DxUtResourcePool.cpp" />
     <ClCompile Include="DxUtRigidBody.cpp" />
     <ClCompile Include="DxUtRigidBodyWorld.cpp" />
+    <ClCompile Include="DxUtShaders.cpp" />
     <ClCompile Include="DxUtTimer.cpp" />
     <ClCompile Include="DxUtTriangle.cpp" />
     <ClCompile Include="DxUtVector.cpp" />
@@ -73,6 +73,7 @@
     <ClInclude Include="DxUtRay.h" />
     <ClInclude Include="DxUtRigidBody.h" />
     <ClInclude Include="DxUtRigidBodyWorld.h" />
+    <ClInclude Include="DxUtShaders.h" />
     <ClInclude Include="DxUtTimer.h" />
     <ClInclude Include="DxUtTriangle.h" />
     <ClInclude Include="DxUtVector.h" />

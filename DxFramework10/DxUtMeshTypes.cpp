@@ -32,7 +32,9 @@ void CMeshParallaxMapped::LoadMeshFromFile(char * szMeshFile, UINT uiOptions)
 {
 	CMesh::LoadMeshFromFile(szMeshFile, uiOptions, Vector3F(1.f));
 
-	m_Effect.CreateEffect("PNT_Phong.fx");
+	DebugBreak();
+
+	/*m_Effect.CreateEffect("PNT_Phong.fx");
 	m_Effect.eTech		= m_Effect->GetTechniqueByIndex(0);
 	m_Effect.eWVP		= m_Effect->GetVariableByName("g_WVP")->AsMatrix();
 	m_Effect.eWorld		= m_Effect->GetVariableByName("g_World")->AsMatrix();
@@ -42,7 +44,7 @@ void CMeshParallaxMapped::LoadMeshFromFile(char * szMeshFile, UINT uiOptions)
 	m_Effect.eTexture	= m_Effect->GetVariableByName("g_Tex")->AsShaderResource();
 	m_Effect.eNHTexture = m_Effect->GetVariableByName("g_TexNH")->AsShaderResource();
 	m_Effect.eTextureTile = m_Effect->GetVariableByName("g_TexTile")->AsScalar();
-	m_Effect.eHeightScale = m_Effect->GetVariableByName("g_HeightScale")->AsScalar();
+	m_Effect.eHeightScale = m_Effect->GetVariableByName("g_HeightScale")->AsScalar();*/
 
 	//Input layout
 	//DxUt::CreateInputLayout(m_Effect.eTech, DxUt::GetVertexElementDescPNT(), 3, 0, m_Effect.eVertexLayout);
@@ -50,14 +52,16 @@ void CMeshParallaxMapped::LoadMeshFromFile(char * szMeshFile, UINT uiOptions)
 
 void CMeshParallaxMapped::SetShaderVariablesPerScene(SLightDir & light, float texTile, float heightScale)
 {
-	m_Effect.eLight->SetRawValue(&light, 0, sizeof(DxUt::SLightDir));
+	DebugBreak();
+	/*m_Effect.eLight->SetRawValue(&light, 0, sizeof(DxUt::SLightDir));
 	m_Effect.eTextureTile->SetFloat(texTile);
-	m_Effect.eHeightScale->SetFloat(heightScale);
+	m_Effect.eHeightScale->SetFloat(heightScale);*/
 }
 
 void CMeshParallaxMapped::Draw(Matrix4x4F & world, Matrix4x4F & worldViewProj, Vector3F & camPos)
 {
-	g_pD3DDevice->IASetInputLayout(m_Effect.eVertexLayout);
+	DebugBreak();
+	/*g_pD3DDevice->IASetInputLayout(m_Effect.eVertexLayout);
 
 	m_Effect.eCamPos->SetRawValue(&camPos, 0, sizeof(Vector3F));
 
@@ -75,7 +79,7 @@ void CMeshParallaxMapped::Draw(Matrix4x4F & world, Matrix4x4F & worldViewProj, V
 		m_Effect.eTech->GetPassByIndex(0)->Apply(0);
 
 		m_pMesh->DrawSubset(i);
-	}
+	}*/
 }
 
 void CMeshParallaxMapped::DestroyMesh()

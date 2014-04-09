@@ -77,7 +77,7 @@ void CMesh::LoadMeshFromFile(char * szMeshFile, UINT uiOptions, Vector3F & scale
 		ReadFile(hFile, vert, nVert*sizeof(SVertexPNT), &dwNum, 0);
 		for (UINT i=0; i<nVert; i++) {
 			vert[i].pos = scale*vert[i].pos;
-			m_Vertices[i] = scale*vert[i].pos;
+			m_Vertices[i] = vert[i].pos;
 		}
 		m_pMesh->SetVertexData(0, vert);
 
@@ -89,9 +89,9 @@ void CMesh::LoadMeshFromFile(char * szMeshFile, UINT uiOptions, Vector3F & scale
 		// Extract the triangles
 		m_nFaces = nFaces;
 		m_Tris = new STriangleF[nFaces];
-		for (int i=0; i<3*nFaces; i++) {
+		for (int i=0; i<nFaces; i++) {
 			m_Tris[i].vPosW[0] = m_Vertices[indi[3*i+0]];
-			m_Tris[i].vPosW[1] = m_Vertices[indi[3*i+2]];
+			m_Tris[i].vPosW[1] = m_Vertices[indi[3*i+1]];
 			m_Tris[i].vPosW[2] = m_Vertices[indi[3*i+2]];
 		}
 
@@ -154,19 +154,19 @@ void CMesh::LoadMeshFromFile(char * szMeshFile, UINT uiOptions, Vector3F & scale
 	}
 }
 
-void CMesh::ShallowCopy(CMesh * pMesh)
+void CMesh::ShallowCopy(CMesh & rhs)
 {
-	this->m_Name = pMesh->m_Name;
-	this->m_pMesh = pMesh->m_pMesh;
-	this->m_uiStride = pMesh->m_uiStride;
-	this->m_nSubsets = pMesh->m_nSubsets;
-	this->m_nVertices = pMesh->m_nVertices;
-	this->m_nFaces = pMesh->m_nFaces;
-	this->m_Materials = pMesh->m_Materials;
-	this->m_SRViews = pMesh->m_SRViews;
-	this->m_Vertices = pMesh->m_Vertices;
-	this->m_Tris = pMesh->m_Tris;
-	this->m_Adj = pMesh->m_Adj;
+	this->m_Name = rhs.m_Name;
+	this->m_pMesh = rhs.m_pMesh;
+	this->m_uiStride = rhs.m_uiStride;
+	this->m_nSubsets = rhs.m_nSubsets;
+	this->m_nVertices = rhs.m_nVertices;
+	this->m_nFaces = rhs.m_nFaces;
+	this->m_Materials = rhs.m_Materials;
+	this->m_SRViews = rhs.m_SRViews;
+	this->m_Vertices = rhs.m_Vertices;
+	this->m_Tris = rhs.m_Tris;
+	this->m_Adj = rhs.m_Adj;
 }
 
 void CMesh::Destroy()

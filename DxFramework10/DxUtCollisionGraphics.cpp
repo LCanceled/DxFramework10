@@ -20,8 +20,8 @@ CCollisionGraphics::CCollisionGraphics()
 
 void CCollisionGraphics::CreateGraphics()
 {
-	m_Box.LoadMeshFromFile("Box.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
-	m_Sphere.LoadMeshFromFile("Sphere.txt", D3DX10_MESH_32_BIT, Vector3F(.5f));
+	m_Box.LoadMeshFromFile("box.txt", D3DX10_MESH_32_BIT, Vector3F(1.f));
+	m_Sphere.LoadMeshFromFile("sphere.txt", D3DX10_MESH_32_BIT, Vector3F(.5f));
 
 	/* Create the triangle */
     D3D10_BUFFER_DESC bufferDesc;

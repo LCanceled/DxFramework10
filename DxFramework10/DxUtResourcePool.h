@@ -28,8 +28,6 @@ protected:
 	virtual void Destroy() {
 		for (UM::iterator it=m_Elements.begin(); it!=m_Elements.end(); it++) {
 			it->second.pResource->Destroy();
-			delete it->second.pResource;
-			it->second.pResource = NULL;
 		}
 		m_Elements.clear();
 	}
@@ -39,24 +37,12 @@ protected:
 
 	friend class CD3DApp;
 public:
-	static bool GetResource(char * szName, T ** pResource) {
-		UINT uiIndex = 0;
-		SResourceElement el;
-		UM::iterator got = m_Elements.find(szName);
-		if (got != m_Elements.end()) {
-			*pResource = got->second.pResource;
-			return 1;
-		}  else {
-			return 0;
-		}
-	}
-
 	static bool GetResource(char * szName, T * pResource) {
 		UINT uiIndex = 0;
 		SResourceElement el;
 		UM::iterator got = m_Elements.find(szName);
 		if (got != m_Elements.end()) {
-			pResource->ShallowCopy(got->second.pResource);
+			pResource->ShallowCopy(*got->second.pResource);
 			return 1;
 		}  else {
 			return 0;
@@ -69,6 +55,12 @@ public:
 		m_Elements.insert(std::pair<std::string, SResourceElement>(std::string(szName), el));
 	}
 	
+};
+
+template<typename T>
+class CPooledResource {
+public:
+	virtual void ShallowCopy(T & rhs) = 0;
 };
 
 

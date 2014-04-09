@@ -6,7 +6,7 @@
 #include "DxUtEffect.h"
 
 namespace DxUt {
-
+	/*
 class CPNPhongFx : public CEffect {
 public:
 	ID3D10InputLayout * eVertexLayout;
@@ -29,7 +29,7 @@ public:
 	ID3D10EffectShaderResourceVariable * eTexture;
 	ID3D10EffectScalarVariable * eTextureTile;
 };
-
+*/
 
 class CPNTPhongFx : public CEffect {
 public:
@@ -43,8 +43,11 @@ public:
 	ID3D10EffectVariable * eCamPos;
 	ID3D10EffectShaderResourceVariable * eTexture;
 	ID3D10EffectScalarVariable * eTextureTile;
+public:
+	void CreateEffect(CHAR * szFxFile);
+	void ShallowCopy(CEffect & rhs);
 };
-
+/*
 class CNormalMappingFx : public CEffect {
 public:
 	ID3D10EffectTechnique * eTech;
@@ -102,7 +105,7 @@ public:
 	ID3D10EffectVectorVariable * eGrad1;
 	ID3D10EffectVectorVariable * eGrad2;
 	ID3D10EffectVectorVariable * eColorFactor;
-};
+};*/
 
 
 };

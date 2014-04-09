@@ -281,7 +281,8 @@ void CRigidBodyWorld::SolveLayer(UINT k, VectorNF & lambda, float dt)
 		UINT uiIndex = CPs[j].uiIndex;
 		CRigidBody & rbk = rbC.rBOk->rB;
 		CRigidBody & rbl = rbC.rBOl->rB;
-		float mu = 0.0;//1; // Friction is WRONG! box platform
+		//float mu = 0.0;//1; // Friction is WRONG! box platform
+		float mu = Min(rbC.rBOk->rB.m_Mu, rbC.rBOl->rB.m_Mu);
 
 		float fB, fImpulseN, fImpulseT1=0, fImpulseT2=0;
 		float fPushOut = .5f*(rbC.pushOutVel*dt + rbC.dist)/dt;

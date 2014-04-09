@@ -443,11 +443,11 @@ float CLevelSet::ComputeSignedDistance(Vector3F & pt, Vector3F * verts, UINT nVe
 
 void CLevelSet::CreateLevelSet(CMesh * pMesh, char * szLevelSetFile, bool bLoadFromFile, float cellSize)
 {
-	UINT nVert = 3*pMesh->GetNumTriangles();
+	UINT nTris = pMesh->GetNumTriangles();
 	STriangleF * tris = pMesh->GetTriangles();
 	UINT * pAdj = pMesh->GetAdjancey();
 
-	CreateLevelSet(tris, nVert, pAdj, szLevelSetFile, bLoadFromFile, cellSize);
+	CreateLevelSet(tris, nTris, pAdj, szLevelSetFile, bLoadFromFile, cellSize);
 }
 
 void CLevelSet::CreateLevelSet(STriangleF * tris, UINT nTri, UINT * pAdj, char * szLevelSetFile, bool bLoadFromFile, float cellSize)

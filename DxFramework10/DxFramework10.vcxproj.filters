@@ -129,9 +129,6 @@
     <ClCompile Include="DxUtMeshPNT.cpp">
       <Filter>Source Files\Mesh</Filter>
     </ClCompile>
-    <ClCompile Include="DxUtMeshTypes.cpp">
-      <Filter>Source Files\Mesh</Filter>
-    </ClCompile>
     <ClCompile Include="DxUtOBBox.cpp">
       <Filter>Source Files\Collisions</Filter>
     </ClCompile>
@@ -164,6 +161,9 @@
     </ClCompile>
     <ClCompile Include="DxUtMeshPool.cpp">
       <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="DxUtShaders.cpp">
+      <Filter>Source Files\Shader</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -280,6 +280,9 @@
     </ClInclude>
     <ClInclude Include="DxUtGLApp.h">
       <Filter>Header Files\App</Filter>
+    </ClInclude>
+    <ClInclude Include="DxUtShaders.h">
+      <Filter>Header Files\Shader</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
