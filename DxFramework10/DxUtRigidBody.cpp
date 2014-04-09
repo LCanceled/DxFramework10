@@ -91,7 +91,7 @@ void CRigidBody::IntegratePos(float dt)
 	m_InvI = m_Rot*m_InvIBody*m;
 }
 
-void CRigidBody::IntegrateVel(float dt, Vector3F & gAcel)
+void CRigidBody::IntegrateVel(float dt, const Vector3F & gAcel)
 {
 	if (m_InvMass != 0) 
 		m_LinVel = m_LinVel + dt*(m_InvMass*m_Force + gAcel);

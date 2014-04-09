@@ -172,7 +172,7 @@ inline void CArray<T, uiGrowLinear, uiGrowPower>::p_ResizeArray(__int64 liCapaci
 	if (m_Entries) delete[] m_Entries;
 
 	m_Entries = ar;
-	m_uiCapacity = liCapacity;
+	m_uiCapacity = (UINT)liCapacity;
 }
 
 template <typename T, UINT uiGrowLinear, UINT uiGrowPower>

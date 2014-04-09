@@ -76,7 +76,7 @@ public:
 		char * szLevelSet, UINT uiTriPerOct, bool bUseHierarchicalLevelSet, GeometryType type=GT_TRIANGLE_MESH, SMaterial * pOverrideMaterial=NULL);
 
 	void IntegratePos(float dt);
-	void IntegrateVel(float dt, Vector3F & gAcel);
+	void IntegrateVel(float dt, const Vector3F & gAcel);
 
 	/* Returns -1 on no collision; otherwise, return is the number of contact points */
 	UINT DetermineCollision(CRigidBody * pRB, CArray<SContactPoint> * CPs);

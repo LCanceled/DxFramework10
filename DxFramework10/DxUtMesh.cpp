@@ -50,7 +50,7 @@ void CMesh::CreateMesh(UINT nTri, UINT nVert, UINT uiOptions,
 	CMeshPool::PutResource(szName, (ID3DX10MeshEx*)m_pMesh);
 }*/
 
-void CMesh::LoadMeshFromFile(char * szMeshFile, UINT uiOptions, Vector3F & scale)
+void CMesh::LoadMeshFromFile(char * szMeshFile, UINT uiOptions, const Vector3F & scale)
 {
 	Assert(!m_pMesh, "CMesh::CreateMesh mesh must be destroyed before creating a new one.");
 
@@ -89,7 +89,7 @@ void CMesh::LoadMeshFromFile(char * szMeshFile, UINT uiOptions, Vector3F & scale
 		// Extract the triangles
 		m_nFaces = nFaces;
 		m_Tris = new STriangleF[nFaces];
-		for (int i=0; i<nFaces; i++) {
+		for (UINT i=0; i<nFaces; i++) {
 			m_Tris[i].vPosW[0] = m_Vertices[indi[3*i+0]];
 			m_Tris[i].vPosW[1] = m_Vertices[indi[3*i+1]];
 			m_Tris[i].vPosW[2] = m_Vertices[indi[3*i+2]];

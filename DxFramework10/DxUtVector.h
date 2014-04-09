@@ -35,31 +35,31 @@ public:
 	Vector2F operator+() {return *this;}
 	Vector2F operator-() {return Vector2F(-x, -y);}
 
-	Vector2F operator+(Vector2F & v) {return Vector2F(x+v.x, y+v.y);}
-	Vector2F operator-(Vector2F & v) {return Vector2F(x-v.x, y-v.y);}
-	friend Vector2F operator*(float flt, Vector2F & v) {return Vector2F(v.x*flt, v.y*flt);}
+	Vector2F operator+(const Vector2F & v) const {return Vector2F(x+v.x, y+v.y);}
+	Vector2F operator-(const Vector2F & v) const {return Vector2F(x-v.x, y-v.y);}
+	friend Vector2F operator*(float flt, const Vector2F & v) {return Vector2F(v.x*flt, v.y*flt);}
 	//Vector2F operator*(float flt) {return Vector2F(x*flt, y*flt);}
-	Vector2F operator*(Vector2F & v) {return Vector2F(x*v.x, y*v.y);}
-	Vector2F operator/(Vector2F & v) {return Vector2F(x/v.x, y/v.y);}
+	Vector2F operator*(const Vector2F & v) const {return Vector2F(x*v.x, y*v.y);}
+	Vector2F operator/(const Vector2F & v) const {return Vector2F(x/v.x, y/v.y);}
 	Vector2F operator/(float flt) {float d = 1.f/flt; return Vector2F(x*d, y*d);}
 
-	Vector2F & operator=(Vector2F & v) {x = v.x, y = v.y; return *this;}
-	Vector2F & operator+=(Vector2F & v) {x += v.x, y += v.y; return *this;}
-	Vector2F & operator-=(Vector2F & v) {x -= v.x, y -= v.y; return *this;}
+	Vector2F & operator=(const Vector2F & v) {x = v.x, y = v.y; return *this;}
+	Vector2F & operator+=(const Vector2F & v) {x += v.x, y += v.y; return *this;}
+	Vector2F & operator-=(const Vector2F & v) {x -= v.x, y -= v.y; return *this;}
 	Vector2F & operator*=(float flt) {x *= flt, y *= flt; return *this;}
 	Vector2F & operator/=(float flt) {float d = 1.f/flt; x *= d, y *= d; return *this;}
 
 	//void operator()(float _x, float _y, float _z) {x = _x, y = _y;}
 	//void operator()(float * _c) {memcpy(c, _c, sizeof(float)*2);}
 
-	bool operator==(Vector2F & v) {
+	bool operator==(const Vector2F & v) const {
 		return abs(v.x - x) < g_fVectorEqualityEps && abs(v.y - y) < g_fVectorEqualityEps;
 	}
 	friend bool operator<(const Vector2F & v1, const Vector2F & v2) {
 		return ((Vector2F)v1).LengthSq() < ((Vector2F)v2).LengthSq();
 	}
 
-	friend std::ostream & operator << (std::ostream & out, Vector2F & pt) {
+	friend std::ostream & operator << (std::ostream & out, const Vector2F & pt) {
 		out << pt.x << ' ' << pt.y;
 		return out;
 	}
@@ -89,20 +89,20 @@ public:
 	//Vector3F(float * _c) {memcpy(c, _c, sizeof(float)*3);}
 	//~Vector3F() {}
 
-	Vector3F operator+() {return *this;}
-	Vector3F operator-() {return Vector3F(-x, -y, -z);}
+	Vector3F operator+() const {return *this;}
+	Vector3F operator-() const {return Vector3F(-x, -y, -z);}
 
-	Vector3F operator+(Vector3F & v) {return Vector3F(x+v.x, y+v.y, z+v.z);}
-	friend Vector3F operator-(Vector3F & v1, Vector3F & v2) {return Vector3F(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z); }//Vector3F(x-v.x, y-v.y, z-v.z);}
-	friend Vector3F operator*(float flt, Vector3F & v) {return Vector3F(v.x*flt, v.y*flt, v.z*flt);}
+	Vector3F operator+(const Vector3F & v) const {return Vector3F(x+v.x, y+v.y, z+v.z);}
+	friend Vector3F operator-(const Vector3F & v1, const Vector3F & v2) {return Vector3F(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z); }//Vector3F(x-v.x, y-v.y, z-v.z);}
+	friend Vector3F operator*(float flt, const Vector3F & v) {return Vector3F(v.x*flt, v.y*flt, v.z*flt);}
 	//Vector3F operator*(float flt) {return Vector3F(x*flt, y*flt, z*flt);}
-	Vector3F operator*(Vector3F & v) {return Vector3F(x*v.x, y*v.y, z*v.z);}
-	Vector3F operator/(Vector3F & v) {return Vector3F(x/v.x, y/v.y, z/v.z);}
+	Vector3F operator*(const Vector3F & v) const {return Vector3F(x*v.x, y*v.y, z*v.z);}
+	Vector3F operator/(const Vector3F & v) const {return Vector3F(x/v.x, y/v.y, z/v.z);}
 	Vector3F operator/(float flt) {float d = 1.f/flt; return Vector3F(x*d, y*d, z*d);}
 
-	Vector3F & operator=(Vector3F & v) {x = v.x, y = v.y, z = v.z; return *this;}
-	Vector3F & operator+=(Vector3F & v) {x += v.x, y += v.y, z += v.z; return *this;}
-	Vector3F & operator-=(Vector3F & v) {x -= v.x, y -= v.y, z -= v.z; return *this;}
+	Vector3F & operator=(const Vector3F & v) {x = v.x, y = v.y, z = v.z; return *this;}
+	Vector3F & operator+=(const Vector3F & v) {x += v.x, y += v.y, z += v.z; return *this;}
+	Vector3F & operator-=(const Vector3F & v) {x -= v.x, y -= v.y, z -= v.z; return *this;}
 	Vector3F & operator*=(float flt) {x *= flt, y *= flt, z *= flt; return *this;}
 	Vector3F & operator/=(float flt) {float d = 1.f/flt; x *= d, y *= d, z *= d; return *this;}
 
@@ -117,21 +117,21 @@ public:
 	Vector3F Normalize();
 	//Vector3F NormalizeSq();
 	Matrix4x4F SkewMatrix3x3F();
-	friend Vector3F operator*(Matrix4x4F & A, Vector3F & v);
-	friend Vector3F operator*(Vector3F & v, Matrix4x4F & A);
+	friend Vector3F operator*(const Matrix4x4F & A, const Vector3F & v);
+	friend Vector3F operator*(const Vector3F & v, const Matrix4x4F & A);
 
 	/* The vector is assumed to be a normal in this case */
-	Vector3F MulNormal(Matrix4x4F & A, Vector3F & v);
-	Vector3F MulNormal(Vector3F & v, Matrix4x4F & A);
+	Vector3F MulNormal(const Matrix4x4F & A, const Vector3F & v);
+	Vector3F MulNormal(const Vector3F & v, const Matrix4x4F & A);
 
-	bool operator==(Vector3F & v) {
+	bool operator==(const Vector3F & v) const {
 		return abs(v.x - x) < g_fVectorEqualityEps && abs(v.y - y) < g_fVectorEqualityEps && abs(v.z - z) < g_fVectorEqualityEps;
 	}
 	//friend bool operator<(const Vector3F & v1, const Vector3F & v2) {
 	//	return 0;//((Vector3F)v1).LengthSq() < ((Vector3F)v2).LengthSq();
 	//}
 
-	friend std::ostream & operator << (std::ostream & out, Vector3F & pt) {
+	friend std::ostream & operator << (std::ostream & out, const Vector3F & pt) {
 		out << pt.x << ' ' << pt.y << ' ' << pt.z;
 		return out;
 	}
@@ -139,7 +139,7 @@ public:
 	float operator[](int iIndex) {return c[iIndex];}
 };
 
-__forceinline Vector3F operator*(Matrix4x4F & A, Vector3F & v)
+__forceinline Vector3F operator*(const Matrix4x4F & A, const Vector3F & v)
 {
 	float * m = (float*)&A;
 	return Vector3F(
@@ -148,7 +148,7 @@ __forceinline Vector3F operator*(Matrix4x4F & A, Vector3F & v)
 		m[8]*v.x + m[9]*v.y + m[10]*v.z + m[11]);
 }
 
-__forceinline Vector3F operator*(Vector3F & v, Matrix4x4F & A)
+__forceinline Vector3F operator*(const Vector3F & v, const Matrix4x4F & A)
 {
 	float * m = (float*)&A;
 	return Vector3F(
@@ -157,7 +157,7 @@ __forceinline Vector3F operator*(Vector3F & v, Matrix4x4F & A)
 		v.x*m[8] + v.y*m[9] + v.z*m[10] + m[11]);
 }
 
-__forceinline Vector3F Vector3F::MulNormal(Matrix4x4F & A, Vector3F & v)
+__forceinline Vector3F Vector3F::MulNormal(const Matrix4x4F & A, const Vector3F & v)
 {
 	float * m = (float*)&A;
 	return Vector3F(
@@ -166,7 +166,7 @@ __forceinline Vector3F Vector3F::MulNormal(Matrix4x4F & A, Vector3F & v)
 		m[8]*v.x + m[9]*v.y + m[10]*v.z);
 }
 
-__forceinline Vector3F Vector3F::MulNormal(Vector3F & v, Matrix4x4F & A)
+__forceinline Vector3F Vector3F::MulNormal(const Vector3F & v, const Matrix4x4F & A)
 {
 	float * m = (float*)&A;
 	return Vector3F(
@@ -174,7 +174,7 @@ __forceinline Vector3F Vector3F::MulNormal(Vector3F & v, Matrix4x4F & A)
 		v.x*m[4] + v.y*m[5] + v.z*m[6],
 		v.x*m[8] + v.y*m[9] + v.z*m[10]);
 }
-
+/*
 class Vector3D {
 public:
 	union {
@@ -220,7 +220,7 @@ public:
 	float LengthSq() {return x*x + y*y + z*z;}
 
 	float operator[](int iIndex) {return c[iIndex];}
-};
+};*/
 
 class Vector4F  {
 public:
@@ -241,27 +241,27 @@ public:
 	//Vector4F(float * _c) {memcpy(c, _c, sizeof(float)*4);}
 	//~Vector4F() {}
 
-	Vector4F operator+() {return *this;}
-	Vector4F operator-() {return Vector4F(-x, -y, -z, -w);}
+	Vector4F operator+() const {return *this;}
+	Vector4F operator-() const {return Vector4F(-x, -y, -z, -w);}
 
-	Vector4F operator+(Vector4F & v) {return Vector4F(x+v.x, y+v.y, z+v.z, w+v.w);}
-	Vector4F operator-(Vector4F & v) {return Vector4F(x-v.x, y-v.y, z-v.z, w-v.w);}
-	friend Vector4F operator*(float flt, Vector4F & v) {return Vector4F(v.x*flt, v.y*flt, v.z*flt, v.w*flt);}
+	Vector4F operator+(const Vector4F & v) const {return Vector4F(x+v.x, y+v.y, z+v.z, w+v.w);}
+	Vector4F operator-(const Vector4F & v) const {return Vector4F(x-v.x, y-v.y, z-v.z, w-v.w);}
+	friend Vector4F operator*(float flt, const Vector4F & v) {return Vector4F(v.x*flt, v.y*flt, v.z*flt, v.w*flt);}
 	//Vector4F operator*(float flt) {return Vector4F(x*flt, y*flt, z*flt, w*flt);}
-	Vector4F operator*(Vector4F & v) {return Vector4F(x*v.x, y*v.y, z*v.z, w*v.w);}
-	Vector4F operator/(Vector4F & v) {return Vector4F(x/v.x, y/v.y, z/v.z, w/v.w);}
+	Vector4F operator*(const Vector4F & v) const {return Vector4F(x*v.x, y*v.y, z*v.z, w*v.w);}
+	Vector4F operator/(const Vector4F & v) const {return Vector4F(x/v.x, y/v.y, z/v.z, w/v.w);}
 	Vector4F operator/(float flt) {float d = 1.f/flt; return Vector4F(x*d, y*d, z*d, w*d);}
 
-	Vector4F & operator=(Vector4F & v) {x = v.x, y = v.y, z = v.z, w = v.w; return *this;}
-	Vector4F & operator+=(Vector4F & v) {x += v.x, y += v.y, z += v.z, w += v.w; return *this;}
-	Vector4F & operator-=(Vector4F & v) {x -= v.x, y -= v.y, z -= v.z, w -= v.w; return *this;}
+	Vector4F & operator=(const Vector4F & v) {x = v.x, y = v.y, z = v.z, w = v.w; return *this;}
+	Vector4F & operator+=(const Vector4F & v) {x += v.x, y += v.y, z += v.z, w += v.w; return *this;}
+	Vector4F & operator-=(const Vector4F & v) {x -= v.x, y -= v.y, z -= v.z, w -= v.w; return *this;}
 	Vector4F & operator*=(float flt) {x *= flt, y *= flt, z *= flt, w *= flt; return *this;}
 	Vector4F & operator/=(float flt) {float d = 1.f/flt; x *= d, y *= d, z *= d, w *= d; return *this;}
 
 	//void operator()(float _x, float _y, float _z, float _w) {x = _x, y = _y, z = _z, w = _w;}
 	//void operator()(float * _c) {memcpy(c, _c, sizeof(float)*4);}
 
-	bool operator==(Vector4F & v) {
+	bool operator==(const Vector4F & v) const {
 		return abs(v.x - x) < g_fVectorEqualityEps && abs(v.y - y) < g_fVectorEqualityEps 
 			&& abs(v.z - z) < g_fVectorEqualityEps  && abs(v.w - w) < g_fVectorEqualityEps;
 	}
@@ -273,8 +273,8 @@ public:
 	float LengthSq() {return x*x + y*y + z*z + w*w;}
 
 	Vector4F Normalize();
-	friend Vector4F operator*(Matrix4x4F & A, Vector4F & v);
-	friend Vector4F operator*(Vector4F & v, Matrix4x4F & A);
+	friend Vector4F operator*(const Matrix4x4F & A, const Vector4F & v);
+	friend Vector4F operator*(const Vector4F & v, const Matrix4x4F & A);
 };
 /*
 inline Vector4F operator*(Matrix4x4F & A, Vector4F & v)

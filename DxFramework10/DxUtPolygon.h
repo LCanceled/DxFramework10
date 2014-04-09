@@ -80,12 +80,12 @@ public:
 	}
 
 	//Does not handle cases of overlap or intersection
-	Vector3F ComputeNormal(CArray<SSegment3F> & _rgEdge) {
+	/*Vector3F ComputeNormal(CArray<SSegment3F> & _rgEdge) {
 		float area;
 		Vector3F normal;
 		ComputeAreaAndNormal(area, normal);
 		return normal;
-	}
+	}*/
 
 	/* Compute a polygon based upon a list of disorded edges */
 	/* The first edge in edgeDisordereds will determine the direction of successive edges */

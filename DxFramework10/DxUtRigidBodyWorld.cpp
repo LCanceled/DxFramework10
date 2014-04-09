@@ -10,7 +10,7 @@ CRigidBodyWorld::CRigidBodyWorld():m_pRBObject(0)
 {
 }
 
-void CRigidBodyWorld::CreateRigidBodyWorld(UINT nHintRBs, UINT nHintContacts, bool bUseHierarchicalLevelSet, Vector3F * gravity, float stepSize, float maxVel)
+void CRigidBodyWorld::CreateRigidBodyWorld(UINT nHintRBs, UINT nHintContacts, bool bUseHierarchicalLevelSet, Vector3F gravity, float stepSize, float maxVel)
 {
 	Assert(!m_RBObjects.GetSize(), "CRigidBodyWorld::CreateRigidBodyWorld must destroy the world before creating a new one.");
 	Assert(nHintRBs > 0 && nHintContacts > 0, "CRigidBodyWorld::CreateRigidBodyWorld must enter nonzero values for the hints.");
@@ -19,15 +19,14 @@ void CRigidBodyWorld::CreateRigidBodyWorld(UINT nHintRBs, UINT nHintContacts, bo
 	m_RBContactPoints.Reserve(nHintContacts);
 	m_ContactPoints.Reserve(nHintContacts);
 	
-	m_Gravity = *gravity;
+	m_Gravity = gravity;
 	m_TimeStepSize = stepSize;
 	m_MaxVelocity = maxVel;
 	m_bUseHierarchicalLevelSet = bUseHierarchicalLevelSet;
 }
 
-UINT CRigidBodyWorld::AddRigidBody(CMesh * pMesh, float scale, float mass, Vector3F & pos,
-	Matrix4x4F & rot, Vector3F & linVel, Vector3F & angVel, float elasticity, float mu, Vector3F & force,
-	Vector3F & torque, char * szLevelSet, UINT uiTriPerOct, CRigidBody::GeometryType type, SMaterial * pOverrideMaterial)
+UINT CRigidBodyWorld::AddRigidBody(CMesh * pMesh, float scale, float mass, const Vector3F & pos, const Matrix4x4F & rot, const Vector3F & linVel, const Vector3F & angVel,
+		float elasticity, float mu, const Vector3F & force, const Vector3F & torque, char * szLevelSet, UINT uiTriPerOct, CRigidBody::GeometryType type, SMaterial * pOverrideMaterial)
 {
 	SRBObject rbo;
 	rbo.bUsed = 0;
@@ -376,7 +375,7 @@ void CRigidBodyWorld::PGSSolve(UINT nContacts, float dt, bool bNeedSetup)
 	//rgFrictionImpulses.Clear();
 }
 
-void CRigidBodyWorld::UpdateRigidBodies(float dt, Vector3F & gAcel)
+void CRigidBodyWorld::UpdateRigidBodies(float dt, const Vector3F & gAcel)
 {
 	UINT s = m_RBObjects.GetSize();
 	//g_D3DApp->Print("Step");

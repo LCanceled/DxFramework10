@@ -59,7 +59,7 @@ protected:
 
 	BVTree * m_pCollideBVTree;
 
-	//BOOL m_bConvexCollision;
+	//bool m_bConvexCollision;
 	//CContactRegions m_ContactRegion;
 	CArray<SContactPoint> * m_CPs;
 	//CArray<CContactRegions::SPolygon3FEx> m_rgPolygon;

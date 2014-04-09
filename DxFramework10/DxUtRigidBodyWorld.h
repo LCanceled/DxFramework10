@@ -80,13 +80,13 @@ public:
 
 	/* Give a nonzero hint as to how many RBs and contacts among them there will be */
 	void CreateRigidBodyWorld(UINT nHintRBs, UINT nHintContacts, bool bUseHierarchicalLevelSet=0,
-		Vector3F * gravity=&Vector3F(0, 3.8f, 0), float stepSize=.03f, float fMaxVelocity=10.f);
+		Vector3F gravity=Vector3F(0, -4.8f, 0), float stepSize=.03f, float fMaxVelocity=10.f);
 
 	/* The funciton returns the id for this rigidbody */
 	/* Any future changes to a body's characteristics can be changed by way of calling */
 	/* GetRigidBody on that id to obtain the CRigidBody and using its getters and setters */
-	UINT AddRigidBody(CMesh * pMesh, float scale, float mass, Vector3F & pos, Matrix4x4F & rot, Vector3F & linVel, Vector3F & angVel,
-		float elasticity, float mu, Vector3F & force, Vector3F & torque, char * szLevelSet, UINT uiTriPerOct,
+	UINT AddRigidBody(CMesh * pMesh, float scale, float mass, const Vector3F & pos, const Matrix4x4F & rot, const Vector3F & linVel, const Vector3F & angVel,
+		float elasticity, float mu, const Vector3F & force, const Vector3F & torque, char * szLevelSet, UINT uiTriPerOct,
 		CRigidBody::GeometryType type=CRigidBody::GT_TRIANGLE_MESH, SMaterial * pOverrideMaterial=NULL);
 	void DisableRigidBody(UINT uiId);
 	void EnableRigidBody(UINT uiId);
@@ -94,7 +94,7 @@ public:
 	/* Constrains the center of mass to lie at a certain position */
 	void AddCenterOfMassPositionConstraint(UINT uiRigidBody, Vector3F & pos);
 
-	void UpdateRigidBodies(float dt, Vector3F & gAcel);
+	void UpdateRigidBodies(float dt, const Vector3F & gAcel);
 
 	void DrawRigidBodies(CCamera * pCam, SLightDir & light, UINT uiShaderPass);
 

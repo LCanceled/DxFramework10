@@ -4,7 +4,7 @@
 
 namespace DxUt {
 	
-void CMeshPNT::LoadMeshFromFile(char * szMeshFile, UINT uiOptions, Vector3F & scale, char * szFxFile)
+void CMeshPNT::LoadMeshFromFile(char * szMeshFile, UINT uiOptions, const Vector3F & scale, char * szFxFile)
 {
 	CMesh::LoadMeshFromFile(szMeshFile, uiOptions, scale);
 	m_Effect.CreateEffect(szFxFile);
@@ -20,9 +20,10 @@ void CMeshPNT::SetupDraw(CCamera * pCam, SLightDir & light)
 	m_Effect.eLight->SetRawValue(&light, 0, sizeof(DxUt::SLightDir));
 }
 	
-void CMeshPNT::DrawAllSubsets(CCamera * pCam, Matrix4x4F & world, UINT uiShaderPass, SMaterial * pOverrideMaterial)
+void CMeshPNT::DrawAllSubsets(CCamera * pCam, const Matrix4x4F & world, UINT uiShaderPass, SMaterial * pOverrideMaterial)
 {
-	Matrix4x4F & wT = world.MTranspose();
+	world.Transpose();
+	Matrix4x4F wT = world.Transpose();
 	m_Effect.eWVP->SetMatrix((float*)&(wT*pCam->GetView()*pCam->GetProjection()));
 	m_Effect.eWorld->SetMatrix((float*)&wT); //Not correct under translations
 

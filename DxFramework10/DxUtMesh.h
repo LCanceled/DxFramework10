@@ -41,10 +41,10 @@ public:
 	//	const D3D10_INPUT_ELEMENT_DESC * aDesc, UINT cDesc, UINT nSubsets, char * szName);
 
 	/* Loads a PNT mesh from a txt file scaled by scale */
-	virtual void LoadMeshFromFile(char * szMeshFile, UINT uiOptions, Vector3F & scale);
+	virtual void LoadMeshFromFile(char * szMeshFile, UINT uiOptions, const Vector3F & scale);
 
 	virtual void SetupDraw(CCamera * pCam, SLightDir & light) {}
-	virtual void DrawAllSubsets(CCamera * pCam, Matrix4x4F & world, UINT uiShaderPass, SMaterial * pOverrideMaterial=NULL) {}
+	virtual void DrawAllSubsets(CCamera * pCam, const Matrix4x4F & world, UINT uiShaderPass, SMaterial * pOverrideMaterial=NULL) {}
 
 	/*//Sets the SMaterial and sRV of a subset to effect handels
 	virtual void SetMatEffectHandels(ID3D10EffectVariable *& eMat,
@@ -67,7 +67,7 @@ public:
 
 	Vector3F * GetNewVertexTriangleList() {
 		Vector3F * vert = new Vector3F[3*m_nFaces];
-		for (int i=0; i<3*m_nFaces; i++) {vert[i] = m_Tris[i/3].vPosW[i%3]; }
+		for (UINT i=0; i<3*m_nFaces; i++) {vert[i] = m_Tris[i/3].vPosW[i%3]; }
 		return vert;
 	}
 

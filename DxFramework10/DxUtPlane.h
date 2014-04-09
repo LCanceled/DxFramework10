@@ -12,27 +12,28 @@ public:
 	float d;
 public:
 	PlaneF() {}
-	PlaneF(PlaneF & copy) {memcpy(this, &copy, sizeof(PlaneF));}
-	PlaneF(Vector3F & nor, float dist):n(nor), d(dist) {}
-	PlaneF(Vector3F & p1, Vector3F & p2, Vector3F & p3) {
+	PlaneF(const PlaneF & copy) {memcpy(this, &copy, sizeof(PlaneF));}
+	PlaneF(const Vector3F & nor, float dist):n(nor), d(dist) {}
+	PlaneF(const Vector3F & p1, const Vector3F & p2, const Vector3F & p3) {
 		ComputePlane(p1, p2, p3);
 	}
 	//~PlaneF() {d=0;}
 
-	void ComputePlane(Vector3F & pt, Vector3F & nor) {
-		n = nor.Normalize();
+	void ComputePlane(const Vector3F & pt, const Vector3F & nor) {
+		n = nor;
+		n.Normalize();
 		d = DotXYZ(pt, n);
 	}
 
 	//Normalized plane
-	void ComputePlane(Vector3F & p1, Vector3F & p2, Vector3F & p3) {
+	void ComputePlane(const Vector3F & p1, const Vector3F & p2, const Vector3F & p3) {
 		Vector3F v1(p2 - p1);
 		Vector3F v2(p3 - p1);
 		n = Vector3F(CrossXYZ(v1,v2)).Normalize();
 		d = DotXYZ(p1, n);
 	}
 	//Denormalized plane
-	void ComputePlaneSq(Vector3F & p1, Vector3F & p2, Vector3F & p3) {
+	void ComputePlaneSq(const Vector3F & p1, const Vector3F & p2, const Vector3F & p3) {
 		Vector3F v1(p2 - p1);
 		Vector3F v2(p3 - p1);
 		n = Vector3F(CrossXYZ(v1,v2));
@@ -44,23 +45,23 @@ public:
 		d = DotXYZ(p1, n);
 	}*/
 
-	bool PointUnderPlane(Vector3F & pt, float & dist);
-	float DistanceToPlane(Vector3F & pt);
+	bool PointUnderPlane(const Vector3F & pt, float & dist);
+	float DistanceToPlane(const Vector3F & pt);
 	//The plane must be normalized
-	Vector3F ClosestPointOnPlane(Vector3F & pt);
+	Vector3F ClosestPointOnPlane(const Vector3F & pt);
 
-	PlaneF operator+() {return *this;}
-	PlaneF operator-() {return PlaneF(-n, -d);}
+	PlaneF operator+() const {return *this;}
+	PlaneF operator-() const {return PlaneF(-n, -d);}
 
 	friend PlaneF operator*(float flt, PlaneF & pl) {
 		return PlaneF((flt*pl.n), flt*pl.d);
 	}
-	PlaneF operator/(float flt) {
+	PlaneF operator/(float flt) const {
 		float div = 1.f/flt;
 		return PlaneF((div*n), div*d); 
 	}
 
-	PlaneF & operator=(PlaneF & pl) {
+	PlaneF & operator=(const PlaneF & pl) {
 		n = pl.n;
 		d = pl.d;
 
@@ -88,20 +89,20 @@ public:
 	void operator()(Vector3F & _n, float _d) {n = _n, d = _d;}
 };
 
-inline bool PlaneF::PointUnderPlane(Vector3F & pt, float & dist)
+inline bool PlaneF::PointUnderPlane(const Vector3F & pt, float & dist)
 {
 	dist = DotXYZ(pt, n);
 	return dist > d;
 }
 
 /* Compute signed distance to plane. */
-inline float PlaneF::DistanceToPlane(Vector3F & pt)
+inline float PlaneF::DistanceToPlane(const Vector3F & pt)
 {
 	return DotXYZ(pt, n) - d;
 }
 
 //The plane must be normalized
-inline Vector3F PlaneF::ClosestPointOnPlane(Vector3F & pt)
+inline Vector3F PlaneF::ClosestPointOnPlane(const Vector3F & pt)
 {
 	float dist = DotXYZ(pt, n);
 	Vector3F c((dist-d)*n);
@@ -124,7 +125,7 @@ inline void Compute2DPlaneBasis(PlaneF & pl, Vector3F & v1, Vector3F & v2)
 
 inline Vector2F ProjectPointTo2DPlaneBasis(Vector3F & pt, Vector3F & o, Vector3F & v1, Vector3F & v2)
 {
-	Vector3F & p(pt - o);
+	Vector3F p(pt - o);
 	return Vector2F(DotXYZ(v1, p), DotXYZ(v2, p));
 }
 

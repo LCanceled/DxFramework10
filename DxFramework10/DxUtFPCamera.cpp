@@ -4,14 +4,14 @@
 namespace DxUt {
 
 void CFPCamera::CreateFPCameraLH(float fFov, UINT uiWidth, UINT uiHeight, 
-	float fNearField, float fFarField, Vector3F & vel, float fRotSpeed)
+	float fNearField, float fFarField, const Vector3F & vel, float fRotSpeed)
 {
 	CCamera::CreateCameraLH(fFov, uiWidth, uiHeight, fNearField, fFarField);
 	m_Velocity = vel;
 	m_RotSpeed = fRotSpeed;
 }
 
-void CFPCamera::SetFPCamera(Vector3F & pos, float fPhi, float fTheta)
+void CFPCamera::SetFPCamera(const Vector3F & pos, float fPhi, float fTheta)
 {
 	m_Pos = pos;
 	m_Phi = fPhi;
@@ -38,7 +38,7 @@ void CFPCamera::SetFPCamera(Vector3F & pos, float fPhi, float fTheta)
 	m_View.m[0][3] = 0,					m_View.m[1][3] = 0,					m_View.m[2][3] = 0,					m_View.m[3][3] = 1;
 }
 
-void CFPCamera::SetFPCamera(Vector3F & vel, float rotSpeed)
+void CFPCamera::SetFPCamera(const Vector3F & vel, float rotSpeed)
 {
 	m_Velocity = vel;
 	m_RotSpeed = rotSpeed;

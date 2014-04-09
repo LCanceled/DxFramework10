@@ -28,13 +28,12 @@
 
 #include <d3d10.h>
 #include <d3dx10.h>
-#include <dxgi.h>
+//#include <dxgi.h>
 #define DIRECTINPUT_VERSION  0x0800
 #include <dinput.h>
-#include <crtdbg.h>
+#include <crtdbg.h> 
 #include <stdio.h>
 #include <wchar.h>
-
 
 #ifndef ReleaseX
 #define ReleaseX(resource)				\

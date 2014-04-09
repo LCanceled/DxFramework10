@@ -45,12 +45,12 @@ public:
 	// For OBBComputeMethod::CVTriangles the verts must be in triangle list order
 	void ComputeOBB(Vector3F * verts, UINT nVert, OBBComputeMethod method);
 
-	BOOL PointInOBBW(Vector3F & pt);
-	BOOL OBBoxIntersectW(COBBox & oBB);
-	//BOOL OBBoxIntersectW(COBBox & oBB, std::vector<SContactPoint> & rgCPs);  
+	bool PointInOBBW(Vector3F & pt);
+	bool OBBoxIntersectW(COBBox & oBB);
+	//bool OBBoxIntersectW(COBBox & oBB, std::vector<SContactPoint> & rgCPs);  
 	//Rotation, Translation, Scaling of oBB must be expressed relative to the function caller's OBB frame
-	BOOL OBBoxIntersectW(COBBox & oBB, Matrix4x4F & rot, Vector3F & trans, float scl);
-	BOOL OBBoxIntersectRelativeW(SRay & rayRelative, bool bSegment=0, SRayIntersectData * pInter0=0, SRayIntersectData * pInter1=0);
+	bool OBBoxIntersectW(COBBox & oBB, Matrix4x4F & rot, Vector3F & trans, float scl);
+	bool OBBoxIntersectRelativeW(SRay & rayRelative, bool bSegment=0, SRayIntersectData * pInter0=0, SRayIntersectData * pInter1=0);
 
 	//TransformOBB is done as follows:
 	//m_CenterW = center,

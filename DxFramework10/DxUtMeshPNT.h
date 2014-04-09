@@ -13,10 +13,10 @@ private:
 	SLightDir m_Light;
 	CPNTPhongFx m_Effect;
 public:
-	void LoadMeshFromFile(char * szMeshFile, UINT uiOptions, Vector3F & scale, char * szFxFile=NULL);
+	void LoadMeshFromFile(char * szMeshFile, UINT uiOptions, const Vector3F & scale, char * szFxFile=NULL);
 
 	void SetupDraw(CCamera * pCam, SLightDir & light);
-	void DrawAllSubsets(CCamera * pCam, Matrix4x4F & world, UINT uiShaderPass, SMaterial * pOverrideMaterial=NULL);
+	void DrawAllSubsets(CCamera * pCam, const Matrix4x4F & world, UINT uiShaderPass, SMaterial * pOverrideMaterial=NULL);
 
 	CPNTPhongFx & GetEffect() {return m_Effect; }
 };

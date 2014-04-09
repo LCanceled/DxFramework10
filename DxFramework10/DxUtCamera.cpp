@@ -61,7 +61,7 @@ void CCamera::SetDefaultKeys()
 	m_wKeyMZ = DIK_DOWN;
 }
 
-void CCamera::SetMouse(BOOL bClickActivate, BOOL bKeyActivate)
+void CCamera::SetMouse(bool bClickActivate, bool bKeyActivate)
 {
 	m_bClickActivate = bClickActivate;
 	m_bKeyActivate = bKeyActivate;

@@ -9,7 +9,7 @@ namespace DxUt {
 //////////////////////////////////   Matrix4x4F    ///////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Matrix4x4F Matrix4x4F::operator+(Matrix4x4F & A)
+Matrix4x4F Matrix4x4F::operator+(const Matrix4x4F & A)
 {
 	return Matrix4x4F(
 		m[0][0] + A.m[0][0], m[1][0] + A.m[1][0], m[2][0] + A.m[2][0], m[3][0] + A.m[3][0],
@@ -18,7 +18,7 @@ Matrix4x4F Matrix4x4F::operator+(Matrix4x4F & A)
 		m[0][3] + A.m[0][3], m[1][3] + A.m[1][3], m[2][3] + A.m[2][3], m[3][3] + A.m[3][3]);
 }
 
-Matrix4x4F Matrix4x4F::operator-(Matrix4x4F & A)
+Matrix4x4F Matrix4x4F::operator-(const Matrix4x4F & A)
 {
 	return Matrix4x4F(
 		m[0][0] - A.m[0][0], m[1][0] - A.m[1][0], m[2][0] - A.m[2][0], m[3][0] - A.m[3][0],
@@ -27,7 +27,7 @@ Matrix4x4F Matrix4x4F::operator-(Matrix4x4F & A)
 		m[0][3] - A.m[0][3], m[1][3] - A.m[1][3], m[2][3] - A.m[2][3], m[3][3] - A.m[3][3]);
 }
 
-Matrix4x4F Matrix4x4F::operator*(Matrix4x4F & A)
+Matrix4x4F Matrix4x4F::operator*(const Matrix4x4F & A)
 {
 	return Matrix4x4F(
 		m[0][0] * A.m[0][0] + m[0][1] * A.m[1][0] + m[0][2] * A.m[2][0] + m[0][3] * A.m[3][0],
@@ -51,7 +51,7 @@ Matrix4x4F Matrix4x4F::operator*(Matrix4x4F & A)
 		m[3][0] * A.m[0][3] + m[3][1] * A.m[1][3] + m[3][2] * A.m[2][3] + m[3][3] * A.m[3][3]);
 }
 
-Matrix4x4F operator*(float flt, Matrix4x4F & A)
+Matrix4x4F operator*(float flt, const Matrix4x4F & A)
 {
 	return Matrix4x4F(
 		A.m[0][0] * flt, A.m[1][0] * flt, A.m[2][0] * flt, A.m[3][0] * flt,
@@ -69,7 +69,7 @@ Matrix4x4F Matrix4x4F::operator*(float flt)
 		m[0][3] * flt, m[1][3] * flt, m[2][3] * flt, m[3][3] * flt);
 }
 
-Matrix4x4F & Matrix4x4F::operator+=(Matrix4x4F & A)
+Matrix4x4F & Matrix4x4F::operator+=(const Matrix4x4F & A)
 {
 	m[0][0] += A.m[0][0], m[1][0] += A.m[1][0], m[2][0] += A.m[2][0], m[3][0] += A.m[3][0];
 	m[0][1] += A.m[0][1], m[1][1] += A.m[1][1], m[2][1] += A.m[2][1], m[3][1] += A.m[3][1];
@@ -78,7 +78,7 @@ Matrix4x4F & Matrix4x4F::operator+=(Matrix4x4F & A)
 	return *this;
 }
 
-Matrix4x4F & Matrix4x4F::operator-=(Matrix4x4F & A)
+Matrix4x4F & Matrix4x4F::operator-=(const Matrix4x4F & A)
 {
 	m[0][0] -= A.m[0][0], m[1][0] -= A.m[1][0], m[2][0] -= A.m[2][0], m[3][0] -= A.m[3][0];
 	m[0][1] -= A.m[0][1], m[1][1] -= A.m[1][1], m[2][1] -= A.m[2][1], m[3][1] -= A.m[3][1];
@@ -87,7 +87,7 @@ Matrix4x4F & Matrix4x4F::operator-=(Matrix4x4F & A)
 	return *this;
 }
 
-Matrix4x4F & Matrix4x4F::operator*=(Matrix4x4F & A)
+Matrix4x4F & Matrix4x4F::operator*=(const Matrix4x4F & A)
 {
 	Matrix4x4F B(*this);
 	m[0][0] = B.m[0][0] * A.m[0][0] + B.m[0][1] * A.m[1][0] + B.m[0][2] * A.m[2][0] + B.m[0][3] * A.m[3][0];
@@ -121,7 +121,7 @@ Matrix4x4F & Matrix4x4F::operator*=(float flt)
 	return *this;
 }
 
-Matrix4x4F Matrix4x4F::Inverse()
+Matrix4x4F Matrix4x4F::Inverse() const
 {
 	Matrix4x4F A;
 	float a00 = m[0][0]; float a01 = m[0][1]; float a02 = m[0][2]; float a03 = m[0][3];
@@ -158,7 +158,7 @@ Matrix4x4F Matrix4x4F::Inverse()
 
 }
 
-Matrix4x4F Matrix4x4F::Transpose()
+Matrix4x4F Matrix4x4F::Transpose() const
 {
 	return Matrix4x4F(
 		m[0][0], m[0][1], m[0][2], m[0][3],
@@ -167,7 +167,7 @@ Matrix4x4F Matrix4x4F::Transpose()
 		m[3][0], m[3][1], m[3][2], m[3][3]);
 }
 
-Matrix4x4F Matrix4x4F::InverseTranspose()
+Matrix4x4F Matrix4x4F::InverseTranspose() const
 {
 	Matrix4x4F A(Inverse());
 
@@ -242,7 +242,7 @@ Matrix4x4F & Matrix4x4F::MInverseTranspose()
 	return *this;
 }
 
-Matrix4x4F & Matrix4x4F::MScaling(Vector3F & scl)
+Matrix4x4F & Matrix4x4F::MScaling(const Vector3F & scl)
 {
 	m[0][0] = scl.x, m[1][0] = 0,	  m[2][0] = 0,		m[3][0] = 0;
 	m[0][1] = 0,	 m[1][1] = scl.y, m[2][1] = 0,		m[3][1] = 0;
@@ -305,9 +305,10 @@ Matrix4x4F & Matrix4x4F::MRotationZLH(float fTheta)
 	return *this;
 }
 
-Matrix4x4F & Matrix4x4F::MRotationAxisLH(Vector3F & v, float fTheta)
+Matrix4x4F & Matrix4x4F::MRotationAxisLH(const Vector3F & v, float fTheta)
 {
-	Vector3F vn = v.Normalize();
+	Vector3F vn(v);
+	vn.Normalize();
 	float c = cosf(fTheta);
 	float s = sinf(fTheta);
 	float t = 1.f - cosf(fTheta);

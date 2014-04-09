@@ -35,8 +35,8 @@ protected:
 	WORD m_wKeyPY, m_wKeyMY;
 	WORD m_wKeyPZ, m_wKeyMZ;
 
-	BOOL m_bClickActivate;
-	BOOL m_bKeyActivate;
+	bool m_bClickActivate;
+	bool m_bKeyActivate;
 
 	void SetDefaultKeys();
 	void SetDefaultMouse();
@@ -52,7 +52,7 @@ public:
 
 	virtual void SetKeys(
 		WORD keyPX, WORD keyMX, WORD keyPY, WORD keyMY, WORD keyPZ, WORD keyMZ);
-	virtual void SetMouse(BOOL bClickActivate, BOOL bKeyActivate);
+	virtual void SetMouse(bool bClickActivate, bool bKeyActivate);
 
 	bool InFrustum(Vector3F & point);
 	//bool InFrustum(CBSphere & bSph);
@@ -99,7 +99,8 @@ inline void CCamera::SetEffectCamPos(ID3D10EffectVariable * eCamPos)
 inline void CCamera::SetEffectMatrices(Matrix4x4F & worldT, ID3D10EffectMatrixVariable * eWVP, 
 		ID3D10EffectMatrixVariable * eWorld) 
 {
-	eWVP->SetMatrix((float*)&(worldT*m_View*m_Proj));
+	const Matrix4x4F & mat(worldT*m_View*m_Proj);
+	eWVP->SetMatrix((float*)&(mat));
 	eWorld->SetMatrix((float*)&worldT);
 }
 

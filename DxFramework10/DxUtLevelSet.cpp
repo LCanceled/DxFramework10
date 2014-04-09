@@ -454,7 +454,7 @@ void CLevelSet::CreateLevelSet(STriangleF * tris, UINT nTri, UINT * pAdj, char *
 {
 	UINT nVert = 3*nTri;
 	Vector3F * verts = new Vector3F[nVert];
-	for (int i=0; i<3*nTri; i++) {verts[i] = tris[i/3].vPosW[i%3]; }
+	for (UINT i=0; i<3*nTri; i++) {verts[i] = tris[i/3].vPosW[i%3]; }
 	if (bLoadFromFile) {
 		if (!LoadLevelSet(szLevelSetFile))
 			DxUtSendError("CLevelSet::CreateLevelSet level set could not be loaded.");

@@ -11,18 +11,18 @@ class CFPCamera : public CCamera {
 private:
 	Vector3F m_Velocity;
 	float m_RotSpeed;
-	BOOL m_bTransEnable;
-	BOOL m_bRotEnable;
+	bool m_bTransEnable;
+	bool m_bRotEnable;
 public:
 	CFPCamera():m_RotSpeed(0), m_bTransEnable(1), m_bRotEnable(1) {}
 	~CFPCamera() {}
 
 	//Create a left handded coordinate system FPCamera
 	void CreateFPCameraLH(float fov, UINT uiWidth, UINT uiHeight, 
-		float nearField, float farField, Vector3F & vel, float rotSpeed);
+		float nearField, float farField, const Vector3F & vel, float rotSpeed);
 
-	void SetFPCamera(Vector3F & pos, float phi, float theta);
-	void SetFPCamera(Vector3F & vel, float rotSpeed);
+	void SetFPCamera(const Vector3F & pos, float phi, float theta);
+	void SetFPCamera(const Vector3F & vel, float rotSpeed);
 	void EnableTranslation() {m_bTransEnable = 1;}
 	void DisableTranslation() {m_bTransEnable = 0;}
 	void EnableRotation() {m_bRotEnable = 1;}

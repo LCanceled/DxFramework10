@@ -36,24 +36,24 @@ public:
 	//Matrix4x4F(float _c[4][4]) {memcpy(m, _c, sizeof(float)*16);}
 	//~Matrix4x4F() {}
 
-	Matrix4x4F operator+() {return *this;}
-	Matrix4x4F operator-() {return (-1.f)*(*this);}
+	Matrix4x4F operator+() const {return *this;}
+	Matrix4x4F operator-() const {return (-1.f)*(*this);}
 
-	Matrix4x4F operator+(Matrix4x4F & A);
-	Matrix4x4F operator-(Matrix4x4F & A);
-	Matrix4x4F operator*(Matrix4x4F & A);
-	friend Matrix4x4F operator*(float flt, Matrix4x4F & A);
+	Matrix4x4F operator+(const Matrix4x4F & A);
+	Matrix4x4F operator-(const Matrix4x4F & A);
+	Matrix4x4F operator*(const Matrix4x4F & A);
+	friend Matrix4x4F operator*(float flt, const Matrix4x4F & A);
 	Matrix4x4F operator*(float flt);
 
-	Matrix4x4F & operator=(Matrix4x4F & A);
-	Matrix4x4F & operator+=(Matrix4x4F & A);
-	Matrix4x4F & operator-=(Matrix4x4F & A);
-	Matrix4x4F & operator*=(Matrix4x4F & A);
+	Matrix4x4F & operator=(const Matrix4x4F & A);
+	Matrix4x4F & operator+=(const Matrix4x4F & A);
+	Matrix4x4F & operator-=(const Matrix4x4F & A);
+	Matrix4x4F & operator*=(const Matrix4x4F & A);
 	Matrix4x4F & operator*=(float flt);
 
-	Matrix4x4F Inverse();
-	Matrix4x4F Transpose();
-	Matrix4x4F InverseTranspose();
+	Matrix4x4F Inverse() const;
+	Matrix4x4F Transpose() const;
+	Matrix4x4F InverseTranspose() const;
 
 	/* Each operation applies to myself */
 	Matrix4x4F & MZero();
@@ -61,14 +61,14 @@ public:
 	Matrix4x4F & MInverse();
 	Matrix4x4F & MTranspose();
 	Matrix4x4F & MInverseTranspose();
-	Matrix4x4F & MScaling(Vector3F & scl);
+	Matrix4x4F & MScaling(const Vector3F & scl);
 	Matrix4x4F & MScaling(float x, float y, float z);
 	Matrix4x4F & MTranslation(Vector3F trans);
 	Matrix4x4F & MTranslation(float x, float y, float z);
 	Matrix4x4F & MRotationXLH(float fTheta);
 	Matrix4x4F & MRotationYLH(float fTheta);
 	Matrix4x4F & MRotationZLH(float fTheta);
-	Matrix4x4F & MRotationAxisLH(Vector3F & v, float fTheta);
+	Matrix4x4F & MRotationAxisLH(const Vector3F & v, float fTheta);
 
 	Vector3F GetColumnVec3F(UINT c) {return Vector3F(m[0][c], m[1][c], m[2][c]); }
 	Vector3F GetRowVec3F(UINT c) {return Vector3F(m[c][0], m[c][1], m[c][2]); }
@@ -94,7 +94,7 @@ inline Matrix4x4F::Matrix4x4F(float diag)
 	m[0][3] = 0, m[1][3] = 0, m[2][3] = 0, m[3][3] = diag;
 }
 
-inline Matrix4x4F & Matrix4x4F::operator=(Matrix4x4F & A)
+inline Matrix4x4F & Matrix4x4F::operator=(const Matrix4x4F & A)
 {
 	memcpy(this, &A, sizeof(float)*4*4);
 	return *this;

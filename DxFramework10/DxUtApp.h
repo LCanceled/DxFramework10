@@ -24,7 +24,7 @@ public:
 	virtual void Loop(void(*loopFunction)())=0;
 
 	bool GetPaused() {return m_bPaused; }
-	void SetPaused(BOOL pause) {m_bPaused = pause; }
+	void SetPaused(bool pause) {m_bPaused = pause; }
 
 	bool IsFullscreen() {return m_bFullscreen; }
 	void ToggleFullscreen(bool f) {m_bFullscreen = f; }

@@ -87,7 +87,7 @@ void COBBox::ComputeOBB(Vector3F * verts, UINT nVert, OBBComputeMethod method)
 	m_CenterL = m_CenterW;
 }
 
-BOOL COBBox::PointInOBBW(Vector3F & pt)
+bool COBBox::PointInOBBW(Vector3F & pt)
 {
 	if (fabs(DotXYZ(m_RotVecW[0], pt)) > m_HalfWidthsW.x)
 		return FALSE;
@@ -99,7 +99,7 @@ BOOL COBBox::PointInOBBW(Vector3F & pt)
 	return TRUE;
 }
 
-BOOL COBBox::OBBoxIntersectW(COBBox & oBB)
+bool COBBox::OBBoxIntersectW(COBBox & oBB)
 {
 	//See Ericson, Christer, Real Time Collision Detection, page 101, and
 	//See Gottschalk, Stefan, Collision Queries using Oriented Bounding Boxes
@@ -387,7 +387,7 @@ void IntersectOBB2D(
 	PointInOBB(Vector2F(-hWA.x, +hWA.y), vAW3, hWB, rVB1, rVB2, centerB, contactNormal, CPs);
 }
 
-BOOL COBBox::OBBoxIntersectW(COBBox & oBB, std::vector<SContactPoint> & CPs)
+bool COBBox::OBBoxIntersectW(COBBox & oBB, std::vector<SContactPoint> & CPs)
 {
 	//See Ericson, Christer, Real Time Collision Detection, page 101, and
 
@@ -708,7 +708,7 @@ void COBBox::IntersectOBB2D(COBBox & oBBA, int axisIndexA, COBBox & oBBB, int ax
 }*/
 
 //Rotation, Translation, Scaling must be expressed in this oBB's cordinate frame
-BOOL COBBox::OBBoxIntersectW(COBBox & oBB, Matrix4x4F & rot, Vector3F & tns, FLOAT scl)
+bool COBBox::OBBoxIntersectW(COBBox & oBB, Matrix4x4F & rot, Vector3F & tns, FLOAT scl)
 {
 	//See Ericson, Christer, Real Time Collision Detection, page 101, and
 	//Gottschalk, Stefan, Collision Queries using Oriented Bounding Boxes
@@ -806,7 +806,7 @@ BOOL COBBox::OBBoxIntersectW(COBBox & oBB, Matrix4x4F & rot, Vector3F & tns, FLO
 	return 1;
 }
 
-BOOL COBBox::OBBoxIntersectRelativeW(SRay & rayRelative, bool bSegment, SRayIntersectData * pInter0, SRayIntersectData * pInter1)
+bool COBBox::OBBoxIntersectRelativeW(SRay & rayRelative, bool bSegment, SRayIntersectData * pInter0, SRayIntersectData * pInter1)
 {
 	/* Real Time Collision Detection */
 	Vector3F & p = rayRelative.p;

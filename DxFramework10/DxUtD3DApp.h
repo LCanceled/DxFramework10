@@ -17,7 +17,7 @@ private:
 	TCHAR * m_szWndTitleText;
 	WNDPROC m_WndProc;
 	WORD m_wWndPosX, m_wWndPosY;
-	BOOL m_bFullscreen; 
+	bool m_bFullscreen; 
 
 	LPDIRECTINPUT8 m_pDinput;
 	LPDIRECTINPUTDEVICE8 m_pKeyboard;
@@ -46,8 +46,8 @@ public:
 
 	void Loop(void(*loopFunction)());
 
-	BOOL GetPaused() {return m_bPaused; }
-	void SetPaused(BOOL pause) {m_bPaused = pause; }
+	bool GetPaused() {return m_bPaused; }
+	void SetPaused(bool pause) {m_bPaused = pause; }
 
 	void Print(float val, char * str="\n") {
 		char buf[256]; 
