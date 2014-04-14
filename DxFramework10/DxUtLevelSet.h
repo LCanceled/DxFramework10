@@ -78,7 +78,11 @@ protected:
 		Vector3F	coneDir;
 		float		coneCosAngle;
 
-		Vector3F adjFaceNormals[2];
+		bool bIntersected;
+		bool bAdmissible;
+
+		Vector3F adjTriangleVerts[2];
+		//Vector3F adjFaceNormals[2];
 	};
 	
 	CArray<SVertexParticle> m_VertexParticles;
@@ -138,7 +142,7 @@ protected:
 		Vector3F * verts, UINT * pAdj, Vector3F & angleWeightedNor, Vector3F & edgeNor, float & coneCosAngle, CArray<Vector3F> * adjFaceNormals);
 	
 	void ComputeNondegenerateVertices(UINT nVert, UINT nTri, Vector3F * verts, UINT * pAdj, CFinitePointGrid3F<UINT> & vertToIndex);
-	void AddEdgeVertices(Vector3F & v1, Vector3F & v2, 
+	void AddEdgeVertices(Vector3F & v1, Vector3F & v2, Vector3F & v3,
 		CFinitePointGrid3F<UINT> & vertToIndex, Vector3F & normal, Vector3F * adjTriVerts, UINT & dwVal);
 	//void ComputeFaceVertices(UINT uiInitialTri, SVisitedTriangle * tris, UINT * pAdj,
 	//	CFinitePointGrid3F<UINT> & vertToIndex, CFinitePointGrid3F<UINT> & bVisitedEdges, CArray<SSegment3F> & edges);
@@ -155,7 +159,7 @@ protected:
 	virtual bool HandleEdgeEdgeCollision(SEdgeParticle & edge, Matrix4x4F & T, CArray<SContactPoint> * CPs,
 		UINT uiType, float norFlip, CLevelSet & collideLevelSet);
 	virtual bool MarchExteriorEdgeVertex(CLevelSet & collideLevelSet,
-		float edgeLength, Vector3F & v1, Vector3F & edgeDir, Vector3F coneDir, float cosConeAngle, float & closestDist, Vector3F & finalPt);
+		float edgeLength, Vector3F & v1, Vector3F & edgeDir, Vector3F coneDir, float cosConeAngle, float & closestDist, Vector3F & finalPt, bool & bIntersected);
 	bool ComputeEdgeEdgeIntersection(CLevelSet & collideLevelSet, Vector3F & v1, Vector3F & v2, 
 		Vector3F & edgeDir, Vector3F & coneDir, float coneCosAngle, float norFlip, CArray<SContactPoint> * CPs);
 

@@ -9,7 +9,7 @@
 namespace DxUt {
 
 class CMeshPNT : public CMesh {
-private:
+protected:
 	SLightDir m_Light;
 	CPNTPhongFx m_Effect;
 public:
@@ -19,6 +19,8 @@ public:
 	void DrawAllSubsets(CCamera * pCam, const Matrix4x4F & world, UINT uiShaderPass, SMaterial * pOverrideMaterial=NULL);
 
 	CPNTPhongFx & GetEffect() {return m_Effect; }
+
+	virtual void Destroy();
 };
 
 

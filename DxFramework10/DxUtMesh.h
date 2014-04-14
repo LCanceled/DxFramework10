@@ -33,6 +33,9 @@ protected:
 	UINT * m_Adj;
 
 	virtual void TextureCreationHook(char * szTexFile, UINT i) {}
+
+	void LoadMeshFromFileTXT(char * szMeshFile, UINT uiOptions, const Vector3F & scale);
+	void LoadMeshFromFileOFF(char * szMeshFile, UINT uiOptions, const Vector3F & scale);
 public:
 	CMesh();
 	virtual ~CMesh() {}

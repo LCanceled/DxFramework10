@@ -42,5 +42,10 @@ void CMeshPNT::DrawAllSubsets(CCamera * pCam, const Matrix4x4F & world, UINT uiS
 	}
 }
 
+void CMeshPNT::Destroy()
+{
+	CMesh::Destroy();
+}
+
 
 };
