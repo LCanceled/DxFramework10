@@ -168,6 +168,19 @@ void CLevelSet::AddEdgeVertices(Vector3F & v1, Vector3F & v2, Vector3F & v3,
 		Assert(uiAdjTriVertIndex < 3, "CLevelSet::AddEdgeVertices cannot find adjacent triangle vertex.");
 	}
 	edge.adjTriangleVerts[1] = adjTriVerts[uiAdjTriVertIndex];
+	edge.adjFaceNormals[0] = normal;
+	edge.adjFaceNormals[1] = tNor;
+
+	// Compute orthogonal edge vectors
+	Vector3F edgeDir(edge.pVP1->v - edge.pVP2->v);
+	Vector3F dir(edge.adjTriangleVerts[0] - edge.pVP1->v);
+	edge.adjOrthoEdgeVecs[0] = CrossXYZ(normal, edgeDir).Normalize();
+	if (DotXYZ(edge.adjOrthoEdgeVecs[0], dir) < 0) edge.adjOrthoEdgeVecs[0] = -edge.adjOrthoEdgeVecs[0];
+
+	dir = edge.adjTriangleVerts[1] - edge.pVP1->v;
+	edge.adjOrthoEdgeVecs[1] = CrossXYZ(tNor, edgeDir).Normalize();
+	if (DotXYZ(edge.adjOrthoEdgeVecs[1], dir) < 0) edge.adjOrthoEdgeVecs[1] = -edge.adjOrthoEdgeVecs[1];
+
 	edge.bIntersected = 0;
 	edge.bAdmissible = 0;
 	
@@ -628,6 +641,41 @@ UINT CLevelSet::LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactPo
 #ifdef PRINT
 	CTimer::Get().StartTimer(1);
 #endif
+
+	auto func = [&] (const SEdgeParticle & e, const SEdgeParticle * pEdge, Matrix4x4F & T, float norFlip, CLevelSet & lhs, CLevelSet & rhs) {
+		for (int i=0; i<2; i++) {
+			SEdgeParticle eTest1 = e;
+			Vector3F pts[2];
+			Vector3F e1(eTest1.adjTriangleVerts[i] - pEdge->pVP1->v);
+			Vector3F e2(eTest1.adjTriangleVerts[i] - pEdge->pVP2->v);
+			
+			pts[0] = (.2f/DotXYZ(eTest1.adjOrthoEdgeVecs[i], e1))*e1 + pEdge->pVP1->v;
+			pts[1] = (.2f/DotXYZ(eTest1.adjOrthoEdgeVecs[i], e2))*e2 + pEdge->pVP2->v;
+			//pts[0] = .2f*e1 + pEdge->pVP1->v;
+			//pts[1] = .2f*e2 + pEdge->pVP2->v;
+
+			SVertexParticle vp1;
+			vp1.v = pts[0];
+			vp1.bIntersected = 0;
+			vp1.bAdmissible = 0;
+			vp1.closestDist = 0;
+		
+			SVertexParticle vp2;
+			vp2.v = pts[1];
+			vp2.bIntersected = 0;
+			vp2.bAdmissible = 0;
+			vp2.closestDist = 0;
+		
+			eTest1.pVP1 = &vp1;
+			eTest1.pVP2 = &vp2;
+			eTest1.coneCosAngle = .95;
+			eTest1.coneDir = eTest1.adjFaceNormals[i];
+
+			if (lhs.HandleEdgeEdgeCollision(eTest1, T, CPs, eTest1.pVP1->bIntersected + eTest1.pVP2->bIntersected, norFlip, rhs)) {
+			}
+		}
+	};
+
 	/* Edge-vertex containment */
 	/* Compute the minimum penetration distance */
 	for (UINT i=0, end=m_pEdgeIndex->GetSize(); i<end; i++) {
@@ -640,8 +688,9 @@ UINT CLevelSet::LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactPo
 		SEdgeParticle e = *pEdge;
 		if (!pEdge->pVP1->bIntersected) e.pVP1 = pEdge->pVP2, e.pVP2 = pEdge->pVP1;
 
-		if (HandleEdgeEdgeCollision(e, T1, CPs, pEdge->pVP1->bIntersected + pEdge->pVP2->bIntersected, 1.f, collideLevelSet)) {
-			//break;
+		if (!HandleEdgeEdgeCollision(e, T1, CPs, pEdge->pVP1->bIntersected + pEdge->pVP2->bIntersected, 1.f, collideLevelSet)) {
+			if (!e.bIntersected || e.bAdmissible) continue;
+			func(e, pEdge, T1, 1.f, *this, collideLevelSet);
 		}
 	}
 
@@ -655,123 +704,15 @@ UINT CLevelSet::LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactPo
 		SEdgeParticle e = *pEdge;
 		if (!pEdge->pVP1->bIntersected) e.pVP1 = pEdge->pVP2, e.pVP2 = pEdge->pVP1;
 
-		if (collideLevelSet.HandleEdgeEdgeCollision(e, T2, CPs, pEdge->pVP1->bIntersected + pEdge->pVP2->bIntersected, -1.f, *this)) {
-			//break;
+		if (!collideLevelSet.HandleEdgeEdgeCollision(e, T2, CPs, pEdge->pVP1->bIntersected + pEdge->pVP2->bIntersected, -1.f, *this)) {
+			if (!e.bIntersected || e.bAdmissible) continue;
+			func(e, pEdge, T2, -1.f, collideLevelSet, *this);
 		}
 	}
 
 #ifdef PRINT
 	CTimer::Get().EndTimer(1, "End intersection edges");
 #endif
-
-
-	/* Face-face containment */
-	/*
-	float dist;
-	// Body 1 
-	for (UINT i=0, end=m_pVertexParticleIndex->GetSize(); i<end; i++) {
-		SVertexParticle & vP = m_VertexParticles[(*m_pVertexParticleIndex)[i]];
-		//if (!vP.bIntersected) {
-			SVertexParticle wVP = {
-				Vector3F(0,0,0),
-				Vector3F(0,0,0),
-				0
-			};
-			
-			for (UINT j=0, end2=vP.rgInsetV.GetSize(); j<end2; j++) {
-				//if (vP.rgInsetV[j].vertDist < vP.closestDist)
-				//	continue; 
-
-				wVP.v = T1*vP.rgInsetV[j].v;
-				if (collideLevelSet.ParticleInLevelSet_Fast(wVP.v, dist)) {
-					cp.dist = dist;
-					cp.iNor = -m_TransformNormalGridToWorld*vP.rgInsetV[j].nor;
-					cp.iPos = collideLevelSet.m_TransformObjToWorld*wVP.v;
-					CPs->PushBack(cp);
-				}
-			}
-	//	}
-	}
-	
-	// Body 2 
-	for (UINT i=0, end=collideLevelSet.m_pVertexParticleIndex->GetSize(); i<end; i++) {
-		SVertexParticle & vP = collideLevelSet.m_VertexParticles[(*collideLevelSet.m_pVertexParticleIndex)[i]];
-		//if (!vP.bIntersected) {
-			SVertexParticle wVP = {
-				Vector3F(0,0,0),
-				Vector3F(0,0,0),
-				0
-			};
-
-			for (UINT j=0, end2=vP.rgInsetV.GetSize(); j<end2; j++) {
-				//if (vP.rgInsetV[j].vertDist < vP.closestDist)
-				//	continue; 
-
-				wVP.v = T2*vP.rgInsetV[j].v;
-				if (ParticleInLevelSet_Fast(wVP.v, dist)) {
-					cp.dist = dist;
-					cp.iNor = collideLevelSet.m_TransformNormalGridToWorld*vP.rgInsetV[j].nor;
-					cp.iPos = m_TransformObjToWorld*wVP.v;
-					CPs->PushBack(cp);
-				}
-			}
-	//	}
-	}*/
-
-	// Body 1
-	/*for (UINT i=0, end=m_pEdgeIndex->GetSize(); i<end; i++) {
-		if ((*m_pEdgeIndex)[i] > m_EdgeParticles.GetSize())
-			DebugBreak();
-
-		SEdgeParticle * pEdge = &m_EdgeParticles[(*m_pEdgeIndex)[i]];
-		if (!pEdge->bIntersected || (pEdge->bIntersected && pEdge->bAdmissible)) continue;
-
-		if (pEdge->pVP1->bIntersected && pEdge->pVP2->bIntersected) continue;
-
-		SEdgeParticle e = *pEdge;
-		if (!pEdge->pVP1->bIntersected) e.pVP1 = pEdge->pVP2, e.pVP2 = pEdge->pVP1;
-
-		if (HandleEdgeEdgeCollision(e, T1, CPs, pEdge->pVP1->bIntersected + pEdge->pVP2->bIntersected, 1.f, collideLevelSet)) {
-			//break;
-		}
-	}*/
-
-	for (UINT i=0, end=m_pEdgeIndex->GetSize(); i<end; i++) {
-		if ((*m_pEdgeIndex)[i] > m_EdgeParticles.GetSize())
-			DebugBreak();
-
-		SEdgeParticle * pEdge = &m_EdgeParticles[(*m_pEdgeIndex)[i]];
-		if (pEdge->pVP1->bIntersected && pEdge->pVP2->bIntersected) continue;
-		if (!pEdge->bIntersected || pEdge->bAdmissible) continue;
-
-		SEdgeParticle e = *pEdge;
-		SEdgeParticle eTest1 = e;
-		
-		//eTest1.
-
-		//e.adjTriangleVerts[0]
-
-		if (HandleEdgeEdgeCollision(e, T1, CPs, pEdge->pVP1->bIntersected + pEdge->pVP2->bIntersected, 1.f, collideLevelSet)) {
-			
-		}
-	}
-
-	/*
-	for (UINT i=0, end=collideLevelSet.m_pEdgeIndex->GetSize(); i<end; i++) {
-		if ((*collideLevelSet.m_pEdgeIndex)[i] > collideLevelSet.m_EdgeParticles.GetSize())
-			DebugBreak();
-
-		SEdgeParticle * pEdge = &collideLevelSet.m_EdgeParticles[(*collideLevelSet.m_pEdgeIndex)[i]];
-		if (pEdge->pVP1->bIntersected && pEdge->pVP2->bIntersected) continue;
-		if (!pEdge->bIntersected || pEdge->bAdmissible) continue;
-		
-		SEdgeParticle e = *pEdge;
-		if (!pEdge->pVP1->bIntersected) e.pVP1 = pEdge->pVP2, e.pVP2 = pEdge->pVP1;
-
-		if (collideLevelSet.HandleEdgeEdgeCollision(e, T2, CPs, pEdge->pVP1->bIntersected + pEdge->pVP2->bIntersected, -1.f, *this)) {
-			//break;
-		}
-	}*/
 
 	/*
 	if (m_bDrawTris) CCollisionGraphics::SetupTriangleDraw(Vector3F(0, 1.f, 0));
@@ -801,16 +742,6 @@ UINT CLevelSet::LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactPo
 		SVertexParticle & vP = collideLevelSet.m_VertexParticles[(*collideLevelSet.m_pVertexParticleIndex)[i]];
 		vP.bIntersected = 0;
 		vP.bAdmissible = 0;
-	}
-
-	/* Reset all the intersected edges */
-	for (UINT i=0, end=m_EdgeParticles.GetSize(); i<end; i++) {
-		m_EdgeParticles[i].bIntersected = 0;
-		m_EdgeParticles[i].bAdmissible = 0;
-	}
-	for (UINT i=0, end=collideLevelSet.m_EdgeParticles.GetSize(); i<end; i++) {
-		collideLevelSet.m_EdgeParticles[i].bIntersected = 0;
-		collideLevelSet.m_EdgeParticles[i].bAdmissible = 0;
 	}
 
 	/* Reset all processed faces */
@@ -860,17 +791,21 @@ bool CLevelSet::HandleEdgeEdgeCollision(SEdgeParticle & edge, Matrix4x4F & T, CA
 	intersect1.pos = collideLevelSet.m_TransformObjToWorld*intersect1.pos;
 
 	/* Find the first interior point starting from v1 */
-	Vector3F & v1Initial = intersect0.pos;
+	Vector3F v1Final(v1);
+	Vector3F edgeDirV1Nor(edgeDirV1/edge.edgeLength);
+	float t1 = (intersect0.pos - v1).Length();
 	if (!edge.pVP1->bIntersected)
-		if (!MarchExteriorEdgeVertex(collideLevelSet, edge.edgeLength, v1Initial, edgeDirV1, coneDir, edge.coneCosAngle, closestDistV1, v1, edge.bIntersected))
+		if (!MarchExteriorEdgeVertex(v1, edgeDirV1Nor, edge.edgeLength, t1, coneDir, edge.coneCosAngle, collideLevelSet, closestDistV1, v1Final, edge.bIntersected))
 			return 0;
 	
 	/* Find the first interior point starting from v2 */
+	Vector3F v2Final(v2);
 	Vector3F edgeDirV2(-edgeDir);
+	Vector3F edgeDirV2Nor(edgeDirV2/edge.edgeLength);
 	float closestDistV2 = 0;
-	Vector3F & v2Initial = intersect1.pos;
+	float t2 = (intersect1.pos - v2).Length();
 	if (!edge.pVP2->bIntersected)
-		if (!MarchExteriorEdgeVertex(collideLevelSet, edge.edgeLength, v2Initial, edgeDirV2, coneDir, edge.coneCosAngle, closestDistV2, v2, edge.bIntersected))
+		if (!MarchExteriorEdgeVertex(v2, edgeDirV2Nor, edge.edgeLength, t2, coneDir, edge.coneCosAngle, collideLevelSet, closestDistV2, v2Final, edge.bIntersected))
 			return 0;
 
 	edge.bAdmissible = 1;
@@ -890,13 +825,24 @@ bool CLevelSet::HandleEdgeEdgeCollision(SEdgeParticle & edge, Matrix4x4F & T, CA
 	return 1;*/
 
 
-	return ComputeEdgeEdgeIntersection(collideLevelSet, v1, v2, edgeDirV1, coneDir, edge.coneCosAngle, norFlip, CPs);
+	return ComputeEdgeEdgeIntersection(collideLevelSet, v1Final, v2Final, edgeDirV1, coneDir, edge.coneCosAngle, norFlip, CPs);
 }
 
 bool CLevelSet::ComputeEdgeEdgeIntersection(CLevelSet & collideLevelSet, Vector3F & v1, 
 	Vector3F & v2, Vector3F & edgeDir, Vector3F & coneDir, float coneCosAngle, float norFlip, CArray<SContactPoint> * CPs)
 {
 	Vector3F avgPos = .5f*(v1 + v2); // TODO: don't do this. march from both sides instead
+
+	/*
+		Vector3F v2Final(v2);
+	Vector3F edgeDirV2(-edgeDir);
+	Vector3F edgeDirV2Nor(edgeDirV2/edge.edgeLength);
+	float closestDistV2 = 0;
+	float t2 = (intersect1.pos - v2).Length();
+	if (!edge.pVP2->bIntersected)
+		if (!MarchExteriorEdgeVertex(v2, edgeDirV2Nor, edge.edgeLength, t2, coneDir, edge.coneCosAngle, collideLevelSet, closestDistV2, v2Final, edge.bIntersected))
+			*/
+
 	Vector3F avgNor = collideLevelSet.ComputeGradient(avgPos);
 	if (!IsNormalAdmissible(coneDir, coneCosAngle, avgNor)) {
 		return 0;
@@ -948,26 +894,23 @@ bool CLevelSet::ComputeEdgeEdgeIntersection(CLevelSet & collideLevelSet, Vector3
 	return 0;
 }
 
-bool CLevelSet::MarchExteriorEdgeVertex(CLevelSet & collideLevelSet,
-	float edgeLength, Vector3F & v1, Vector3F & edgeDir, Vector3F coneDir, float coneCosAngle,  float & closestDist, Vector3F & finalPt, bool & bIntersected)
+bool CLevelSet::MarchExteriorEdgeVertex(Vector3F & vStart, Vector3F & edgeDir, float edgeLen, float t, 
+	Vector3F & coneDir, float cosConeAngle, CLevelSet & collideLevelSet, float & closestDist, Vector3F & finalPt, bool & bIntersected)
 {
-	UINT nVertPerEdge = ceilf_ASM(edgeLength/(.5f*collideLevelSet.m_CellSize));
-	float stepSize = edgeLength/(nVertPerEdge);
-	UINT uiIncr = 0;
 	bool b1;
+	Vector3F _finalPt;
 	do {
-		int iAdvance = (int)floorf_ASM(Abs(closestDist)/stepSize);
-		uiIncr += max(iAdvance, 1);
-		if (uiIncr >= nVertPerEdge+1) {
-			return 0;
-		}
+		t += max(Abs(closestDist), .5f*collideLevelSet.m_CellSize);
+		if (t > edgeLen) return 0;
+		_finalPt = vStart + t * edgeDir;
 
-		finalPt = v1 + (stepSize/edgeLength * (float)uiIncr) * edgeDir;
-		b1 = collideLevelSet.ParticleInLevelSet(finalPt, closestDist);
-		if (b1) bIntersected = 1;
+		b1 = collideLevelSet.ParticleInLevelSet(_finalPt, closestDist);
+		if (b1) 
+			bIntersected = 1;
 	} while (!b1 || 
-		!IsNormalAdmissible(coneDir, coneCosAngle, collideLevelSet.ComputeGradient(finalPt)));
+		!IsNormalAdmissible(coneDir, cosConeAngle, collideLevelSet.ComputeGradient(_finalPt)));
 
+	finalPt = _finalPt;
 	return 1;
 }
 //http://gilscvblog.wordpress.com/2013/08/23/bag-of-words-models-for-visual-categorization/
@@ -1015,7 +958,7 @@ bool CLevelSet::ParticleInLevelSet(Vector3F & particle, float & dist)
 		cellX, cellY, cellZ);
 
 	dist = t;
-	return t < -m_ValidParticleDistance;
+	return t < 1e-3;//-m_ValidParticleDistance;
 }
 
 Vector3F CLevelSet::ComputeGradient(Vector3F & pt)

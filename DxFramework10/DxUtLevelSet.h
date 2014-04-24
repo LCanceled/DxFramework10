@@ -82,7 +82,8 @@ protected:
 		bool bAdmissible;
 
 		Vector3F adjTriangleVerts[2];
-		//Vector3F adjFaceNormals[2];
+		Vector3F adjFaceNormals[2];
+		Vector3F adjOrthoEdgeVecs[2];
 	};
 	
 	CArray<SVertexParticle> m_VertexParticles;
@@ -158,8 +159,8 @@ protected:
 
 	virtual bool HandleEdgeEdgeCollision(SEdgeParticle & edge, Matrix4x4F & T, CArray<SContactPoint> * CPs,
 		UINT uiType, float norFlip, CLevelSet & collideLevelSet);
-	virtual bool MarchExteriorEdgeVertex(CLevelSet & collideLevelSet,
-		float edgeLength, Vector3F & v1, Vector3F & edgeDir, Vector3F coneDir, float cosConeAngle, float & closestDist, Vector3F & finalPt, bool & bIntersected);
+	virtual bool MarchExteriorEdgeVertex(Vector3F & vStart, Vector3F & edgeDir, float edgeLen, float t, 
+		Vector3F & coneDir, float cosConeAngle, CLevelSet & collideLevelSet, float & closestDist, Vector3F & finalPt, bool & bIntersected);		
 	bool ComputeEdgeEdgeIntersection(CLevelSet & collideLevelSet, Vector3F & v1, Vector3F & v2, 
 		Vector3F & edgeDir, Vector3F & coneDir, float coneCosAngle, float norFlip, CArray<SContactPoint> * CPs);
 

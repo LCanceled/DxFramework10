@@ -59,6 +59,7 @@ void CRigidBodyWorld::AddCenterOfMassPositionConstraint(UINT uiRigidBody, Vector
 	m_RBObjects[uiRigidBody].constraintCMPos = pos;
 }
 
+
 void CRigidBodyWorld::DisableRigidBody(UINT uiId) 
 {
 	Assert(uiId < m_RBObjects.GetSize(), "CRigidBodyWorld::DisableRigidBody "
@@ -281,11 +282,11 @@ void CRigidBodyWorld::SolveLayer(UINT k, VectorNF & lambda, float dt)
 		CRigidBody & rbk = rbC.rBOk->rB;
 		CRigidBody & rbl = rbC.rBOl->rB;
 		//float mu = 0.0;//1; // Friction is WRONG! box platform
-		float mu = Min(rbC.rBOk->rB.m_Mu, rbC.rBOl->rB.m_Mu);
+		float mu = .2f;//Min(rbC.rBOk->rB.m_Mu, rbC.rBOl->rB.m_Mu);
 
 		float fB, fImpulseN, fImpulseT1=0, fImpulseT2=0;
-		float fPushOut = .5f*(rbC.pushOutVel*dt + rbC.dist)/dt;
-		if (!m_bUsePushOut || rbC.dist > -.05f) fPushOut = 0;
+		float fPushOut = .1f*(rbC.pushOutVel*dt + rbC.dist)/dt;
+		if (!m_bUsePushOut || rbC.dist > -.01f) fPushOut = 0;
 		COMPUTE_IMPULSE(0, fImpulseN, fPushOut);
 		//g_D3DApp->Print(fB + fPushOut/dt);
 		COMPUTE_IMPULSE(1, fImpulseT1, 0);
@@ -335,7 +336,7 @@ void CRigidBodyWorld::PGSSolve(UINT nContacts, float dt, bool bNeedSetup)
 	//CArray<Vector3F> rgFrictionImpulses;
 	//rgFrictionImpulses.Reserve(3*nContacts);
 
-	UINT nIterations = 20;
+	UINT nIterations = 200;
 	for (UINT i=0; i<nIterations; i++) {
 		for (UINT k=0, end=m_ContactLayers.GetSize(); k<end; k++)
 			SolveLayer(k, lambda, dt);
@@ -348,7 +349,7 @@ void CRigidBodyWorld::PGSSolve(UINT nContacts, float dt, bool bNeedSetup)
 
 	/* Shock propagation */
 	lambda.Set(0);
-	for (UINT i=0; i<nIterations/10 + 1; i++) {
+	/*for (UINT i=0; i<nIterations/10 + 1; i++) {
 		for (UINT k=0, end=m_ContactLayers.GetSize(); k<end; k++) {
 			SolveLayer(k, lambda, dt);
 
@@ -365,11 +366,11 @@ void CRigidBodyWorld::PGSSolve(UINT nContacts, float dt, bool bNeedSetup)
 			pRBObjects[i].rB.SetStatic(0);
 		}
 		
-		/* Position constraints */
+		/* Position constraints 
 		for (UINT k=0, end=m_RBObjects.GetSize(); k<end; k++) {
 			ApplyCMConstraint(m_RBObjects[k], dt);
 		}
-	}
+	}*/
 
 	lambda.DestroyVector();
 	//rgFrictionImpulses.Clear();
@@ -451,7 +452,7 @@ void CRigidBodyWorld::UpdateRigidBodies(float dt, const Vector3F & gAcel)
 
 		/* Post stab stuff*/
 		if (nContacts) {
-			m_bUsePushOut = 0;
+			m_bUsePushOut = 1;
 			m_pRBObject[1];
 			PGSSolve(nContacts, dtSubStep, 0);
 		}
@@ -563,6 +564,7 @@ void CRigidBodyWorld::ApplyCMConstraint(SRBObject & rBO, float dt)
 		dir = dir/dist;
 		rBO.rB.m_LinVel += (dist/dt) * dir;
 	}
+
 }
 
 void CRigidBodyWorld::DrawCollisionGraphics(CCamera * pCam)

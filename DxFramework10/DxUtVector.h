@@ -69,7 +69,7 @@ public:
 
 	float Length() {return sqrtf(x*x + y*y);}
 	float LengthSq() {return x*x + y*y;}
-	Vector2F Normalize();
+	Vector2F Normalize() const;
 };
 
 class Matrix4x4F;
@@ -117,7 +117,7 @@ public:
 	float Length() {return sqrtf(x*x + y*y + z*z);}
 	float LengthSq() {return x*x + y*y + z*z;}
 
-	Vector3F Normalize();
+	Vector3F Normalize() const;
 	//Vector3F NormalizeSq();
 	Matrix4x4F SkewMatrix3x3F();
 	friend Vector3F operator*(const Matrix4x4F & A, const Vector3F & v);
@@ -278,7 +278,7 @@ public:
 	float Length() {return sqrtf(x*x + y*y + z*z + w*w);}
 	float LengthSq() {return x*x + y*y + z*z + w*w;}
 
-	Vector4F Normalize();
+	Vector4F Normalize() const;
 	friend Vector4F operator*(const Matrix4x4F & A, const Vector4F & v);
 	friend Vector4F operator*(const Vector4F & v, const Matrix4x4F & A);
 };

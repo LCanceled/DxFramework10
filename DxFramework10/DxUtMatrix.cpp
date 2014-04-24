@@ -307,8 +307,7 @@ Matrix4x4F & Matrix4x4F::MRotationZLH(float fTheta)
 
 Matrix4x4F & Matrix4x4F::MRotationAxisLH(const Vector3F & v, float fTheta)
 {
-	Vector3F vn(v);
-	vn.Normalize();
+	Vector3F vn(v.Normalize());
 	float c = cosf(fTheta);
 	float s = sinf(fTheta);
 	float t = 1.f - cosf(fTheta);

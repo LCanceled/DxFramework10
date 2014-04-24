@@ -188,15 +188,15 @@ void CMesh::LoadMeshFromFileTXT(char * szMeshFile, UINT uiOptions, const Vector3
 {
 	Assert(!m_pMesh, "CMesh::LoadMeshFromFile mesh must be destroyed before creating a new one.");
 
-	HANDLE hFile = CreateFileA(szMeshFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (!hFile) DxUtSendErrorEx("CMesh::LoadMeshFromFile could not open mesh file.", szMeshFile);
+	std::ifstream stream(szMeshFile, std::ifstream::binary);
+	if (!stream) DxUtSendErrorEx("CMesh::LoadMeshFromFile could not open mesh file.", szMeshFile);
+
 	UINT nFaces, nVert;
 	DWORD dwNum=0;
-	ReadFile(hFile, &nFaces, sizeof(UINT), &dwNum, 0);
-	ReadFile(hFile, &nVert, sizeof(UINT), &dwNum, 0);
+	stream.read((char*)&nFaces, sizeof(UINT));
+	stream.read((char*)&nVert, sizeof(UINT));
 	D3D10_INPUT_ELEMENT_DESC const * aDesc = GetVertexElementDescPNT();
 	m_uiStride = sizeof(SVertexPNT);
-
 
 	m_Name = szMeshFile;
 	if (!CMeshPool::GetResource((char*)szMeshFile, this)) {
@@ -208,7 +208,7 @@ void CMesh::LoadMeshFromFileTXT(char * szMeshFile, UINT uiOptions, const Vector3
 		m_nVertices = nVert;
 		m_Vertices = new Vector3F[nVert];
 		SVertexPNT * vert = new SVertexPNT[nVert];
-		ReadFile(hFile, vert, nVert*sizeof(SVertexPNT), &dwNum, 0);
+		stream.read((char*)vert, nVert*sizeof(SVertexPNT));
 		for (UINT i=0; i<nVert; i++) {
 			vert[i].pos = scale*vert[i].pos;
 			m_Vertices[i] = vert[i].pos;
@@ -217,7 +217,7 @@ void CMesh::LoadMeshFromFileTXT(char * szMeshFile, UINT uiOptions, const Vector3
 
 		//Set the index data
 		UINT * indi = (UINT*)vert;
-		ReadFile(hFile, indi, 3*nFaces*sizeof(UINT), &dwNum, 0);
+		stream.read((char*)indi, 3*nFaces*sizeof(UINT));
 		m_pMesh->SetIndexData(indi, 3*nFaces);
 
 		// Extract the triangles
@@ -231,12 +231,12 @@ void CMesh::LoadMeshFromFileTXT(char * szMeshFile, UINT uiOptions, const Vector3
 
 		//Set the attribute data
 		UINT * atri = (UINT*)vert;
-		ReadFile(hFile, atri, nFaces*sizeof(UINT), &dwNum, 0);
+		stream.read((char*)atri, nFaces*sizeof(UINT));
 		m_pMesh->SetAttributeData(atri);
 
 		// Extract the adj info
 		m_Adj = new UINT[3*nFaces];
-		ReadFile(hFile, m_Adj, 3*nFaces*sizeof(UINT), &dwNum, 0);
+		stream.read((char*)m_Adj, 3*nFaces*sizeof(UINT));
 
 		delete[] vert;
 		vert = 0;
@@ -247,19 +247,19 @@ void CMesh::LoadMeshFromFileTXT(char * szMeshFile, UINT uiOptions, const Vector3
 
 		CMeshPool::PutResource(szMeshFile, this);
 	} else {
-		SetFilePointer(hFile, nVert*sizeof(SVertexPNT)+3*nFaces*sizeof(UINT)+nFaces*sizeof(UINT)+3*nFaces*sizeof(UINT), NULL, FILE_CURRENT);
+		stream.seekg(2*sizeof(UINT)+nVert*sizeof(SVertexPNT)+3*nFaces*sizeof(UINT)+nFaces*sizeof(UINT)+3*nFaces*sizeof(UINT));
 	}
 
-	ReadFile(hFile, &m_nSubsets, sizeof(UINT), &dwNum, 0);
+	stream.read((char*)&m_nSubsets, sizeof(UINT));
 	m_Materials = new SMaterial[m_nSubsets];
 	m_SRViews = new ID3D10ShaderResourceView*[m_nSubsets];
 
 	for (UINT i=0, len=0; i<m_nSubsets; i++) {
-		ReadFile(hFile, &m_Materials[i], sizeof(SMaterial), &dwNum, 0);
-		ReadFile(hFile, &len, sizeof(UINT), &dwNum, 0);
+		stream.read((char*)&m_Materials[i], sizeof(SMaterial));
+		stream.read((char*)&len, sizeof(UINT));
 		if (len) {
 			CHAR texFileName[128] = {0};					//It is assumed that the name of a file is small.
-			ReadFile(hFile, &texFileName, len, &dwNum, 0);
+			stream.read((char*)&texFileName, len);
 			
 			if (FAILED(D3DX10CreateShaderResourceViewFromFileA(g_pD3DDevice, texFileName, 0, 0, &m_SRViews[i], 0))) {
 				DxUtSendErrorEx("CMesh::LoadMeshFromFile could not load mesh texture.", texFileName);
