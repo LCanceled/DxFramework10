@@ -93,6 +93,9 @@ public:
 
 	/* Constrains the center of mass to lie at a certain position */
 	void AddCenterOfMassPositionConstraint(UINT uiRigidBody, Vector3F & pos);
+	void SetCenterOfMassPositionConstraint(UINT uiRigidBody, Vector3F & offset) {
+		m_RBObjects[uiRigidBody].constraintCMPos -= offset;
+	}
 
 	void UpdateRigidBodies(float dt, const Vector3F & gAcel);
 

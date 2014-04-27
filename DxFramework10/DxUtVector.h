@@ -55,6 +55,9 @@ public:
 	bool operator==(const Vector2F & v) const {
 		return abs(v.x - x) < g_fVectorEqualityEps && abs(v.y - y) < g_fVectorEqualityEps;
 	}
+	bool operator!=(const Vector2F & v) const {
+		return !(abs(v.x - x) < g_fVectorEqualityEps && abs(v.y - y) < g_fVectorEqualityEps);
+	}
 	friend bool operator<(const Vector2F & v1, const Vector2F & v2) {
 		return ((Vector2F)v1).LengthSq() < ((Vector2F)v2).LengthSq();
 	}
@@ -66,7 +69,7 @@ public:
 
 	float Length() {return sqrtf(x*x + y*y);}
 	float LengthSq() {return x*x + y*y;}
-	Vector2F Normalize();
+	Vector2F Normalize() const;
 };
 
 class Matrix4x4F;
@@ -114,7 +117,7 @@ public:
 	float Length() {return sqrtf(x*x + y*y + z*z);}
 	float LengthSq() {return x*x + y*y + z*z;}
 
-	Vector3F Normalize();
+	Vector3F Normalize() const;
 	//Vector3F NormalizeSq();
 	Matrix4x4F SkewMatrix3x3F();
 	friend Vector3F operator*(const Matrix4x4F & A, const Vector3F & v);
@@ -126,6 +129,9 @@ public:
 
 	bool operator==(const Vector3F & v) const {
 		return abs(v.x - x) < g_fVectorEqualityEps && abs(v.y - y) < g_fVectorEqualityEps && abs(v.z - z) < g_fVectorEqualityEps;
+	}
+	bool operator!=(const Vector3F & v) const {
+		return !(abs(v.x - x) < g_fVectorEqualityEps && abs(v.y - y) < g_fVectorEqualityEps && abs(v.z - z) < g_fVectorEqualityEps);
 	}
 	//friend bool operator<(const Vector3F & v1, const Vector3F & v2) {
 	//	return 0;//((Vector3F)v1).LengthSq() < ((Vector3F)v2).LengthSq();
@@ -272,7 +278,7 @@ public:
 	float Length() {return sqrtf(x*x + y*y + z*z + w*w);}
 	float LengthSq() {return x*x + y*y + z*z + w*w;}
 
-	Vector4F Normalize();
+	Vector4F Normalize() const;
 	friend Vector4F operator*(const Matrix4x4F & A, const Vector4F & v);
 	friend Vector4F operator*(const Vector4F & v, const Matrix4x4F & A);
 };

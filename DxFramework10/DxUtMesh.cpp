@@ -2,8 +2,34 @@
 #include "DxUtMesh.h"
 #include "DxUtVertex.h"
 #include "DxUtMeshPool.h"
+#include <fstream>
 
 namespace DxUt {
+
+void ExtractAdjanceyFromMesh(ID3DX10Mesh * pMesh, UINT * pAdjOut) 
+{
+	ID3DX10MeshBuffer * aBuf;
+	if (FAILED(pMesh->GetAdjacencyBuffer(&aBuf))) {
+		DxUtSendError("ExtractAdjanceyFromMesh must have a mesh with adjancey information.");
+	}
+
+	SIZE_T aBufSize = aBuf->GetSize();
+	UINT nFaces = pMesh->GetFaceCount();
+
+	if ((pMesh->GetFlags() & D3DX10_MESH_32_BIT)) {
+		DWORD * pAdj = NULL;
+		aBuf->Map((void**)&pAdj, &aBufSize);
+		for (UINT i=0; i<3*nFaces; i++) pAdjOut[i] = pAdj[i];
+	} else {
+		WORD * pAdj = NULL;
+		aBuf->Map((void**)&pAdj, &aBufSize);
+		for (UINT i=0; i<3*nFaces; i++) pAdjOut[i] = pAdj[i];
+	}
+	aBuf->Unmap();
+
+	ReleaseX(aBuf);
+
+}
 
 CMesh::CMesh():m_pMesh(0), m_nSubsets(0)
 {
@@ -52,17 +78,125 @@ void CMesh::CreateMesh(UINT nTri, UINT nVert, UINT uiOptions,
 
 void CMesh::LoadMeshFromFile(char * szMeshFile, UINT uiOptions, const Vector3F & scale)
 {
-	Assert(!m_pMesh, "CMesh::CreateMesh mesh must be destroyed before creating a new one.");
+	char * ptr = strstr(szMeshFile, ".txt");
+	if (ptr != NULL) {LoadMeshFromFileTXT(szMeshFile, uiOptions, scale); return; }
+	ptr = strstr(szMeshFile, ".off");
+	if (ptr != NULL) {LoadMeshFromFileOFF(szMeshFile, uiOptions, scale); return; }
+	else {
+		DxUtSendError("CMesh::LoadMeshFromFile must specify a valid extension (.txt, .off)");
+	}
+}
 
-	HANDLE hFile = CreateFileA(szMeshFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (!hFile) DxUtSendErrorEx("CMesh::LoadMeshFromFile could not open mesh file.", szMeshFile);
-	UINT nFaces, nVert;
+void CMesh::LoadMeshFromFileOFF(char * szMeshFile, UINT uiOptions, const Vector3F & scale)
+{
+	Assert(!m_pMesh, "CMesh::LoadMeshFromFile mesh must be destroyed before creating a new one.");
+
+	std::fstream stream(szMeshFile);
+	if (!stream) DxUtSendErrorEx("CMesh::LoadMeshFromFile could not open mesh file.", szMeshFile);
+
+	std::string dummy;
+	UINT nFaces, nVert, nEdges;
 	DWORD dwNum=0;
-	ReadFile(hFile, &nFaces, sizeof(UINT), &dwNum, 0);
-	ReadFile(hFile, &nVert, sizeof(UINT), &dwNum, 0);
+	stream >> dummy;
+	stream >> nVert;
+	stream >> nFaces;
+	stream >> nEdges;
 	D3D10_INPUT_ELEMENT_DESC const * aDesc = GetVertexElementDescPNT();
 	m_uiStride = sizeof(SVertexPNT);
 
+	m_Name = szMeshFile;
+	if (!CMeshPool::GetResource((char*)szMeshFile, this)) {
+		if (FAILED(D3DX10CreateMesh(g_pD3DDevice, aDesc, 3, aDesc->SemanticName, nVert, nFaces, uiOptions, &m_pMesh))) {
+			DxUtSendErrorEx("CMesh::LoadMeshFromFile could not be loaded from file.", szMeshFile); 
+		}
+
+		//Set the vertex data positions
+		m_nVertices = nVert;
+		m_Vertices = new Vector3F[nVert];
+		SVertexPNT * vert = new SVertexPNT[nVert];
+		for (int i=0; i<nVert; i++) {
+			stream >> vert[i].pos.x;  
+			stream >> vert[i].pos.z;  
+			stream >> vert[i].pos.y;  
+			vert[i].pos.z = -vert[i].pos.z; 
+			
+			vert[i].pos = scale*vert[i].pos;
+			m_Vertices[i] = vert[i].pos;
+		}
+
+		//Set the index data
+		UINT * indi = new UINT[3*nFaces];
+		for (int i=0; i<nFaces; i++) {
+			DWORD n;
+			stream >> n;
+			Assert(n==3, "CMesh::LoadMeshFromFileOFF cannot load off meshes with non-triangular faces.");
+			stream >> indi[3*i+0];
+			stream >> indi[3*i+1];
+			stream >> indi[3*i+2];
+		}
+		m_pMesh->SetIndexData(indi, 3*nFaces);
+
+		// Extract the triangles
+		m_nFaces = nFaces;
+		m_Tris = new STriangleF[nFaces];
+		for (UINT i=0; i<nFaces; i++) {
+			m_Tris[i].vPosW[0] = m_Vertices[indi[3*i+0]];
+			m_Tris[i].vPosW[1] = m_Vertices[indi[3*i+1]];
+			m_Tris[i].vPosW[2] = m_Vertices[indi[3*i+2]];
+			
+			Vector3F nor(m_Tris[i].Normal());
+			vert[indi[3*i+0]].nor = nor;
+			vert[indi[3*i+1]].nor = nor;
+			vert[indi[3*i+2]].nor = nor;
+		}
+		m_pMesh->SetVertexData(0, vert);
+
+		//Set the attribute data
+		UINT * atri = (UINT*)vert;
+		memset(atri, 0, nFaces*sizeof(UINT));
+		m_pMesh->SetAttributeData(atri);
+
+		delete[] vert;
+		delete[] indi;
+		vert = 0;
+
+		// Compute adjancey
+		m_pMesh->GenerateAdjacencyAndPointReps(.001);
+		m_Adj = new UINT[3*nFaces];
+		ExtractAdjanceyFromMesh(m_pMesh, m_Adj);
+		
+		m_pMesh->Optimize(D3DX10_MESHOPT_ATTR_SORT|D3DX10_MESHOPT_VERTEX_CACHE,0,0);
+		m_pMesh->CommitToDevice();
+
+		CMeshPool::PutResource(szMeshFile, this);
+	} 
+
+	m_Materials = new SMaterial[1];
+	m_Materials[0].amb = D3DXCOLOR(.4f, .4f, .4f, 1.f);
+	m_Materials[0].dif = D3DXCOLOR(.7f, .7f, .7f, 1.f);
+	m_Materials[0].spe = D3DXCOLOR(.4f, .4f, .4f, 1.f);
+	m_Materials[0].pow = 60.f;
+	m_SRViews = new ID3D10ShaderResourceView*[1];
+
+	if (FAILED(D3DX10CreateShaderResourceViewFromFileA(g_pD3DDevice, "White.dds", 0, 0, &m_SRViews[0], 0))) {
+		DxUtSendErrorEx("CMesh::LoadMeshFromFile could not load mesh texture.", "White.dds");
+	}
+	m_nSubsets=1;
+}
+
+void CMesh::LoadMeshFromFileTXT(char * szMeshFile, UINT uiOptions, const Vector3F & scale)
+{
+	Assert(!m_pMesh, "CMesh::LoadMeshFromFile mesh must be destroyed before creating a new one.");
+
+	std::ifstream stream(szMeshFile, std::ifstream::binary);
+	if (!stream) DxUtSendErrorEx("CMesh::LoadMeshFromFile could not open mesh file.", szMeshFile);
+
+	UINT nFaces, nVert;
+	DWORD dwNum=0;
+	stream.read((char*)&nFaces, sizeof(UINT));
+	stream.read((char*)&nVert, sizeof(UINT));
+	D3D10_INPUT_ELEMENT_DESC const * aDesc = GetVertexElementDescPNT();
+	m_uiStride = sizeof(SVertexPNT);
 
 	m_Name = szMeshFile;
 	if (!CMeshPool::GetResource((char*)szMeshFile, this)) {
@@ -74,7 +208,7 @@ void CMesh::LoadMeshFromFile(char * szMeshFile, UINT uiOptions, const Vector3F &
 		m_nVertices = nVert;
 		m_Vertices = new Vector3F[nVert];
 		SVertexPNT * vert = new SVertexPNT[nVert];
-		ReadFile(hFile, vert, nVert*sizeof(SVertexPNT), &dwNum, 0);
+		stream.read((char*)vert, nVert*sizeof(SVertexPNT));
 		for (UINT i=0; i<nVert; i++) {
 			vert[i].pos = scale*vert[i].pos;
 			m_Vertices[i] = vert[i].pos;
@@ -83,7 +217,7 @@ void CMesh::LoadMeshFromFile(char * szMeshFile, UINT uiOptions, const Vector3F &
 
 		//Set the index data
 		UINT * indi = (UINT*)vert;
-		ReadFile(hFile, indi, 3*nFaces*sizeof(UINT), &dwNum, 0);
+		stream.read((char*)indi, 3*nFaces*sizeof(UINT));
 		m_pMesh->SetIndexData(indi, 3*nFaces);
 
 		// Extract the triangles
@@ -97,12 +231,12 @@ void CMesh::LoadMeshFromFile(char * szMeshFile, UINT uiOptions, const Vector3F &
 
 		//Set the attribute data
 		UINT * atri = (UINT*)vert;
-		ReadFile(hFile, atri, nFaces*sizeof(UINT), &dwNum, 0);
+		stream.read((char*)atri, nFaces*sizeof(UINT));
 		m_pMesh->SetAttributeData(atri);
 
 		// Extract the adj info
 		m_Adj = new UINT[3*nFaces];
-		ReadFile(hFile, m_Adj, 3*nFaces*sizeof(UINT), &dwNum, 0);
+		stream.read((char*)m_Adj, 3*nFaces*sizeof(UINT));
 
 		delete[] vert;
 		vert = 0;
@@ -113,19 +247,19 @@ void CMesh::LoadMeshFromFile(char * szMeshFile, UINT uiOptions, const Vector3F &
 
 		CMeshPool::PutResource(szMeshFile, this);
 	} else {
-		SetFilePointer(hFile, nVert*sizeof(SVertexPNT)+3*nFaces*sizeof(UINT)+nFaces*sizeof(UINT)+3*nFaces*sizeof(UINT), NULL, FILE_CURRENT);
+		stream.seekg(2*sizeof(UINT)+nVert*sizeof(SVertexPNT)+3*nFaces*sizeof(UINT)+nFaces*sizeof(UINT)+3*nFaces*sizeof(UINT));
 	}
 
-	ReadFile(hFile, &m_nSubsets, sizeof(UINT), &dwNum, 0);
+	stream.read((char*)&m_nSubsets, sizeof(UINT));
 	m_Materials = new SMaterial[m_nSubsets];
 	m_SRViews = new ID3D10ShaderResourceView*[m_nSubsets];
 
 	for (UINT i=0, len=0; i<m_nSubsets; i++) {
-		ReadFile(hFile, &m_Materials[i], sizeof(SMaterial), &dwNum, 0);
-		ReadFile(hFile, &len, sizeof(UINT), &dwNum, 0);
+		stream.read((char*)&m_Materials[i], sizeof(SMaterial));
+		stream.read((char*)&len, sizeof(UINT));
 		if (len) {
 			CHAR texFileName[128] = {0};					//It is assumed that the name of a file is small.
-			ReadFile(hFile, &texFileName, len, &dwNum, 0);
+			stream.read((char*)&texFileName, len);
 			
 			if (FAILED(D3DX10CreateShaderResourceViewFromFileA(g_pD3DDevice, texFileName, 0, 0, &m_SRViews[i], 0))) {
 				DxUtSendErrorEx("CMesh::LoadMeshFromFile could not load mesh texture.", texFileName);

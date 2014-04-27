@@ -57,7 +57,12 @@ void CCollisionGraphics::DrawPoint(Vector3F & pos, float scale, Vector3F & color
 	scaling.MScaling(Vector3F(scale));	
 	trans.MTranslation(pos);
 	world = (trans*scaling);
-	m_Box.DrawAllSubsets(m_pCam, world, 0);
+	SMaterial mat;
+	mat.amb = D3DXCOLOR(color.x, color.y, color.z, 1);
+	mat.dif = D3DXCOLOR(color.x, color.y, color.z, 1);
+	mat.spe = D3DXCOLOR(.5, .5, .5, 1);
+	mat.pow = 20;
+	m_Box.DrawAllSubsets(m_pCam, world, 0, &mat);
 }
 
 void CCollisionGraphics::DrawPointArray(CArray<Vector3F> & positions, float scale, Vector3F & color)

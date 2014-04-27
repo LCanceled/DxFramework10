@@ -21,7 +21,7 @@ public:
 
 	void ComputePlane(const Vector3F & pt, const Vector3F & nor) {
 		n = nor;
-		n.Normalize();
+		n = n.Normalize();
 		d = DotXYZ(pt, n);
 	}
 

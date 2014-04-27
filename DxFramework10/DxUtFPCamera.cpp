@@ -73,7 +73,7 @@ void CFPCamera::UpdateFPCamera(float dt)
 			if (g_MouseState.lY < 0) 
 				m_Theta -= g_MouseState.lY*m_RotSpeed;} 
 	}
-	if (dir.Length() > 0) dir.Normalize();
+	if (dir.Length() > 0) dir = dir.Normalize();
 
 	m_Pos.x += dir.x*m_Velocity.x*dt;
 	m_Pos.y += dir.y*m_Velocity.y*dt;
