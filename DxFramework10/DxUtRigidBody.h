@@ -28,6 +28,7 @@ public:
 	};
 protected:
 	friend class CRigidBodyWorld;
+	friend class CRigidBodyCluster;
 
 	Vector3F m_CenterOfMass;
 	Vector3F m_Pos,		m_PrePos;
@@ -72,17 +73,17 @@ public:
 	//~CRigidBody() {}
 
 	/* Mass < 0 represents an infinitely heavy object */
-	void CreateRigidBody(CMesh * pMesh, float scale, float mass, Vector3F & gravity, float timeStepSize, float maxVel,
+	virtual void CreateRigidBody(CMesh * pMesh, float scale, float mass, Vector3F & gravity, float timeStepSize, float maxVel,
 		char * szLevelSet, UINT uiTriPerOct, bool bUseHierarchicalLevelSet, GeometryType type=GT_TRIANGLE_MESH, SMaterial * pOverrideMaterial=NULL);
 
 	void IntegratePos(float dt);
 	void IntegrateVel(float dt, const Vector3F & gAcel);
 
 	/* Returns -1 on no collision; otherwise, return is the number of contact points */
-	UINT DetermineCollision(CRigidBody * pRB, CArray<SContactPoint> * CPs);
+	//virtual UINT DetermineCollision(CRigidBody * pRB, CArray<SContactPoint> * CPs);
 	/* Must be called before determing a collision */
 	void TransformLevelSet() {m_pLevelSet->SetTransform(m_Rot, m_Pos); }
-	UINT DetermineCollisionLevelSet(CRigidBody * pRB, CArray<SContactPoint> * CPs);
+	virtual UINT DetermineCollisionLevelSet(CRigidBody * pRB, CArray<SContactPoint> * CPs);
 	//UINT DetermineCollisionConvexPolyhedron(CRigidBody * pRB, CArray<SContactPoint> * CPs);
 	/* Returns the number of contact points held in the array of them rgCPs */
 	//UINT GetContactPoints(SRBContact * rgCPs) {rgCPs = m_rgCPs.data(); return m_rgCPs.size(); }
@@ -92,9 +93,9 @@ public:
 	float ComputeFrictionlessImpulse(CRigidBody & rB, Vector3F & iPos, Vector3F & iNor);
 	float ComputeFrictionImpulse(CRigidBody & rB, Vector3F & iPos, Vector3F & t);
 	void ComputeFrictionlessImpulsePart(CRigidBody & rB, Vector3F & iPos, Vector3F & iNor,
-		float & fEffectiveMass, Vector3F & JNA, Vector3F & JWA, Vector3F & JNB, Vector3F & JWB);
+		float & effectiveMass, Vector3F & JNA, Vector3F & JWA, Vector3F & JNB, Vector3F & JWB);
 	void ComputeFrictionImpulsePart(CRigidBody & rB, Vector3F & iPos, Vector3F & t, 
-		float & fEffectiveMass, Vector3F & JNA, Vector3F & JWA, Vector3F & JNB, Vector3F & JWB);
+		float & effectiveMass, Vector3F & JNA, Vector3F & JWA, Vector3F & JNB, Vector3F & JWB);
 	void ApplyImpulse(Vector3F & impulse, Vector3F & iPos);
 	void ApplyFrictionImpulse(Vector3F & impulse, Vector3F & iPos);
 	void SavePosAndRot() {m_PrePos = m_Pos; m_PreRot = m_Rot;}
@@ -132,8 +133,22 @@ public:
 	CMesh * GetMesh() {return m_pMesh; }
 	SMaterial * GetOverrideMaterial() {return m_pOverrideMaterial; }
 
+	virtual void Draw(CCamera * pCam, SLightDir & light, UINT uiShaderPass);
+
 	void DestroyRigidBody();
 };
+
+class CRigidBodyCluster : public CRigidBody {
+private:
+	CArray<CRigidBody*> m_pBodies;
+public:
+	void AddRigidBody(CRigidBody * pRB);
+	UINT DetermineCollisionLevelSet(CRigidBodyCluster * pRB, CArray<SContactPoint> * CPs);
+
+	void Draw(CCamera * pCam, SLightDir & light, UINT uiShaderPass);
+};
+
+
 	
 void ComputeVolume(STriangleF * tris, UINT nTri, double & vol);
 //The vertices must be in a triangle list order

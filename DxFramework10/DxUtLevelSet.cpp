@@ -9,6 +9,7 @@
 #include "DxUtConvexHull.h"
 #include "DxUtPlane.h"
 #include "DxUtD3DApp.h"
+#include <functional>
 
 #define GET_TRIANGLE_NORMAL(_verts, _i) (STriangleF(_verts[3*_i + 0], _verts[3*_i + 1], _verts[3*_i + 2]).Normal())
 
@@ -357,12 +358,15 @@ void CLevelSet::ComputeMeshParticles(UINT nVert, UINT nTri, Vector3F * verts, UI
 	m_OBBox.ComputeOBB(verts, nVert, COBBox::OBBComputeMethod::CVTriangles);
 	m_AABBox.ComputeAABBox(verts, nVert);
 
+	m_AABBox.MinPW() = m_GridMin;
+	m_AABBox.MaxPW() = m_GridMax;
 	
 	Vector3F rotVecs[] = {		
 		m_OBBox.GetRotVecW(0) = Vector3F(1,0,0),
 		m_OBBox.GetRotVecW(1) = Vector3F(0,1,0),
 		m_OBBox.GetRotVecW(2) = Vector3F(0,0,1) };
-	m_OBBox.SetOBB(m_AABBox.CenterPointW(), m_AABBox.HalfWidthsW(), rotVecs);//*/
+	m_OBBox.SetOBB(m_AABBox.CenterPointW(), m_AABBox.HalfWidthsW(), rotVecs);//
+
 
 	//PostComputeMeshParticles(szLevelSetFile, verts, nVert, pAdj, vertToIndex, edgeToIndex);
 
@@ -691,7 +695,7 @@ UINT CLevelSet::LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactPo
 		if (!HandleEdgeEdgeCollision(e, T1, CPs, pEdge->pVP1->bIntersected + pEdge->pVP2->bIntersected, 1.f, collideLevelSet)) {
 			if (!e.bIntersected || e.bAdmissible) continue;
 			func(e, pEdge, T1, 1.f, *this, collideLevelSet);
-		}
+		} 
 	}
 
 	for (UINT i=0, end=collideLevelSet.m_pEdgeIndex->GetSize(); i<end; i++) {
@@ -707,7 +711,7 @@ UINT CLevelSet::LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactPo
 		if (!collideLevelSet.HandleEdgeEdgeCollision(e, T2, CPs, pEdge->pVP1->bIntersected + pEdge->pVP2->bIntersected, -1.f, *this)) {
 			if (!e.bIntersected || e.bAdmissible) continue;
 			func(e, pEdge, T2, -1.f, collideLevelSet, *this);
-		}
+		} 
 	}
 
 #ifdef PRINT
@@ -757,7 +761,7 @@ UINT CLevelSet::LevelSetCollision(CLevelSet & collideLevelSet, CArray<SContactPo
 	collideLevelSet.m_ToProcessFaceParticles.Resize(0);
 
 	#ifdef PRINT
-		CTimer::Get().PresentTimers(100, 1);
+		CTimer::Get().PresentTimers(10, 1);
 	#endif
 
 	return CPs->GetSize() - oldSize;
@@ -783,23 +787,100 @@ bool CLevelSet::HandleEdgeEdgeCollision(SEdgeParticle & edge, Matrix4x4F & T, CA
 	float closestDistV1 = 0;
 	SRay ray;
 	SRayIntersectData intersect0, intersect1;
-	ray.p = collideLevelSet.m_TransformWorldToObj*v1;
+	ray.p = collideLevelSet.m_TransformWorldToObj*v1 - collideLevelSet.m_OBBox.GetCenterL();
 	ray.d = edgeDirV1.MulNormal(edgeDirV1, collideLevelSet.m_TransformWorldToObj);
-	if (!collideLevelSet.m_OBBox.OBBoxIntersectRelativeW(ray, 1, &intersect0, &intersect1))
+	
+	Vector3F v1Final(v1), v2Final(v2);
+	intersect0.pos = v1;
+	intersect1.pos = v2;
+	/*if (!collideLevelSet.m_OBBox.OBBoxIntersectRelativeW(ray, 1, &intersect0, &intersect1))
 		return 0;
-	intersect0.pos = collideLevelSet.m_TransformObjToWorld*intersect0.pos;
-	intersect1.pos = collideLevelSet.m_TransformObjToWorld*intersect1.pos;
+	intersect0.pos = collideLevelSet.m_TransformObjToWorld*(intersect0.pos + collideLevelSet.m_OBBox.GetCenterL());
+	intersect1.pos = collideLevelSet.m_TransformObjToWorld*(intersect1.pos + collideLevelSet.m_OBBox.GetCenterL());
+
+	/* Find the first interior point starting from v1 
+	float cellSize = m_CellSize;
+	Vector3F v1Final(v1), v2Final(v2);
+	Vector3F edgeD(v2-v1);
+	Vector3F edgeNord(edgeD.Normalize());
+	intersect0.pos += .004*edgeNord; 
+	intersect1.pos -= .004*edgeNord; */
+	//std::function<bool(Vector3F, Vector3F, float, float)> binSearch = 
+	//	[&collideLevelSet, &v1Final, &v2Final, cellSize, &binSearch, &edgeD](Vector3F v1, Vector3F v2, float closestDist1, float closestDist2)->bool {
+	
+	/*auto binSearch = [&collideLevelSet, &v1Final, &v2Final, cellSize, &edgeD] (Vector3F v1, Vector3F v2) {
+		while (1) {
+			Vector3F dir(v2-v1);
+			float dist = dir.Length();
+			if (dist < cellSize) return 0;
+			dir /= dist;
+
+			float closestDist;
+			Vector3F vAvg(.5f*(v1+v2));
+			bool b = collideLevelSet.ParticleInLevelSet(vAvg, closestDist);
+			closestDist = Abs(closestDist);
+			if (b) {v1Final = v2Final = vAvg; return 1; }
+			Vector3F vMid1(vAvg-(closestDist + cellSize)*dir);
+			Vector3F vMid2(vAvg+(closestDist + cellSize)*dir);
+
+			float closestDist1, closestDist2;
+			bool b1 = collideLevelSet.ParticleInLevelSet(vMid1, closestDist1);
+			bool b2 = collideLevelSet.ParticleInLevelSet(vMid2, closestDist2);
+			float d = (vMid2-vMid1).Length();
+			float close = closestDist1+closestDist2;
+	
+			if (b1) {v1Final = v2Final = vMid1; return 1; }
+			else if (b2) {v1Final = v2Final = vMid2; return 1; }
+			else if (d < (closestDist1+closestDist2)) return 0;
+			else {
+				if (closestDist1 < closestDist2) {
+					v2 = vAvg;
+				} else {
+					v1 = vAvg;
+				} //
+			}
+		}
+		return 0;
+	};
+	if (!binSearch(intersect0.pos, intersect1.pos)) return 0;//*/
+
+	/*
+	auto newtonSearch = [&collideLevelSet, &v1Final, &v2Final, cellSize, &edgeD] (Vector3F v1, Vector3F v2) {
+		while (1) {
+			Vector3F dir(v2-v1);
+			float dist = dir.Length();
+			if (DotXYZ(dir, edgeD) < 0)
+				return 0;
+			if (dist < cellSize) return 0;
+			dir /= dist;
+
+			float closestDist;
+			bool b = collideLevelSet.ParticleInLevelSet(v1, closestDist);
+			if (b) {v1Final = v2Final = v1; return 1; }
+
+			collideLevelSet.ParticleInLevelSet(v1, closestDist);
+			Vector3F nor = collideLevelSet.ComputeGradient(v1);
+			if (DotXYZ(nor, dir) > 0) return 0;
+
+			float offset = closestDist/DotXYZ(nor, dir);
+			offset = Abs(offset) + cellSize;
+
+			v1 = v1 + offset*dir;
+		}
+		return 0;
+	};
+	if (!newtonSearch(intersect0.pos, intersect1.pos)) return 0;//*/
+	
 
 	/* Find the first interior point starting from v1 */
-	Vector3F v1Final(v1);
 	Vector3F edgeDirV1Nor(edgeDirV1/edge.edgeLength);
 	float t1 = (intersect0.pos - v1).Length();
+	closestDistV1 = 0;
 	if (!edge.pVP1->bIntersected)
 		if (!MarchExteriorEdgeVertex(v1, edgeDirV1Nor, edge.edgeLength, t1, coneDir, edge.coneCosAngle, collideLevelSet, closestDistV1, v1Final, edge.bIntersected))
 			return 0;
 	
-	/* Find the first interior point starting from v2 */
-	Vector3F v2Final(v2);
+	// Find the first interior point starting from v2 
 	Vector3F edgeDirV2(-edgeDir);
 	Vector3F edgeDirV2Nor(edgeDirV2/edge.edgeLength);
 	float closestDistV2 = 0;
@@ -807,7 +888,9 @@ bool CLevelSet::HandleEdgeEdgeCollision(SEdgeParticle & edge, Matrix4x4F & T, CA
 	if (!edge.pVP2->bIntersected)
 		if (!MarchExteriorEdgeVertex(v2, edgeDirV2Nor, edge.edgeLength, t2, coneDir, edge.coneCosAngle, collideLevelSet, closestDistV2, v2Final, edge.bIntersected))
 			return 0;
+			//*/
 
+	//v2Final = v1Final;
 	edge.bAdmissible = 1;
 	
 	/*SContactPoint cp;
@@ -844,16 +927,16 @@ bool CLevelSet::ComputeEdgeEdgeIntersection(CLevelSet & collideLevelSet, Vector3
 			*/
 
 	Vector3F avgNor = collideLevelSet.ComputeGradient(avgPos);
-	if (!IsNormalAdmissible(coneDir, coneCosAngle, avgNor)) {
-		return 0;
-	}
+	//if (!IsNormalAdmissible(coneDir, coneCosAngle, avgNor)) {
+	//	return 0;
+	//}
 	
 	Vector3F & n1 = collideLevelSet.ComputeGradient(v1);
 	Vector3F & n2 = collideLevelSet.ComputeGradient(v2);
 
 	Vector3F eLine(CrossXYZ(n1, n2).Normalize());
 	/* If the avg nor does not lie in the span of n1, n2, then it is edge-face */
-	if (abs(DotXYZ(eLine, avgNor)) > .001) {
+	if (abs(DotXYZ(eLine, avgNor)) > .001 || 1) {
 		SContactPoint cp;
 		cp.iNor = norFlip*avgNor;
 		if (cp.iNor.LengthSq() < .5) return 0;
@@ -900,7 +983,7 @@ bool CLevelSet::MarchExteriorEdgeVertex(Vector3F & vStart, Vector3F & edgeDir, f
 	bool b1;
 	Vector3F _finalPt;
 	do {
-		t += max(Abs(closestDist), .5f*collideLevelSet.m_CellSize);
+		t += max(Abs(closestDist), collideLevelSet.m_CellSize);
 		if (t > edgeLen) return 0;
 		_finalPt = vStart + t * edgeDir;
 
@@ -913,6 +996,28 @@ bool CLevelSet::MarchExteriorEdgeVertex(Vector3F & vStart, Vector3F & edgeDir, f
 	finalPt = _finalPt;
 	return 1;
 }
+
+bool CLevelSet::MarchInteriorEdgeVertex(Vector3F & vStart, Vector3F & edgeDir, float edgeLen, float t, 
+	Vector3F & coneDir, float cosConeAngle, CLevelSet & collideLevelSet, float & closestDist, Vector3F & finalPt, bool & bIntersected)
+{
+	bool b1;
+	Vector3F _finalPt;
+	Vector3F prePt;
+	do {
+		prePt = vStart + t * edgeDir;
+		t += max(Abs(closestDist), .5f*collideLevelSet.m_CellSize);
+		if (t > edgeLen) return 0;
+		_finalPt = vStart + t * edgeDir;
+
+		b1 = collideLevelSet.ParticleInLevelSet(_finalPt, closestDist);
+		if (b1) 
+			bIntersected = 1;
+	} while (b1 && IsNormalAdmissible(coneDir, cosConeAngle, collideLevelSet.ComputeGradient(_finalPt)));
+
+	finalPt = prePt;
+	return 1;
+}
+
 //http://gilscvblog.wordpress.com/2013/08/23/bag-of-words-models-for-visual-categorization/
 float CLevelSet::ComputeSignedDistance(Vector3F & dxyz, int cellX, int cellY, int cellZ)
 {
@@ -1046,7 +1151,7 @@ void CLevelSet::DrawLevelset()
 	for (int k=0; k<m_nLSVertsZ; k++) {
 		for (int j=0; j<m_nLSVertsY; j++) {
 			for (int i=0; i<m_nLSVertsX; i++) {
-				float dist = m_LSVertices[k*m_nLSVertsY*m_nLSVertsX + j*m_nLSVertsX + k].dist;
+				float dist = m_LSVertices[k*m_nLSVertsY*m_nLSVertsX + j*m_nLSVertsX + i].dist;
 				Vector3F pos(Vector3F((float)i * m_CellSize, (float)j * m_CellSize, (float)k * m_CellSize) + m_TransformObjToGrid);
 			
 				//int d =8;

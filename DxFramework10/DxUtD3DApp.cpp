@@ -25,10 +25,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		g_uiWnuiIdth = rect.right;
 		g_uiWndHeight = rect.bottom;
 
-		g_App->WindowResize();
-		g_App->m_fpnOnResizeWindow();
+		if (g_App) {
+			g_App->WindowResize();
+			g_App->m_fpnOnResizeWindow();
 
-		g_App->SetPaused(FALSE);
+			g_App->SetPaused(FALSE);
+		}
 
 		return 0;
 

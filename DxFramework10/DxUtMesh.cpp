@@ -3,6 +3,8 @@
 #include "DxUtVertex.h"
 #include "DxUtMeshPool.h"
 #include <fstream>
+#include <sstream> 
+#include <string> 
 
 namespace DxUt {
 
@@ -82,8 +84,10 @@ void CMesh::LoadMeshFromFile(char * szMeshFile, UINT uiOptions, const Vector3F &
 	if (ptr != NULL) {LoadMeshFromFileTXT(szMeshFile, uiOptions, scale); return; }
 	ptr = strstr(szMeshFile, ".off");
 	if (ptr != NULL) {LoadMeshFromFileOFF(szMeshFile, uiOptions, scale); return; }
+	ptr = strstr(szMeshFile, ".obj");
+	if (ptr != NULL) {LoadMeshFromFileObj(szMeshFile, uiOptions, scale); return; }
 	else {
-		DxUtSendError("CMesh::LoadMeshFromFile must specify a valid extension (.txt, .off)");
+		DxUtSendError("CMesh::LoadMeshFromFile must specify a valid extension (.txt, .off, .obj)");
 	}
 }
 
@@ -123,7 +127,7 @@ void CMesh::LoadMeshFromFileOFF(char * szMeshFile, UINT uiOptions, const Vector3
 			vert[i].pos = scale*vert[i].pos;
 			m_Vertices[i] = vert[i].pos;
 		}
-
+		
 		//Set the index data
 		UINT * indi = new UINT[3*nFaces];
 		for (int i=0; i<nFaces; i++) {
@@ -149,6 +153,173 @@ void CMesh::LoadMeshFromFileOFF(char * szMeshFile, UINT uiOptions, const Vector3
 			vert[indi[3*i+1]].nor = nor;
 			vert[indi[3*i+2]].nor = nor;
 		}
+		m_pMesh->SetVertexData(0, vert);
+
+		//Set the attribute data
+		UINT * atri = (UINT*)vert;
+		memset(atri, 0, nFaces*sizeof(UINT));
+		m_pMesh->SetAttributeData(atri);
+
+		delete[] vert;
+		delete[] indi;
+		vert = 0;
+
+		// Compute adjancey
+		m_pMesh->GenerateAdjacencyAndPointReps(.001);
+		m_Adj = new UINT[3*nFaces];
+		ExtractAdjanceyFromMesh(m_pMesh, m_Adj);
+		
+		m_pMesh->Optimize(D3DX10_MESHOPT_ATTR_SORT|D3DX10_MESHOPT_VERTEX_CACHE,0,0);
+		m_pMesh->CommitToDevice();
+
+		CMeshPool::PutResource(szMeshFile, this);
+	} 
+
+	m_Materials = new SMaterial[1];
+	m_Materials[0].amb = D3DXCOLOR(.4f, .4f, .4f, 1.f);
+	m_Materials[0].dif = D3DXCOLOR(.7f, .7f, .7f, 1.f);
+	m_Materials[0].spe = D3DXCOLOR(.4f, .4f, .4f, 1.f);
+	m_Materials[0].pow = 60.f;
+	m_SRViews = new ID3D10ShaderResourceView*[1];
+
+	if (FAILED(D3DX10CreateShaderResourceViewFromFileA(g_pD3DDevice, "White.dds", 0, 0, &m_SRViews[0], 0))) {
+		DxUtSendErrorEx("CMesh::LoadMeshFromFile could not load mesh texture.", "White.dds");
+	}
+	m_nSubsets=1;
+}
+
+void CMesh::LoadMeshFromFileObj(char * szMeshFile, UINT uiOptions, const Vector3F & scale)
+{
+	Assert(!m_pMesh, "CMesh::LoadMeshFromFile mesh must be destroyed before creating a new one.");
+
+	UINT nFaces, nVert, nEdges;
+	D3D10_INPUT_ELEMENT_DESC const * aDesc = GetVertexElementDescPNT();
+	m_uiStride = sizeof(SVertexPNT);
+
+	auto GetNextNumF = [] (char * str, int & index) {
+		while (str[index] != ' ') index++;
+		index++;
+		return atof(str+index);
+	};
+	auto GetNextNumI = [] (char * str, int & index) {
+		while (str[index] != ' ') index++;
+		index++;
+		return atoi(str+index);
+	};
+
+	m_Name = szMeshFile;
+	if (!CMeshPool::GetResource((char*)szMeshFile, this)) {
+	
+		CArray<Vector3F, 1, 1> objVerts; 
+		CArray<int[3], 1, 1> objIndices;
+		std::ifstream istream(szMeshFile);
+		istream.seekg (0, istream.end);
+		int fileLen = istream.tellg();
+		istream.seekg (0, istream.beg);
+		char * data = new char[fileLen+1];
+		istream.read(data, fileLen);
+		int fileIndex = 0;	
+        while(fileIndex < fileLen) {
+			char * line = data+fileIndex;
+			if (line[0] == '#' || line[0] == '\n') {}
+			else if (line[0] == 'v' && line[1] == ' ') {
+				Vector3F v;
+				v.x = GetNextNumF(data, fileIndex);
+				v.y = GetNextNumF(data, fileIndex);
+				v.z = GetNextNumF(data, fileIndex);
+				objVerts.PushBack(v);
+			}
+            else if(line[0] == 'f'){
+				int indices[3];
+				indices[0] = GetNextNumI(data, fileIndex);
+				indices[1] = GetNextNumI(data, fileIndex);
+				indices[2] = GetNextNumI(data, fileIndex);
+				objIndices.PushBack(indices);
+            }
+
+			while (fileIndex < fileLen && data[fileIndex] != '\n') fileIndex++;
+			fileIndex++;
+        }
+		delete[] data;
+
+		nVert = objVerts.GetSize();
+		nFaces = objIndices.GetSize();
+
+		// Get index data
+		UINT * indi = new UINT[3*nFaces];
+		for (int i=0; i<nFaces; i++) {
+			indi[3*i+0] = objIndices[i][0]-1;
+			indi[3*i+1] = objIndices[i][1]-1;
+			indi[3*i+2] = objIndices[i][2]-1;
+		}
+
+		// Get vertices and triangles
+		nVert = 3*nFaces;
+		m_nVertices = nVert;
+		m_nFaces = nFaces;
+		m_Vertices = new Vector3F[nVert];
+		SVertexPNT * vert = new SVertexPNT[nVert];
+		m_Tris = new STriangleF[nFaces];
+		for (int i=0; i<nFaces; i++) {
+			vert[3*i+0].pos = scale*objVerts[indi[3*i+0]];
+			vert[3*i+1].pos = scale*objVerts[indi[3*i+1]];
+			vert[3*i+2].pos = scale*objVerts[indi[3*i+2]];
+
+			m_Vertices[3*i+0] = vert[3*i+0].pos;
+			m_Vertices[3*i+1] = vert[3*i+1].pos;
+			m_Vertices[3*i+2] = vert[3*i+2].pos;
+
+			m_Tris[i].vPosW[0] = m_Vertices[3*i+0];
+			m_Tris[i].vPosW[1] = m_Vertices[3*i+1];
+			m_Tris[i].vPosW[2] = m_Vertices[3*i+2];
+			
+			Vector3F nor(m_Tris[i].Normal());
+			vert[3*i+0].nor = nor;
+			vert[3*i+1].nor = nor;
+			vert[3*i+2].nor = nor;
+
+			indi[3*i+0] = 3*i+0;
+			indi[3*i+1] = 3*i+1;
+			indi[3*i+2] = 3*i+2;
+		}
+
+
+		/*//Set the vertex data positions
+		m_nVertices = nVert;
+		m_Vertices = new Vector3F[nVert];
+		SVertexPNT * vert = new SVertexPNT[nVert];
+		for (int i=0; i<nVert; i++) {
+			vert[i].pos = scale*objVerts[i];
+			m_Vertices[i] = vert[i].pos;
+		}
+
+		//Set the index data
+		UINT * indi = new UINT[3*nFaces];
+		for (int i=0; i<nFaces; i++) {
+			indi[3*i+0] = objIndices[i][0]-1;
+			indi[3*i+1] = objIndices[i][1]-1;
+			indi[3*i+2] = objIndices[i][2]-1;
+		}
+
+		// Extract the triangles
+		m_nFaces = nFaces;
+		m_Tris = new STriangleF[nFaces];
+		for (UINT i=0; i<nFaces; i++) {
+			m_Tris[i].vPosW[0] = m_Vertices[indi[3*i+0]];
+			m_Tris[i].vPosW[1] = m_Vertices[indi[3*i+1]];
+			m_Tris[i].vPosW[2] = m_Vertices[indi[3*i+2]];
+			
+			Vector3F nor(m_Tris[i].Normal());
+			vert[indi[3*i+0]].nor = nor;
+			vert[indi[3*i+1]].nor = nor;
+			vert[indi[3*i+2]].nor = nor;
+		}*/
+
+		if (FAILED(D3DX10CreateMesh(g_pD3DDevice, aDesc, 3, aDesc->SemanticName, nVert, nFaces, uiOptions, &m_pMesh))) {
+			DxUtSendErrorEx("CMesh::LoadMeshFromFile could not be loaded from file.", szMeshFile); 
+		}
+
+		m_pMesh->SetIndexData(indi, 3*nFaces);
 		m_pMesh->SetVertexData(0, vert);
 
 		//Set the attribute data
@@ -216,7 +387,7 @@ void CMesh::LoadMeshFromFileTXT(char * szMeshFile, UINT uiOptions, const Vector3
 		m_pMesh->SetVertexData(0, vert);
 
 		//Set the index data
-		UINT * indi = (UINT*)vert;
+		UINT * indi = new UINT[3*nFaces];
 		stream.read((char*)indi, 3*nFaces*sizeof(UINT));
 		m_pMesh->SetIndexData(indi, 3*nFaces);
 
@@ -239,7 +410,7 @@ void CMesh::LoadMeshFromFileTXT(char * szMeshFile, UINT uiOptions, const Vector3
 		stream.read((char*)m_Adj, 3*nFaces*sizeof(UINT));
 
 		delete[] vert;
-		vert = 0;
+		delete[] indi;
 
 		m_pMesh->GenerateAdjacencyAndPointReps(0.001f);
 		m_pMesh->Optimize(D3DX10_MESHOPT_ATTR_SORT|D3DX10_MESHOPT_VERTEX_CACHE,0,0);

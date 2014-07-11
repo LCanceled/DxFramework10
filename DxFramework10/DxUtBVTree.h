@@ -5,8 +5,6 @@
 #include "DxUtInclude.h"
 #include "DxUtOBBox.h"
 #include "DxUtTriangle.h"
-//#include "DxUtContactRegions.h"
-#include "DxUtCollisionGraphics.h"
 #include "DxUtRay.h"
 #include "DxUtMesh.h"
 

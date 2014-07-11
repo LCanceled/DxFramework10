@@ -113,7 +113,8 @@ void ChangeExtension(char * szStr, char * szExt, char * szNewStr);
 */
 inline int floorf_ASM(double x) 
 {
-	const float round_towards_m_i = -0.5f;
+	return floorf(x);
+	/*const float round_towards_m_i = -0.5f;
 	int	i;
 	__asm {
 		fld   x
@@ -122,12 +123,13 @@ inline int floorf_ASM(double x)
 		fistp i
 		sar   i, 1
 	}
-	return (i);
+	return (i);*/
 }
 
 inline int ceilf_ASM(double x)
 {
-	const float round_towards_p_i = -0.5f;
+	return ceilf(x);
+	/*const float round_towards_p_i = -0.5f;
 	int i;
 	__asm {
 		fld   x
@@ -136,7 +138,7 @@ inline int ceilf_ASM(double x)
 		fistp i
 		sar   i, 1
 	}
-	return (-i);
+	return (-i);*/
 }
 
 inline float fracf(const float a)

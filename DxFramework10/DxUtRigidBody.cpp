@@ -99,38 +99,10 @@ void CRigidBody::IntegrateVel(float dt, const Vector3F & gAcel)
 	m_AngVel = m_AngVel + m_InvI*(
 		-dt*(m_AngVel.SkewMatrix3x3F()*m_I*m_AngVel)) + m_Torque;// + m_Torque);
 }
-/*
-UINT CRigidBody::DetermineCollision(CRigidBody * pRB, CArray<SContactPoint> * CPs)
-{
-	//Code may need to consider m_CenterOfMass
-	m_BVTree->SetTransform(m_Rot, m_Pos, m_Scale);
-	pRB->m_BVTree->SetTransform(pRB->m_Rot, pRB->m_Pos, m_Scale);
-
-	UINT n = m_BVTree->BVCollision(*pRB->m_BVTree, CPs);
-	/*if (n) {
-		SRBContact * ptr = CPs->data() + (CPs->size()-n);
-		for (UINT i=0; i<n; i++, ptr++) { 
-			/* This body i 
-			ptr->rBi = this;
-			ptr->rBj = pRB;
-			
-			/* The colliding body j 
-			/*SRBContact c;
-			c.iPos = ptr->iPos;
-			c.iNor = ptr->iNor;
-			c.rBi = pRB;
-			c.rBi = this;
-			pRB->CPs->push_back(c);
-		}
-	}
-
-	return n;
-}*/
 
 UINT CRigidBody::DetermineCollisionLevelSet(CRigidBody * pRB, CArray<SContactPoint> * CPs)
 {
 	UINT n = m_pLevelSet->LevelSetCollision(*pRB->m_pLevelSet, CPs);
-
 	return n;
 }
 
@@ -143,25 +115,6 @@ Vector3F CRigidBody::ComputeAngVel(Vector3F & impulse, Vector3F & r)
 {
 	DebugBreak(); // r is wrong. need center of mass and posiiton
 	return  m_InvI*CrossXYZ(r, impulse);
-}
-
-float CRigidBody::GetbVector(float * J, Vector3F & gAcel, Vector3F iPos, float dt) 
-{
-	DebugBreak();
-	/*if (m_RigidBodyType == RBT_Static)
-		return 0;*/
-
-	float e = 0;
-	Vector3F v(m_LinVel + dt*(gAcel) + e*m_LinVel); //m_InvMass*m_Force + 
-	Vector3F w(m_AngVel + e*m_AngVel);// + dt*m_InvI*(m_Torque - (m_AngVel.SkewMatrix3x3F()*m_I*m_AngVel)));
-	return v.x*J[0] + v.y*J[1] + v.z*J[2] + w.x*J[3] + w.y*J[4] + w.z*J[5]; 
-}
-
-Vector3F CRigidBody::GetImpulseCoefficient(Vector3F & jthCt, Vector3F & ithCt, Vector3F & iNor)
-{
-	DebugBreak();
-	return Vector3F(0);
-	//return  -m_InvMass*iNor - (m_InvI*((ithCt - (m_Pos)).SkewMatrix3x3F()*iNor)).SkewMatrix3x3F()*(jthCt - (m_Pos));
 }
 
 float CRigidBody::GetVelocityAtContactPoint(Vector3F & jthCt, Vector3F & jthNor)
@@ -177,17 +130,17 @@ float CRigidBody::ComputeFrictionlessImpulse(CRigidBody & rB, Vector3F & iPos, V
 	Vector3F invMassA(m_InvMass, m_InvMass, m_InvMass);
 
 	Vector3F JNB(iNor);
-	Vector3F JWB((iPos - (rB.m_Pos+rB.m_CenterOfMass)).SkewMatrix3x3F()*iNor);
+	Vector3F JWB((iPos - (rB.m_Pos)).SkewMatrix3x3F()*iNor);
 	Vector3F invMassB(rB.m_InvMass, rB.m_InvMass, rB.m_InvMass);
 
 	Vector3F tmp1(JNA*invMassA);
 	Vector3F tmp2(JWA*m_InvI);
 	Vector3F tmp3(JNB*invMassB);
 	Vector3F tmp4(JWB*rB.m_InvI);
-	float fEffectiveMass = (DotXYZ(tmp1, JNA) + DotXYZ(tmp2, JWA))*m_bNotStatic + (DotXYZ(tmp3, JNB) + DotXYZ(tmp4, JWB))*rB.m_bNotStatic;
-	fEffectiveMass = 1.f/fEffectiveMass;
+	float effectiveMass = (DotXYZ(tmp1, JNA) + DotXYZ(tmp2, JWA))*m_bNotStatic + (DotXYZ(tmp3, JNB) + DotXYZ(tmp4, JWB))*rB.m_bNotStatic;
+	effectiveMass = 1.f/effectiveMass;
 	float fB = (DotXYZ(JNA, m_LinVel) + DotXYZ(JWA, m_AngVel)) + (DotXYZ(JNB, rB.m_LinVel) + DotXYZ(JWB, rB.m_AngVel));
-	return fEffectiveMass*(fB);
+	return effectiveMass*(fB);
 }
 
 float CRigidBody::ComputeFrictionImpulse(CRigidBody & rB, Vector3F & iPos, Vector3F & t)
@@ -204,14 +157,14 @@ float CRigidBody::ComputeFrictionImpulse(CRigidBody & rB, Vector3F & iPos, Vecto
 	Vector3F tmp2(JWA*m_InvI);
 	Vector3F tmp3(JNB*invMassB);
 	Vector3F tmp4(JWB*rB.m_InvI);
-	float fEffectiveMass = (DotXYZ(tmp1, JNA) + DotXYZ(tmp2, JWA))*m_bNotStatic + (DotXYZ(tmp3, JNB) + DotXYZ(tmp4, JWB))*rB.m_bNotStatic;
-	fEffectiveMass = 1.f/fEffectiveMass;
+	float effectiveMass = (DotXYZ(tmp1, JNA) + DotXYZ(tmp2, JWA))*m_bNotStatic + (DotXYZ(tmp3, JNB) + DotXYZ(tmp4, JWB))*rB.m_bNotStatic;
+	effectiveMass = 1.f/effectiveMass;
 	float fB = (DotXYZ(JNA, m_LinVel) + DotXYZ(JWA, m_AngVel)) + (DotXYZ(JNB, rB.m_LinVel) + DotXYZ(JWB, rB.m_AngVel));
-	return fEffectiveMass*(fB);
+	return effectiveMass*(fB);
 }
 
 void CRigidBody::ComputeFrictionlessImpulsePart(CRigidBody & rB, Vector3F & iPos, Vector3F & iNor, 
-	float & fEffectiveMass, Vector3F & JNA, Vector3F & JWA, Vector3F & JNB, Vector3F & JWB)
+	float & effectiveMass, Vector3F & JNA, Vector3F & JWA, Vector3F & JNB, Vector3F & JWB)
 {
 	JNA = (-iNor);
 	JWA = (-(iPos - (m_Pos)).SkewMatrix3x3F()*iNor);
@@ -225,12 +178,12 @@ void CRigidBody::ComputeFrictionlessImpulsePart(CRigidBody & rB, Vector3F & iPos
 	Vector3F tmp2(JWA*m_InvI);
 	Vector3F tmp3(JNB*invMassB);
 	Vector3F tmp4(JWB*rB.m_InvI);
-	fEffectiveMass = (DotXYZ(tmp1, JNA) + DotXYZ(tmp2, JWA)) + (DotXYZ(tmp3, JNB) + DotXYZ(tmp4, JWB));
-	fEffectiveMass = 1.f/fEffectiveMass;
+	effectiveMass = (DotXYZ(tmp1, JNA) + DotXYZ(tmp2, JWA)) + (DotXYZ(tmp3, JNB) + DotXYZ(tmp4, JWB));
+	effectiveMass = 1.f/effectiveMass;
 }
 
 void CRigidBody::ComputeFrictionImpulsePart(CRigidBody & rB, Vector3F & iPos, Vector3F & t,
-	float & fEffectiveMass, Vector3F & JNA, Vector3F & JWA, Vector3F & JNB, Vector3F & JWB)
+	float & effectiveMass, Vector3F & JNA, Vector3F & JWA, Vector3F & JNB, Vector3F & JWB)
 {
 	JNA = (-t);
 	JWA = (-(iPos - (m_Pos)).SkewMatrix3x3F()*t);
@@ -244,8 +197,8 @@ void CRigidBody::ComputeFrictionImpulsePart(CRigidBody & rB, Vector3F & iPos, Ve
 	Vector3F tmp2(JWA*m_InvI);
 	Vector3F tmp3(JNB*invMassB);
 	Vector3F tmp4(JWB*rB.m_InvI);
-	fEffectiveMass = (DotXYZ(tmp1, JNA) + DotXYZ(tmp2, JWA))*m_bNotStatic + (DotXYZ(tmp3, JNB) + DotXYZ(tmp4, JWB))*rB.m_bNotStatic;
-	fEffectiveMass = 1.f/fEffectiveMass;
+	effectiveMass = (DotXYZ(tmp1, JNA) + DotXYZ(tmp2, JWA))*m_bNotStatic + (DotXYZ(tmp3, JNB) + DotXYZ(tmp4, JWB))*rB.m_bNotStatic;
+	effectiveMass = 1.f/effectiveMass;
 }
 
 void CRigidBody::ApplyImpulse(Vector3F & impulse, Vector3F & iPos)
@@ -264,11 +217,19 @@ void CRigidBody::ApplyFrictionImpulse(Vector3F & impulse, Vector3F & iPos)
 	m_LinVel -= m_InvMass*impulse;
 }
 
+void CRigidBody::Draw(CCamera * pCam, SLightDir & light, UINT uiShaderPass)
+{
+	m_pMesh->SetupDraw(pCam, light);
+	m_pMesh->DrawAllSubsets(pCam, GetWorldMatrix(), uiShaderPass,m_pOverrideMaterial);
+}
+
 void CRigidBody::DestroyRigidBody() 
 {
-	m_pLevelSet->DestroyLevelSet();
-	delete m_pLevelSet;
-	m_pLevelSet = NULL;
+	if (m_pLevelSet) {
+		m_pLevelSet->DestroyLevelSet();
+		delete m_pLevelSet;
+		m_pLevelSet = NULL;
+	}
 	if (m_pOverrideMaterial) {
 		delete m_pOverrideMaterial;
 		m_pOverrideMaterial = NULL;
@@ -276,7 +237,89 @@ void CRigidBody::DestroyRigidBody()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////    CRigidBody Functions    /////////////////////////////////////////////////////////
+//////////////////////////////////    CRigidBodyCluster     //////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void MoveInertiaTensor(Matrix4x4F & I, float IMass, Vector3F & offset)
+{
+	float mag = offset.LengthSq();
+	for (int i=0; i<3; i++) {
+		for (int j=0; j<3; j++) {
+			I.m[i][j] += IMass*(mag * (i == j) - offset[i]*offset[j]);
+		}
+	}
+}
+
+void CRigidBodyCluster::AddRigidBody(CRigidBody * pRB)
+{
+	m_pBodies.PushBack(pRB);
+
+	CRigidBody & rB = *pRB;
+	if (m_pBodies.GetSize() == 1) {
+		m_pLevelSet = rB.m_pLevelSet;
+
+		m_CenterOfMass = rB.m_CenterOfMass; // Bodies are centered. Quantity should be 0
+		rB.m_Pos = Vector3F(0);
+		m_Pos = rB.m_Pos;
+		//m_Rot = rB.m_Rot;
+		m_Rot.MIdenity(); 
+		m_LinVel = Vector3F(0);
+		m_AngVel = Vector3F(0);
+
+		m_IBody = rB.m_IBody;
+		m_InvIBody = rB.m_InvIBody;
+		m_I = rB.m_I;
+		m_InvI = rB.m_InvI;
+
+		m_InvMass = rB.m_InvMass;
+		m_Density = rB.m_Density;
+		m_Elasticity = rB.m_Elasticity;
+		m_Mu = rB.m_Mu;
+		m_Scale = rB.m_Scale;
+
+		m_Force = Vector3F(0);
+		m_Torque = Vector3F(0);
+	} else {
+		m_CenterOfMass = .5f*(m_CenterOfMass + rB.m_CenterOfMass); // Bodies are centered. Quantity should be 0
+		Vector3F newPos(.5f*(m_Pos + rB.m_Pos));
+		m_Rot.MIdenity();
+		MoveInertiaTensor(m_IBody, 1.f/m_InvMass, (newPos - m_Pos));
+		Matrix4x4F IBody(rB.m_IBody);
+		MoveInertiaTensor(IBody, 1.f/rB.m_InvMass, (newPos - rB.m_Pos));
+		m_IBody = m_IBody + rB.m_IBody;
+		m_InvIBody = m_IBody.Inverse();
+
+		m_I = m_IBody;
+		m_InvI = m_InvIBody;
+
+		m_InvMass = 1.f/(1.f/m_InvMass + 1.f/rB.m_InvMass);
+	}
+}
+
+UINT CRigidBodyCluster::DetermineCollisionLevelSet(CRigidBodyCluster * pRB, CArray<SContactPoint> * CPs)
+{
+	UINT n = 0;
+	for (UINT i=0; i<m_pBodies.GetSize(); i++) {
+		for (UINT j=0; j<pRB->m_pBodies.GetSize(); j++) {
+			n += m_pBodies[i]->m_pLevelSet->LevelSetCollision(*pRB->m_pBodies[j]->m_pLevelSet, CPs);
+		}
+	}
+
+	return n;
+}
+
+void CRigidBodyCluster::Draw(CCamera * pCam, SLightDir & light, UINT uiShaderPass)
+{
+	for (UINT i=0; i<m_pBodies.GetSize(); i++) {
+		CRigidBody & rB = *m_pBodies[i];
+		rB.m_pMesh->SetupDraw(pCam, light);
+		rB.m_pMesh->DrawAllSubsets(pCam, GetWorldMatrix()*rB.GetWorldMatrix(), uiShaderPass, m_pOverrideMaterial);
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////    CRigidBody Functions    ////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ComputeVolume(STriangleF * tris, UINT nTri, double & vol)

@@ -15,6 +15,7 @@ void CRigidBodyWorld::CreateRigidBodyWorld(UINT nHintRBs, UINT nHintContacts, bo
 	Assert(!m_RBObjects.GetSize(), "CRigidBodyWorld::CreateRigidBodyWorld must destroy the world before creating a new one.");
 	Assert(nHintRBs > 0 && nHintContacts > 0, "CRigidBodyWorld::CreateRigidBodyWorld must enter nonzero values for the hints.");
 
+	m_RigidBodies.Reserve(nHintRBs);
 	m_RBObjects.Reserve(nHintRBs);
 	m_RBContactPoints.Reserve(nHintContacts);
 	m_ContactPoints.Reserve(nHintContacts);
@@ -26,13 +27,16 @@ void CRigidBodyWorld::CreateRigidBodyWorld(UINT nHintRBs, UINT nHintContacts, bo
 }
 
 UINT CRigidBodyWorld::AddRigidBody(CMesh * pMesh, float scale, float mass, const Vector3F & pos, const Matrix4x4F & rot, const Vector3F & linVel, const Vector3F & angVel,
-		float elasticity, float mu, const Vector3F & force, const Vector3F & torque, char * szLevelSet, UINT uiTriPerOct, CRigidBody::GeometryType type, SMaterial * pOverrideMaterial)
+	float elasticity, float mu, const Vector3F & force, const Vector3F & torque, char * szLevelSet, UINT uiTriPerOct, CRigidBody::GeometryType type, SMaterial * pOverrideMaterial)
 {
-	SRBObject rbo;
+	m_RBObjects.PushBack();
+	SRBObject & rbo = m_RBObjects.GetBack();
+
 	rbo.bUsed = 0;
 	rbo.bActive = 1;
 	rbo.bDenter = 0;
-	CRigidBody & r = rbo.rB;
+	m_RigidBodies.PushBack();
+	CRigidBody & r = m_RigidBodies.GetBack();
 	r.CreateRigidBody(pMesh, scale, mass, m_Gravity, m_TimeStepSize, m_MaxVelocity, szLevelSet, uiTriPerOct, m_bUseHierarchicalLevelSet, type, pOverrideMaterial);
 	r.m_Pos = pos;
 	r.m_Rot = rot;
@@ -43,8 +47,38 @@ UINT CRigidBodyWorld::AddRigidBody(CMesh * pMesh, float scale, float mass, const
 	r.m_Force = force;
 	r.m_Torque = torque;
 	rbo.bConstrainCM = 0;
+	rbo.rB.AddRigidBody(&r);
 
-	m_RBObjects.PushBack(rbo);
+	m_pRBObject = m_RBObjects.GetData();
+
+	m_RBType = type;
+
+	return m_RBObjects.GetSize()-1;
+}
+
+UINT CRigidBodyWorld::AddRigidBodyToCluster(UINT uiCluster, CMesh * pMesh, float scale, float mass, const Vector3F & pos, const Matrix4x4F & rot, const Vector3F & linVel, const Vector3F & angVel,
+	float elasticity, float mu, const Vector3F & force, const Vector3F & torque, char * szLevelSet, UINT uiTriPerOct, CRigidBody::GeometryType type, SMaterial * pOverrideMaterial)
+{
+	m_RBObjects.PushBack();
+	SRBObject & rbo = m_RBObjects.GetBack();
+
+	rbo.bUsed = 0;
+	rbo.bActive = 1;
+	rbo.bDenter = 0;
+	m_RigidBodies.PushBack();
+	CRigidBody & r = m_RigidBodies.GetBack();
+	r.CreateRigidBody(pMesh, scale, mass, m_Gravity, m_TimeStepSize, m_MaxVelocity, szLevelSet, uiTriPerOct, m_bUseHierarchicalLevelSet, type, pOverrideMaterial);
+	r.m_Pos = pos;
+	r.m_Rot = rot;
+	r.m_LinVel = linVel;
+	r.m_AngVel = angVel;
+	r.m_Elasticity = elasticity;
+	r.m_Mu = mu;
+	r.m_Force = force;
+	r.m_Torque = torque;
+	rbo.bConstrainCM = 0;
+	rbo.rB.AddRigidBody(&r);
+
 	m_pRBObject = m_RBObjects.GetData();
 
 	m_RBType = type;
@@ -251,13 +285,13 @@ void CRigidBodyWorld::PGSSetup(UINT nContacts)
 			rbC.t2 = t2;
 
 			rbC.rBOk->rB.ComputeFrictionlessImpulsePart(rbC.rBOl->rB, rbC.iPos, nor,
-				rbC.fEffectiveMass[0], rbC.JNA[0], rbC.JWA[0], rbC.JNB[0], rbC.JWB[0]);
+				rbC.effectiveMass[0], rbC.JNA[0], rbC.JWA[0], rbC.JNB[0], rbC.JWB[0]);
 
 			rbC.rBOk->rB.ComputeFrictionImpulsePart(rbC.rBOl->rB, rbC.iPos, t1,
-				rbC.fEffectiveMass[1], rbC.JNA[1], rbC.JWA[1], rbC.JNB[1], rbC.JWB[1]);
+				rbC.effectiveMass[1], rbC.JNA[1], rbC.JWA[1], rbC.JNB[1], rbC.JWB[1]);
 
 			rbC.rBOk->rB.ComputeFrictionImpulsePart(rbC.rBOl->rB, rbC.iPos, t2,
-				rbC.fEffectiveMass[2], rbC.JNA[2], rbC.JWA[2], rbC.JNB[2], rbC.JWB[2]);
+				rbC.effectiveMass[2], rbC.JNA[2], rbC.JWA[2], rbC.JNB[2], rbC.JWB[2]);
 
 			/* Compute velocities for push out */
 			rbC.pushOutVel = (DotXYZ(rbC.JNA[0], rbC.rBOk->rB.m_LinVel) + DotXYZ(rbC.JWA[0], rbC.rBOk->rB.m_AngVel)) +
@@ -269,7 +303,7 @@ void CRigidBodyWorld::PGSSetup(UINT nContacts)
 #define COMPUTE_IMPULSE(index, impulse, pushOut) \
 	fB = (DotXYZ(rbC.JNA[index], rbk.m_LinVel) + DotXYZ(rbC.JWA[index], rbk.m_AngVel)) + \
 			(DotXYZ(rbC.JNB[index], rbl.m_LinVel) + DotXYZ(rbC.JWB[index], rbl.m_AngVel)); \
-	impulse =  rbC.fEffectiveMass[index]*(fB - pushOut);
+	impulse =  rbC.effectiveMass[index]*(fB - pushOut);
 
 void CRigidBodyWorld::SolveLayer(UINT k, VectorNF & lambda, float dt)
 {
@@ -282,7 +316,8 @@ void CRigidBodyWorld::SolveLayer(UINT k, VectorNF & lambda, float dt)
 		CRigidBody & rbk = rbC.rBOk->rB;
 		CRigidBody & rbl = rbC.rBOl->rB;
 		//float mu = 0.0;//1; // Friction is WRONG! box platform
-		float mu = .2f;//Min(rbC.rBOk->rB.m_Mu, rbC.rBOl->rB.m_Mu);
+		float mu = Min(rbC.rBOk->rB.m_Mu, rbC.rBOl->rB.m_Mu);
+		mu = .1f;
 
 		float fB, fImpulseN, fImpulseT1=0, fImpulseT2=0;
 		float fPushOut = .1f*(rbC.pushOutVel*dt + rbC.dist)/dt;
@@ -336,7 +371,7 @@ void CRigidBodyWorld::PGSSolve(UINT nContacts, float dt, bool bNeedSetup)
 	//CArray<Vector3F> rgFrictionImpulses;
 	//rgFrictionImpulses.Reserve(3*nContacts);
 
-	UINT nIterations = 200;
+	UINT nIterations = 100;
 	for (UINT i=0; i<nIterations; i++) {
 		for (UINT k=0, end=m_ContactLayers.GetSize(); k<end; k++)
 			SolveLayer(k, lambda, dt);
@@ -349,7 +384,7 @@ void CRigidBodyWorld::PGSSolve(UINT nContacts, float dt, bool bNeedSetup)
 
 	/* Shock propagation */
 	lambda.Set(0);
-	/*for (UINT i=0; i<nIterations/10 + 1; i++) {
+	for (UINT i=0; i<nIterations/2 + 1; i++) {
 		for (UINT k=0, end=m_ContactLayers.GetSize(); k<end; k++) {
 			SolveLayer(k, lambda, dt);
 
@@ -366,11 +401,11 @@ void CRigidBodyWorld::PGSSolve(UINT nContacts, float dt, bool bNeedSetup)
 			pRBObjects[i].rB.SetStatic(0);
 		}
 		
-		/* Position constraints 
+		/* Position constraints */
 		for (UINT k=0, end=m_RBObjects.GetSize(); k<end; k++) {
 			ApplyCMConstraint(m_RBObjects[k], dt);
 		}
-	}*/
+	}
 
 	lambda.DestroyVector();
 	//rgFrictionImpulses.Clear();
@@ -452,7 +487,7 @@ void CRigidBodyWorld::UpdateRigidBodies(float dt, const Vector3F & gAcel)
 
 		/* Post stab stuff*/
 		if (nContacts) {
-			m_bUsePushOut = 1;
+			m_bUsePushOut = 0;
 			m_pRBObject[1];
 			PGSSolve(nContacts, dtSubStep, 0);
 		}

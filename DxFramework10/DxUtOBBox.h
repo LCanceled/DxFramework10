@@ -63,6 +63,7 @@ public:
 	float VolumeW();
 	float SurfaceAreaW();
 
+	Vector3F & GetCenterL() {return m_CenterL;}
 	Vector3F & GetCenterW() {return m_CenterW;}
 	Vector3F & GetHalfWidthsW() {return m_HalfWidthsW;}
 	Vector3F & GetRotVecW(UINT uiIndex);

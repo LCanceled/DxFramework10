@@ -808,11 +808,38 @@ bool COBBox::OBBoxIntersectW(COBBox & oBB, Matrix4x4F & rot, Vector3F & tns, FLO
 
 bool COBBox::OBBoxIntersectRelativeW(SRay & rayRelative, bool bSegment, SRayIntersectData * pInter0, SRayIntersectData * pInter1)
 {
+	/*tmin = 0.0f; // set to -FLT_MAX to get first hit on line
+	float tmax = FLT_MAX; // set to max distance ray can travel (for segment)
+
+	// For all three slabs
+	for (int i = 0; i < 3; i++) {
+		if (Abs(d[i]) < EPSILON) {
+			// Ray is parallel to slab. No hit if origin not within slab
+			if (p[i] < a.min[i] || p[i] > a.max[i]) return 0;
+		}
+		else {
+			// Compute intersection t value of ray with near and far plane of slab
+			float ood = 1.0f / d[i];
+			float t1 = (a.min[i] - p[i]) * ood;
+			float t2 = (a.max[i] - p[i]) * ood;
+			// Make t1 be intersection with near plane, t2 with far plane
+			if (t1 > t2) Swap(t1, t2);
+			// Compute the intersection of slab intersection intervals
+			if (t1 > tmin) tmin = t1;
+			if (t2 > tmax) tmax = t2;
+			// Exit with no collision as soon as slab intersection becomes empty
+			if (tmin > tmax) return 0;
+		}
+	}
+	// Ray intersects all 3 slabs. Return point (q) and intersection t value (tmin)
+	q = p + d * tmin;
+	return 1;*/
+
 	/* Real Time Collision Detection */
 	Vector3F & p = rayRelative.p;
 	Vector3F & d = rayRelative.d;
 	float tMin = 0;
-	float tMax = bSegment ? 1.f : FLT_MAX;
+	float tMax = 1;//FLT_MAX;
 	const float eps = 1e-4;
 
 	for (UINT i=0; i<3; i++) {
@@ -827,12 +854,13 @@ bool COBBox::OBBoxIntersectRelativeW(SRay & rayRelative, bool bSegment, SRayInte
 				Swap(t1, t2);
 			}
 
-			tMin = Max(tMin, t1);
+			tMin = Max(tMin, t1); 
 			tMax = Min(tMax, t2);
 
 			if (tMin > tMax) return 0;
 		}
 	}
+
 	if (pInter0) {
 		pInter0->t = tMin;
 		pInter0->pos = rayRelative.p + tMin*rayRelative.d;

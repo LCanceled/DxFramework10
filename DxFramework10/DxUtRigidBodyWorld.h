@@ -29,7 +29,7 @@ private:
 		
 		/* Cached solver info */
 		Vector3F t1, t2;
-		float fEffectiveMass[3];
+		float effectiveMass[3];
 		Vector3F JNA[3];
 		Vector3F JWA[3];
 		Vector3F JNB[3];
@@ -40,7 +40,7 @@ private:
 		WORD bActive;
 		int iHeight;
 		UINT uiLayer;
-		CRigidBody rB;
+		CRigidBodyCluster rB;
 		CArray<SRBContact*> RBCPs;
 		bool bConstrainCM;
 		bool bDenter;
@@ -50,6 +50,8 @@ private:
 		CArray<SRBContact> RBCPs;
 		CArray<SRBObject*> RBObjs;
 	};
+
+	CArray<CRigidBody> m_RigidBodies;
 
 	CArray<SRBObject> m_RBObjects;
 	/* This is the pointer to the head of the RBObject array */
@@ -88,6 +90,11 @@ public:
 	UINT AddRigidBody(CMesh * pMesh, float scale, float mass, const Vector3F & pos, const Matrix4x4F & rot, const Vector3F & linVel, const Vector3F & angVel,
 		float elasticity, float mu, const Vector3F & force, const Vector3F & torque, char * szLevelSet, UINT uiTriPerOct,
 		CRigidBody::GeometryType type=CRigidBody::GT_TRIANGLE_MESH, SMaterial * pOverrideMaterial=NULL);
+	
+	UINT AddRigidBodyToCluster(UINT uiCluster, CMesh * pMesh, float scale, float mass, const Vector3F & pos, const Matrix4x4F & rot, const Vector3F & linVel, const Vector3F & angVel,
+		float elasticity, float mu, const Vector3F & force, const Vector3F & torque, char * szLevelSet, UINT uiTriPerOct,
+		CRigidBody::GeometryType type=CRigidBody::GT_TRIANGLE_MESH, SMaterial * pOverrideMaterial=NULL);
+
 	void DisableRigidBody(UINT uiId);
 	void EnableRigidBody(UINT uiId);
 
@@ -117,8 +124,7 @@ public:
 inline void CRigidBodyWorld::DrawRigidBodies(CCamera * pCam, SLightDir & light, UINT uiShaderPass)
 {
 	for (UINT i=0, end=m_RBObjects.GetSize(); i<end; i++) {
-		m_RBObjects[i].rB.GetMesh()->SetupDraw(pCam, light);
-		m_RBObjects[i].rB.GetMesh()->DrawAllSubsets(pCam, m_pRBObject[i].rB.GetWorldMatrix(), uiShaderPass, m_RBObjects[i].rB.GetOverrideMaterial());
+		m_RBObjects[i].rB.Draw(pCam, light, uiShaderPass);
 	}
 }
 

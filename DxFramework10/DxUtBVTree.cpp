@@ -3,6 +3,7 @@
 #include "DxUtMesh.h"
 #include "TriTriTest.h"
 #include "DxUtPolygon.h"
+#include "DxUtCollisionGraphics.h"
 #include <map>
 
 //For use in BVTree Intersect and
